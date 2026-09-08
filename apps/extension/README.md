@@ -18,6 +18,11 @@ Fluxo de autenticação: o PWA (`ExtensionBridge`) entrega um token de sessão
 curto via `chrome.runtime.sendMessage`; a extensão manda esse token no header
 do `POST /api/sync`.
 
+Além do sync, o content script injeta um item **"PDI+"** na barra de navegação
+da plataforma (ao lado de "Instruções de PDI") que abre o PWA. É só um `<a>`
+adicionado ao DOM — não lê nem envia dados —, então pode ser a primeira coisa
+a funcionar na Rodada 3.
+
 > **Antes de rodar o content script contra a plataforma real do CESAR:**
 > validar com TI/Segurança. Até lá, testar só contra uma página HTML local
 > com atributos `data-pdi-*` (ver docs/TEST-CHECKLIST.md, seção 7).
