@@ -11,14 +11,18 @@
 
 ## 0. Pré-requisitos de ambiente
 
-- [ ] `.env.local` com `MONGODB_URI`, `AUTH_SECRET`, `GOOGLE_CLIENT_ID`,
-      `GOOGLE_CLIENT_SECRET` preenchidos
-- [ ] Cluster MongoDB Atlas acessível (IP liberado / whitelist)
+- [ ] `apps/web/.env.local` com `MONGODB_URI`, `MONGODB_DB`, `AUTH_SECRET`,
+      `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` preenchidos (ver `docs/SETUP.md`)
+- [ ] Credencial OAuth no Google Cloud com redirect
+      `http://localhost:3000/api/auth/callback/google`
+- [ ] Cluster MongoDB Atlas acessível (IP liberado / whitelist `0.0.0.0/0` em dev)
 - [ ] Índices criados na coleção `pdis`:
   - [ ] `{ userId: 1 }` único
   - [ ] `{ shareId: 1 }` único + sparse
+  - (o helper `ensureIndexes()` em `apps/web/src/lib/pdi-repo.ts` cria os dois)
 - [ ] `pnpm install` na raiz do monorepo sem erro
-- [ ] `pnpm --filter web dev` sobe em `localhost:3000` sem erro no console
+- [ ] `pnpm test` — testes de `@pdi-mais/core` passam (merge idempotente)
+- [ ] `pnpm dev` sobe em `localhost:3000` sem erro no console
 
 ---
 
@@ -159,7 +163,7 @@
 > Alguns destes só funcionam em build de produção (`pnpm build && pnpm start`),
 > não em `pnpm dev` — o service worker se comporta diferente em dev.
 
-- [ ] `pnpm --filter web build && pnpm --filter web start`
+- [ ] `pnpm build && pnpm start`
 - [ ] Chrome DevTools → Application → Manifest: mostra nome, ícones,
       `theme_color` corretos
 - [ ] Chrome DevTools → Application → Service Workers: `sw.js`

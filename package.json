@@ -1,0 +1,16 @@
+{
+  "name": "pdi-mais",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @pdi-mais/web dev",
+    "build": "pnpm --filter @pdi-mais/web build",
+    "start": "pnpm --filter @pdi-mais/web start",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test"
+  }
+}
