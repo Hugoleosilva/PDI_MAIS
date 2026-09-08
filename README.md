@@ -10,6 +10,7 @@ com sincronização via extensão de navegador e insights via Gemini.
 - [`docs/PDI-PLUS-SPEC.md`](docs/PDI-PLUS-SPEC.md) — especificação técnica completa
 - [`docs/PROJECT-INSTRUCTIONS.md`](docs/PROJECT-INSTRUCTIONS.md) — instruções para o Claude Project
 - [`docs/KICKOFF-PROMPT.md`](docs/KICKOFF-PROMPT.md) — prompts para iniciar o desenvolvimento
+- [`docs/TEST-CHECKLIST.md`](docs/TEST-CHECKLIST.md) — checklist de testes manuais do MVP
 
 ## Como usar com o Claude Project
 
