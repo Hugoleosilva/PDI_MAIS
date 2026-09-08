@@ -1,5 +1,15 @@
-/** Estado de uma ação ou área do PDI. */
+/** Estado canônico de uma ação ou área. Os rótulos em PT vivem em labels.ts. */
 export type Status = "todo" | "doing" | "done";
+
+/** Tipo da área de desenvolvimento (campo "Tipo" na plataforma). */
+export type AreaKind = "desenvolver" | "potencializar";
+
+/** Tipo da ação (campo "Tipo de ação" na plataforma). */
+export type ActionKind =
+  | "desafio_profissional"
+  | "treinamento_estudo"
+  | "mentoria_feedback"
+  | "outro";
 
 /** Posição manual de um nó no canvas. */
 export interface NodeLayout {
@@ -21,6 +31,7 @@ export interface Action {
   /** Determinístico: hash de (título da área + título da ação) normalizados. */
   id: string;
   title: string;
+  kind: ActionKind;
   description?: string;
   status: Status;
   /** ISO date, formato YYYY-MM-DD. */
@@ -33,16 +44,21 @@ export interface Area {
   /** Determinístico: hash do título da área normalizado. */
   id: string;
   title: string;
-  /** Derivado das ações (ver deriveAreaStatus). */
+  kind: AreaKind;
+  /** Status derivado das ações (ver deriveAreaStatus). */
   status: Status;
   order: number;
+  /** Comentário/observação da área — abre ao clicar no nó (estilo FigJam). */
+  description?: string;
   actions: Action[];
   layout?: NodeLayout;
 }
 
 export interface PdiRoot {
+  /** Nome do ciclo, ex.: "PDI 2026". */
   title: string;
-  note?: string;
+  /** Trilha / tema do PDI, ex.: "Desenvolvimento Fullstack". Subtítulo do nó raiz. */
+  track?: string;
 }
 
 /** Um documento por usuário na coleção `pdis`. */

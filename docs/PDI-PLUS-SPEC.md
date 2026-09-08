@@ -126,37 +126,49 @@ Vercel). Ações:
 
 Um documento por usuário, coleção `pdis`:
 
+Fonte de verdade em código: [`packages/core/src/types.ts`](../packages/core/src/types.ts).
+Rótulos da plataforma ⇄ valores canônicos: `packages/core/src/labels.ts`.
+
 ```ts
 type Status = "todo" | "doing" | "done";
+//  plataforma AÇÃO:  "Não iniciado" | "Em progresso" | "Finalizado"
+//  plataforma ÁREA:  "Não iniciada" | "Em progresso" | "Finalizada"  (feminino)
+
+type AreaKind   = "desenvolver" | "potencializar";
+type ActionKind = "desafio_profissional" | "treinamento_estudo"
+                | "mentoria_feedback" | "outro";
 
 interface PdiDoc {
   _id: ObjectId;
   userId: string;          // Google sub — índice único
   shareId: string | null;  // slug aleatório p/ link read-only
   updatedAt: Date;
-  syncedAt: Date | null;   // último sync bem-sucedido da extensão
+  syncedAt: Date | null;   // último sync vindo da extensão
   root: {
-    title: string;         // objetivo geral de carreira
-    note?: string;
+    title: string;         // nome do ciclo, ex.: "PDI 2026"
+    track?: string;         // trilha/tema, ex.: "Desenvolvimento Fullstack"
   };
   areas: Area[];
 }
 
 interface Area {
-  id: string;              // estável entre syncs (hash do título)
-  title: string;           // ex.: "Backend", "Arquitetura", "UX"
-  status: Status;          // derivado das ações
+  id: string;              // determinístico (cyrb53 do título normalizado)
+  title: string;
+  kind: AreaKind;
+  status: Status;          // DERIVADO das ações (nunca setado direto)
   order: number;
+  description?: string;    // comentário estilo FigJam, abre ao clicar no nó
   actions: Action[];
   layout?: { x: number; y: number };  // posição manual no canvas
 }
 
 interface Action {
-  id: string;
+  id: string;              // determinístico: hash(título da área + título da ação)
   title: string;
+  kind: ActionKind;
   description?: string;
   status: Status;
-  dueDate?: string;        // ISO 8601
+  dueDate?: string;        // "YYYY-MM-DD" (plataforma mostra DD/MM/AA)
   source: "extension" | "manual";
   layout?: { x: number; y: number };
 }
@@ -165,10 +177,13 @@ interface Action {
 **Regras**
 - `id` de área/ação é **determinístico** (hash do título normalizado) para
   o sync ser _upsert_ e não duplicar nem perder posição manual.
-- `status` de uma área = `done` se todas as ações `done`; `doing` se
-  alguma `doing` ou mix; senão `todo`.
-- Campos `layout` e `description` editados manualmente **não** são
-  sobrescritos pelo sync (merge por `id`).
+- `status` da área = `done` se todas as ações `done`; `doing` se alguma
+  `doing` ou mix done+todo; senão `todo`.
+- **Progresso da área** = ações `done` ÷ total. **Progresso geral** = _média
+  dos percentuais das áreas_ (não é total global de ações).
+- Ícone de relógio na plataforma = a área tem alguma ação `todo`.
+- Campos `layout` e `description` (de área e ação) **não** são sobrescritos
+  pelo sync. Ação com `source: "manual"` mantém status e prazo do usuário.
 
 ---
 

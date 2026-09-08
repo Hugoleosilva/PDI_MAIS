@@ -31,10 +31,10 @@ export interface MergeOptions {
  * Garantias:
  * - Idempotente: rodar duas vezes com o mesmo payload dá o mesmo resultado
  *   (IDs determinísticos).
- * - Preserva edições locais: `layout` (posição no canvas), `description` e
- *   `root.note` nunca são apagados pelo sync.
+ * - Preserva edições locais: `layout` (posição no canvas) e `description` (de
+ *   área e ação) nunca são apagados pelo sync.
  * - Ações com `source: "manual"` mantêm status e prazo do usuário; o sync só
- *   atualiza o título.
+ *   atualiza o título e o tipo.
  * - Áreas/ações que sumiram do payload NÃO aparecem no resultado (o PDI espelha
  *   a fonte). TODO(Rodada 5): preservar nós criados manualmente.
  */
@@ -61,8 +61,10 @@ export function mergePdi(
       return {
         id: aid,
         title: incoming.title,
+        kind: incoming.kind,
         status: isManual && prev ? prev.status : incoming.status,
-        dueDate: isManual && prev ? prev.dueDate : (incoming.dueDate ?? prev?.dueDate),
+        dueDate:
+          isManual && prev ? prev.dueDate : (incoming.dueDate ?? prev?.dueDate),
         description: prev?.description ?? incoming.description,
         source: prev?.source ?? opts.source,
         layout: prev?.layout,
@@ -72,8 +74,10 @@ export function mergePdi(
     return {
       id,
       title: incomingArea.title,
+      kind: incomingArea.kind,
       status: deriveAreaStatus(actions),
       order: index,
+      description: prevArea?.description ?? incomingArea.description,
       actions,
       layout: prevArea?.layout,
     };
@@ -84,7 +88,7 @@ export function mergePdi(
     shareId: existing?.shareId ?? null,
     root: {
       title: payload.root.title,
-      note: existing?.root.note ?? payload.root.note,
+      track: payload.root.track ?? existing?.root.track,
     },
     updatedAt: now,
     syncedAt: opts.source === "extension" ? now : (existing?.syncedAt ?? null),

@@ -35,12 +35,16 @@ pnpm typecheck    # checa tipos em todos os pacotes
 
 Detalhes de configuração (MongoDB Atlas, Google OAuth): [`docs/SETUP.md`](docs/SETUP.md).
 
+Para ver o canvas com dados de exemplo (só em dev): logado, acesse
+`http://localhost:3000/api/dev/seed` — ele grava o PDI de exemplo e volta
+para o canvas.
+
 ## Estado atual
 
 | Rodada | Escopo | Status |
 |---|---|---|
 | 1 | Fundação: Auth Google + Mongo + `/api/sync` + `/api/pdi` | ✅ feito |
-| 2 | Canvas read-only (React Flow) | ⬜ |
+| 2 | Canvas read-only (React Flow) + painel de detalhe | ✅ feito |
 | 3 | Extensão Manifest V3 | ⬜ |
 | 4 | Drawer + edição, deep link Gemini, modo gestor, PWA | ⬜ |
 | 5 | Import manual (plano B) | ⬜ |
