@@ -11,28 +11,27 @@
 
 ## 0. Pré-requisitos de ambiente
 
-- [ ] `apps/web/.env.local` com `MONGODB_URI`, `MONGODB_DB`, `AUTH_SECRET`,
+- [x] `apps/web/.env.local` com `MONGODB_URI`, `MONGODB_DB`, `AUTH_SECRET`,
       `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` preenchidos (ver `docs/SETUP.md`)
-- [ ] Credencial OAuth no Google Cloud com redirect
+- [x] Credencial OAuth no Google Cloud com redirect
       `http://localhost:3000/api/auth/callback/google`
-- [ ] Cluster MongoDB Atlas acessível (IP liberado / whitelist `0.0.0.0/0` em dev)
+- [x] Cluster MongoDB Atlas acessível (ping ok)
 - [ ] Índices criados na coleção `pdis`:
   - [ ] `{ userId: 1 }` único
   - [ ] `{ shareId: 1 }` único + sparse
   - (o helper `ensureIndexes()` em `apps/web/src/lib/pdi-repo.ts` cria os dois)
-- [ ] `pnpm install` na raiz do monorepo sem erro
-- [ ] `pnpm test` — testes de `@pdi-mais/core` passam (merge idempotente)
-- [ ] `pnpm dev` sobe em `localhost:3000` sem erro no console
+- [x] `pnpm install` na raiz do monorepo sem erro
+- [x] `pnpm test` — testes de `@pdi-mais/core` passam (5/5)
+- [x] `pnpm dev` sobe em `localhost:3000` sem erro no console
 
 ---
 
 ## 1. Fundação — Auth (Rodada 1)
 
-- [ ] Acessar `/` deslogado → redireciona pro login (ou mostra estado
-      "faça login")
-- [ ] Login com Google funciona e volta pro app
-- [ ] Sessão persiste depois de dar refresh na página
-- [ ] Logout funciona e bloqueia rotas de novo
+- [x] Acessar `/` deslogado → mostra estado "Entrar com Google"
+- [x] Login com Google funciona e volta pro app
+- [x] Sessão persiste depois de dar refresh na página
+- [x] Logout funciona e bloqueia rotas de novo
 
 **Bugs encontrados:**
 ```
