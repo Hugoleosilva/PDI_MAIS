@@ -597,19 +597,21 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [undo, clearSelection]);
 
+  const selectGroup = useCallback(
+    (frameNodeId: string, gid: string) => {
+      const members = new Set<string>(memberIdsOf(gid));
+      setNodes((ns) =>
+        ns.map((n) => ({ ...n, selected: n.id === frameNodeId || members.has(n.id) })),
+      );
+      setSelected(null);
+    },
+    [memberIdsOf, setNodes],
+  );
+
   const onNodeClick = useCallback(
     (_: unknown, node: Node) => {
       if (node.type === "group") {
-        const gid = (node.data as { groupId: string }).groupId;
-        const g = groups.find((x) => x.id === gid);
-        const members = new Set<string>(g?.areaIds ?? []);
-        for (const area of pdi.areas) {
-          if (members.has(area.id)) area.actions.forEach((a) => members.add(a.id));
-        }
-        setNodes((ns) =>
-          ns.map((n) => ({ ...n, selected: n.id === node.id || members.has(n.id) })),
-        );
-        setSelected(null);
+        selectGroup(node.id, (node.data as { groupId: string }).groupId);
         return;
       }
       if (node.type === "root" || node.type === "band") {
@@ -618,7 +620,16 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
       }
       setSelected(node as PdiNode);
     },
-    [groups, pdi.areas, setNodes],
+    [selectGroup],
+  );
+
+  const onNodeDoubleClick = useCallback(
+    (_: unknown, node: Node) => {
+      if (node.type === "group") {
+        selectGroup(node.id, (node.data as { groupId: string }).groupId);
+      }
+    },
+    [selectGroup],
   );
 
   const selectedGroupId = nodes.find((n) => n.type === "group" && n.selected)?.id;
@@ -636,6 +647,7 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
         onConnect={onConnect}
         onEdgesDelete={onEdgesDelete}
         onNodeClick={onNodeClick}
+        onNodeDoubleClick={onNodeDoubleClick}
         onNodeDragStart={onNodeDragStart}
         onNodeDrag={onNodeDrag}
         onNodeDragStop={onNodeDragStop}
@@ -714,7 +726,7 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
             style={{ borderColor: brand.border, color: brand.muted }}
           >
             {groupsActive
-              ? "Arraste a área para dentro de um bloco · clique no bloco p/ mover o conjunto · duplo clique no título renomeia"
+              ? "Mover o bloco leva os cards junto · redimensione as bordas p/ pegar/soltar cards · Espaço+arraste = navegar"
               : "Arraste da bolinha de um card até outro para conectar · Shift+arraste seleciona vários · Ctrl+Z desfaz"}
           </div>
         </Panel>

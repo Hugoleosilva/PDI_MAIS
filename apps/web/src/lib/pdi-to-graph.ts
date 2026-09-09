@@ -373,9 +373,6 @@ export function computeFrames(
         deletable: false,
         connectable: false,
         zIndex: 0,
-        // corpo "clique-através" (deixa passar o pan); a barra de título e as
-        // alças de redimensionar reativam os eventos.
-        style: { pointerEvents: "none" as const },
         data: {
           groupId: grp.id,
           title: grp.title,

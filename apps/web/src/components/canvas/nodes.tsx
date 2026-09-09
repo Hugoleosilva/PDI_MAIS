@@ -284,7 +284,7 @@ export function GroupNode({ data, selected }: NodeProps & { data: GroupNodeData 
         onResizeEnd={(_, p) => data.onResize?.({ x: p.x, y: p.y, w: p.width, h: p.height })}
       />
       <div
-        className="h-full w-full rounded-2xl"
+        className="h-full w-full cursor-move rounded-2xl"
         style={{
           borderWidth: selected ? 3 : 2,
           borderStyle: "dashed",
@@ -294,8 +294,8 @@ export function GroupNode({ data, selected }: NodeProps & { data: GroupNodeData 
       >
         <Handle type="target" position={Position.Left} style={{ ...handleStyle, opacity: 0 }} />
         <div
-          className="flex w-fit max-w-full cursor-move items-center gap-2 rounded-tl-[14px] rounded-br-xl px-3 py-1.5"
-          style={{ pointerEvents: "auto", background: data.color }}
+          className="flex w-fit max-w-full items-center gap-2 rounded-tl-[14px] rounded-br-xl px-3 py-1.5"
+          style={{ background: data.color }}
         >
           <button
             type="button"
