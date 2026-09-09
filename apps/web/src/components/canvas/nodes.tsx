@@ -266,7 +266,11 @@ export function BandNode({ data }: NodeProps & { data: BandNodeData }) {
   );
 }
 
-/** Frame de agrupamento (bloco estratégico). Fica atrás dos cards. */
+/**
+ * Frame de agrupamento (bloco estratégico), atrás dos cards.
+ * O corpo do frame com áreas é "clique-através" (deixa passar pan/seleção);
+ * só a barra de título é interativa. Bloco vazio é todo arrastável.
+ */
 export function GroupNode({ data, selected }: NodeProps & { data: GroupNodeData }) {
   return (
     <div
@@ -280,10 +284,14 @@ export function GroupNode({ data, selected }: NodeProps & { data: GroupNodeData 
         background: `${data.color}0D`,
       }}
     >
-      <div className="flex items-center gap-2 px-3 py-1.5">
+      <Handle type="target" position={Position.Left} style={{ ...handleStyle, opacity: 0 }} />
+      <div
+        className="flex w-fit max-w-full items-center gap-2 rounded-br-lg px-3 py-1.5"
+        style={{ pointerEvents: "auto", background: `${data.color}14` }}
+      >
         <button
           type="button"
-          title="Trocar a cor"
+          title="Trocar a cor do bloco"
           onClick={(e) => {
             e.stopPropagation();
             data.onRecolor?.();
@@ -298,6 +306,11 @@ export function GroupNode({ data, selected }: NodeProps & { data: GroupNodeData 
           className="text-[13px] font-bold"
           style={{ color: data.color }}
         />
+        {data.empty && (
+          <span className="text-[11px] font-normal" style={{ color: brand.muted }}>
+            · arraste uma área pra cá
+          </span>
+        )}
       </div>
     </div>
   );

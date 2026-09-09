@@ -101,6 +101,22 @@ export function mergePdi(
     areaIds: g.areaIds.filter((id) => areaIds.has(id)),
   }));
 
+  // Canvas: preserva posições de nós que ainda existem e frames de blocos vivos.
+  const groupIds = new Set(groups.map((g) => g.id));
+  const prevCanvas = existing?.canvas;
+  const canvas: PdiDoc["canvas"] = prevCanvas
+    ? {
+        positions: Object.fromEntries(
+          Object.entries(prevCanvas.positions ?? {}).filter(
+            ([id]) => nodeIds.has(id),
+          ),
+        ),
+        frames: Object.fromEntries(
+          Object.entries(prevCanvas.frames ?? {}).filter(([id]) => groupIds.has(id)),
+        ),
+      }
+    : undefined;
+
   return {
     userId: opts.userId,
     shareId: existing?.shareId ?? null,
@@ -113,5 +129,6 @@ export function mergePdi(
     areas,
     links,
     groups,
+    ...(canvas ? { canvas } : {}),
   };
 }

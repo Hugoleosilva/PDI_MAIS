@@ -82,6 +82,7 @@ export interface GroupNodeData extends Record<string, unknown> {
   color: string;
   width: number;
   height: number;
+  empty: boolean;
   onRename?: (v: string) => void;
   onRecolor?: () => void;
 }
@@ -169,10 +170,37 @@ function structuralEdge(source: string, target: string, status: Status): Edge {
   };
 }
 
-function treeEdges(pdi: PdiDoc): Edge[] {
+/** Arestas usadas pelo Dagre para o cálculo (sempre a árvore completa). */
+function dagreEdges(pdi: PdiDoc): Edge[] {
   const edges: Edge[] = [];
   for (const area of pdi.areas) {
     edges.push(structuralEdge(ROOT_ID, area.id, area.status));
+    for (const action of area.actions) {
+      edges.push(structuralEdge(area.id, action.id, action.status));
+    }
+  }
+  return edges;
+}
+
+/**
+ * Arestas exibidas. Com blocos: a raiz liga no FRAME de cada bloco (menos
+ * linhas cruzando); áreas soltas ligam direto na raiz. Ações sempre ligam na área.
+ */
+function renderEdges(pdi: PdiDoc, groups: PdiGroup[]): Edge[] {
+  const areaToGroup = groupOfArea(groups);
+  const edges: Edge[] = [];
+  const framesLinked = new Set<string>();
+
+  for (const area of pdi.areas) {
+    const gid = areaToGroup.get(area.id);
+    if (gid) {
+      if (!framesLinked.has(gid)) {
+        edges.push(structuralEdge(ROOT_ID, `frame-${gid}`, "doing"));
+        framesLinked.add(gid);
+      }
+    } else {
+      edges.push(structuralEdge(ROOT_ID, area.id, area.status));
+    }
     for (const action of area.actions) {
       edges.push(structuralEdge(area.id, action.id, action.status));
     }
@@ -200,10 +228,15 @@ export function linkEdge(link: PdiLink): Edge {
 // Layouts
 // ---------------------------------------------------------------------------
 
-function treeLayout(pdi: PdiDoc, dir: Direction, groups: PdiGroup[]) {
+function treeLayout(
+  pdi: PdiDoc,
+  dir: Direction,
+  groups: PdiGroup[],
+  positions: Record<string, { x: number; y: number }>,
+  framesBoxes: Record<string, FrameBox>,
+) {
   const { root, areaNodes, actionNodes } = baseNodes(pdi, dir);
   const nodes = [root, ...areaNodes, ...actionNodes];
-  const edges = treeEdges(pdi);
 
   const areaToGroup = groupOfArea(groups);
   const usedGroups = new Set(
@@ -216,7 +249,7 @@ function treeLayout(pdi: PdiDoc, dir: Direction, groups: PdiGroup[]) {
   g.setGraph({
     rankdir: dir,
     nodesep: dir === "LR" ? 16 : 26,
-    ranksep: dir === "LR" ? 84 : 64,
+    ranksep: dir === "LR" ? 96 : 68,
     marginx: 24,
     marginy: 24,
   });
@@ -232,32 +265,51 @@ function treeLayout(pdi: PdiDoc, dir: Direction, groups: PdiGroup[]) {
       for (const act of area.actions) g.setParent(act.id, gid);
     }
   }
-  for (const e of edges) g.setEdge(e.source, e.target);
+  for (const e of dagreEdges(pdi)) g.setEdge(e.source, e.target);
   Dagre.layout(g);
 
   const positioned = nodes.map((n) => {
-    const { x, y } = g.node(n.id);
     const s = NODE_SIZE[n.type];
+    const saved = positions[n.id];
+    if (saved) return { ...n, position: { ...saved } };
+    const { x, y } = g.node(n.id);
     return { ...n, position: { x: x - s.width / 2, y: y - s.height / 2 } };
-  });
-  return { nodes: positioned as PdiNode[], edges };
+  }) as PdiNode[];
+
+  const frames = computeFrames(positioned, groups, framesBoxes);
+  return {
+    nodes: [...frames, ...positioned] as PdiNode[],
+    edges: renderEdges(pdi, groups),
+  };
 }
 
 const FRAME_PAD = 22;
 const FRAME_TITLE = 34;
-const EMPTY_FRAME = { w: 300, h: 120 };
+export const EMPTY_FRAME = { w: 460, h: 300 };
+
+export type FrameBox = { x: number; y: number; w: number; h: number };
 
 /**
- * Frames dos blocos, calculados a partir das posições atuais dos nós — assim o
- * frame "abraça" os cards mesmo depois de arrastados. Blocos vazios ganham um
- * frame placeholder na coluna da esquerda.
+ * Frames dos blocos:
+ * - bloco com áreas → o frame "abraça" os cards (segue as posições atuais).
+ * - bloco vazio → usa a caixa manual salva (`frameBoxes[id]`) ou um default.
  */
 export function computeFrames(
   nodes: PdiNode[],
   groups: PdiGroup[],
+  frameBoxes: Record<string, FrameBox> = {},
 ): Node<GroupNodeData, "group">[] {
   const areaToGroup = groupOfArea(groups);
   const rects = new Map<string, { minX: number; minY: number; maxX: number; maxY: number }>();
+
+  // referência para posicionar frames vazios sem caixa salva
+  let refX = 0;
+  let refBottom = 0;
+  for (const n of nodes) {
+    const s = NODE_SIZE[n.type as keyof typeof NODE_SIZE] ?? NODE_SIZE.area;
+    refX = Math.min(refX, n.position.x);
+    refBottom = Math.max(refBottom, n.position.y + s.height);
+  }
 
   for (const n of nodes) {
     let gid: string | undefined;
@@ -288,33 +340,45 @@ export function computeFrames(
     .sort((a, b) => a.order - b.order)
     .map((grp) => {
       const r = rects.get(grp.id);
+      const saved = frameBoxes[grp.id];
       let x: number;
       let y: number;
       let width: number;
       let height: number;
+
       if (r) {
+        // bloco com áreas: abraça os cards
         x = r.minX - FRAME_PAD;
         y = r.minY - FRAME_PAD - FRAME_TITLE;
         width = r.maxX - r.minX + FRAME_PAD * 2;
         height = r.maxY - r.minY + FRAME_PAD * 2 + FRAME_TITLE;
+      } else if (saved) {
+        ({ x, y } = { x: saved.x, y: saved.y });
+        width = saved.w;
+        height = saved.h;
       } else {
-        x = -EMPTY_FRAME.w - 120;
-        y = emptyIndex++ * (EMPTY_FRAME.h + 24);
+        x = refX;
+        y = refBottom + 80 + emptyIndex++ * (EMPTY_FRAME.h + 32);
         width = EMPTY_FRAME.w;
         height = EMPTY_FRAME.h;
       }
+
+      const empty = !r;
       return {
         id: `frame-${grp.id}`,
         type: "group" as const,
         position: { x, y },
         width,
         height,
-        selectable: false,
-        draggable: false,
+        selectable: true,
+        draggable: empty,
         deletable: false,
         connectable: false,
-        zIndex: -1,
-        data: { groupId: grp.id, title: grp.title, color: grp.color, width, height },
+        zIndex: 0,
+        // frame com áreas: corpo "clique-através" (a barra de título reativa
+        // os eventos). frame vazio: interativo por inteiro.
+        style: empty ? undefined : { pointerEvents: "none" as const },
+        data: { groupId: grp.id, title: grp.title, color: grp.color, width, height, empty },
       };
     });
 }
@@ -426,7 +490,7 @@ function radialLayout(pdi: PdiDoc) {
   const nodes: PdiNode[] = [
     { ...root, position: { x: -NODE_SIZE.root.width / 2, y: -NODE_SIZE.root.height / 2 } },
   ];
-  const edges = treeEdges(pdi);
+  const edges = renderEdges(pdi, []);
 
   pdi.areas.forEach((area, i) => {
     const ang = -Math.PI / 2 + (i / n) * 2 * Math.PI;
@@ -464,16 +528,24 @@ function radialLayout(pdi: PdiDoc) {
 /** Monta nós + arestas para o layout escolhido. Links manuais ficam por cima. */
 export function layoutGraph(
   pdi: PdiDoc,
-  opts: { layout?: Layout; links?: PdiLink[]; groups?: PdiGroup[] } = {},
+  opts: {
+    layout?: Layout;
+    links?: PdiLink[];
+    groups?: PdiGroup[];
+    positions?: Record<string, { x: number; y: number }>;
+    frameBoxes?: Record<string, FrameBox>;
+  } = {},
 ): { nodes: PdiNode[]; edges: Edge[] } {
   const layout = opts.layout ?? "tree-lr";
   const groups = opts.groups ?? [];
+  const positions = opts.positions ?? {};
+  const frameBoxes = opts.frameBoxes ?? {};
 
   let result: { nodes: PdiNode[]; edges: Edge[] };
   if (layout === "kanban") result = kanbanLayout(pdi);
   else if (layout === "swimlane") result = swimlaneLayout(pdi);
   else if (layout === "radial") result = radialLayout(pdi);
-  else result = treeLayout(pdi, dirFor(layout), groups);
+  else result = treeLayout(pdi, dirFor(layout), groups, positions, frameBoxes);
 
   const linkEdges = (opts.links ?? pdi.links ?? []).map(linkEdge);
   return { nodes: result.nodes, edges: [...result.edges, ...linkEdges] };

@@ -1,5 +1,6 @@
 import {
   mergePdi,
+  type PdiCanvasState,
   type PdiDoc,
   type PdiGroup,
   type PdiLink,
@@ -85,6 +86,12 @@ export async function removeLink(userId: string, id: string): Promise<void> {
 export async function setGroups(userId: string, groups: PdiGroup[]): Promise<void> {
   const col = await collection();
   await col.updateOne({ userId }, { $set: { groups, updatedAt: new Date() } });
+}
+
+/** Salva o estado visual do canvas (posições + frames manuais). */
+export async function setCanvas(userId: string, canvas: PdiCanvasState): Promise<void> {
+  const col = await collection();
+  await col.updateOne({ userId }, { $set: { canvas, updatedAt: new Date() } });
 }
 
 /** Edita campos do nó raiz (title / track). `track: null` remove a trilha. */

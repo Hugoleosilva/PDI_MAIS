@@ -102,4 +102,13 @@ export interface PdiDoc {
   links?: PdiLink[];
   /** Blocos de agrupamento de áreas. */
   groups?: PdiGroup[];
+  /** Estado visual do canvas (posições arrastadas, frames manuais). */
+  canvas?: PdiCanvasState;
+}
+
+export interface PdiCanvasState {
+  /** nodeId -> posição fixada pelo usuário (sobrepõe o auto-layout). */
+  positions?: Record<string, { x: number; y: number }>;
+  /** groupId -> caixa manual do frame (usado para blocos vazios/movidos). */
+  frames?: Record<string, { x: number; y: number; w: number; h: number }>;
 }
