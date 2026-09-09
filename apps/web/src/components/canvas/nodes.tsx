@@ -18,16 +18,28 @@ const handleStyle = { width: 6, height: 6, background: brand.border, border: "no
 const targetPos = (dir: Direction) => (dir === "LR" ? Position.Left : Position.Top);
 const sourcePos = (dir: Direction) => (dir === "LR" ? Position.Right : Position.Bottom);
 
-/** Borda em longhand para não misturar shorthand (`borderLeft`) com `borderColor`. */
-function borderStyle(accent: string, selected?: boolean) {
+/**
+ * Borda 100% em propriedades por lado — sem nenhum atalho (`border`,
+ * `borderColor`, `borderWidth`...) — pra não disparar o warning do React
+ * ao alternar a cor quando `selected` muda.
+ */
+function borderStyle(accent: string, selected?: boolean): React.CSSProperties {
+  const c = selected ? accent : brand.border;
   return {
-    borderStyle: "solid",
-    borderWidth: 1,
-    borderColor: selected ? accent : brand.border,
+    borderTopStyle: "solid",
+    borderRightStyle: "solid",
+    borderBottomStyle: "solid",
+    borderLeftStyle: "solid",
+    borderTopWidth: 1,
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
     borderLeftWidth: 4,
+    borderTopColor: c,
+    borderRightColor: c,
+    borderBottomColor: c,
     borderLeftColor: accent,
     boxShadow: selected ? `0 0 0 2px ${accent}55` : undefined,
-  } as const;
+  };
 }
 
 function Bar({ value, color }: { value: number; color: string }) {
