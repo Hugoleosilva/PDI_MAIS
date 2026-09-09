@@ -612,35 +612,46 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [undo, clearSelection]);
 
-  const selectGroup = useCallback(
-    (frameNodeId: string, gid: string) => {
-      const members = new Set<string>(memberIdsOf(gid));
-      setNodes((ns) =>
-        ns.map((n) => ({ ...n, selected: n.id === frameNodeId || members.has(n.id) })),
-      );
+  const onNodeClick = useCallback((_: unknown, node: Node) => {
+    if (node.type === "group" || node.type === "root" || node.type === "band") {
       setSelected(null);
+      return;
+    }
+    setSelected(node as PdiNode);
+  }, []);
+
+  // Selecionou SÓ um frame de bloco (clique na barra) → puxa os cards dele junto.
+  const selChangeGuard = useRef(false);
+  const onSelectionChange = useCallback(
+    ({ nodes: sel }: { nodes: Node[] }) => {
+      if (selChangeGuard.current) return;
+      if (sel.length === 1 && sel[0].type === "group") {
+        const gid = (sel[0].data as { groupId: string }).groupId;
+        const members = new Set<string>(memberIdsOf(gid));
+        selChangeGuard.current = true;
+        setNodes((ns) =>
+          ns.map((n) =>
+            n.id === sel[0].id || members.has(n.id)
+              ? n.selected
+                ? n
+                : { ...n, selected: true }
+              : n,
+          ),
+        );
+        requestAnimationFrame(() => (selChangeGuard.current = false));
+      }
     },
     [memberIdsOf, setNodes],
   );
 
-  const onNodeClick = useCallback(
-    (_: unknown, node: Node) => {
-      if (node.type === "group") {
-        const gid = (node.data as { groupId: string }).groupId;
-        // roda depois da seleção interna do React Flow, pra a nossa vencer
-        requestAnimationFrame(() => selectGroup(node.id, gid));
-        return;
-      }
-      if (node.type === "root" || node.type === "band") {
-        setSelected(null);
-        return;
-      }
-      setSelected(node as PdiNode);
-    },
-    [selectGroup],
-  );
-
-  const onNodeDoubleClick = onNodeClick;
+  // Caixa de seleção (Shift+arraste) nunca deve "pegar" um frame de bloco.
+  const onSelectionEnd = useCallback(() => {
+    setNodes((ns) =>
+      ns.filter((n) => n.type === "group" && n.selected).length && ns.some((n) => n.selected && n.type !== "group")
+        ? ns.map((n) => (n.type === "group" ? { ...n, selected: false } : n))
+        : ns,
+    );
+  }, [setNodes]);
 
   const selectedGroupId = nodes.find((n) => n.type === "group" && n.selected)?.id;
   const selectedGroup = groups.find((g) => `frame-${g.id}` === selectedGroupId);
@@ -657,7 +668,8 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
         onConnect={onConnect}
         onEdgesDelete={onEdgesDelete}
         onNodeClick={onNodeClick}
-        onNodeDoubleClick={onNodeDoubleClick}
+        onSelectionChange={onSelectionChange}
+        onSelectionEnd={onSelectionEnd}
         onNodeDragStart={onNodeDragStart}
         onNodeDrag={onNodeDrag}
         onNodeDragStop={onNodeDragStop}
@@ -712,33 +724,46 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
         {selectedGroup && (
           <Panel position="top-right">
             <div
-              className="flex items-center gap-2 rounded-md border bg-white px-3 py-1.5 text-xs shadow-sm"
+              className="flex flex-col gap-1 rounded-md border bg-white px-3 py-2 text-xs shadow-sm"
               style={{ borderColor: brand.border }}
             >
-              <span className="h-2.5 w-2.5 rounded-full" style={{ background: selectedGroup.color }} />
-              <span className="max-w-[160px] truncate font-medium" style={{ color: brand.ink }}>
-                {selectedGroup.title}
-              </span>
-              <button
-                type="button"
-                onClick={() => deleteGroup(selectedGroup.id)}
-                className="rounded px-1.5 py-0.5 font-medium hover:bg-neutral-100"
-                style={{ color: "#DC2626" }}
-              >
-                ✕ Excluir bloco
-              </button>
+              <div className="flex items-center gap-2">
+                <span className="h-2.5 w-2.5 rounded-full" style={{ background: selectedGroup.color }} />
+                <span className="max-w-[180px] truncate font-semibold" style={{ color: brand.ink }}>
+                  {selectedGroup.title}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => deleteGroup(selectedGroup.id)}
+                  className="ml-auto rounded px-1.5 py-0.5 font-medium hover:bg-neutral-100"
+                  style={{ color: "#DC2626" }}
+                >
+                  ✕ Excluir
+                </button>
+              </div>
+              <div style={{ color: brand.muted }}>
+                Alças ▪ nas 4 pontas redimensionam · o que ficar dentro entra no bloco
+              </div>
             </div>
           </Panel>
         )}
 
         <Panel position="bottom-center">
           <div
-            className="rounded-full border bg-white/90 px-3 py-1 text-[11px] shadow-sm backdrop-blur"
+            className="max-w-[92vw] rounded-full border bg-white/95 px-4 py-1.5 text-center text-[11px] shadow-sm backdrop-blur"
             style={{ borderColor: brand.border, color: brand.muted }}
           >
-            {groupsActive
-              ? "Barra colorida do bloco: clique seleciona tudo · arraste move tudo junto · Shift+arraste = caixa de seleção"
-              : "Arraste da bolinha de um card até outro para conectar · Shift+arraste seleciona vários · Ctrl+Z desfaz"}
+            {groupsActive ? (
+              <>
+                <b style={{ color: brand.ink }}>Barra colorida do bloco:</b> clicar = seleciona ·
+                arrastar = move o bloco + cards &nbsp;·&nbsp;
+                <b style={{ color: brand.ink }}>Card:</b> arrastar = move só ele ·
+                <b style={{ color: brand.ink }}> Shift+arrastar</b> = caixa de seleção ·
+                <b style={{ color: brand.ink }}> Espaço</b> = navegar
+              </>
+            ) : (
+              "Arraste da bolinha de um card até outro para conectar · Shift+arraste seleciona vários · Ctrl+Z desfaz"
+            )}
           </div>
         </Panel>
       </ReactFlow>

@@ -277,14 +277,21 @@ export function GroupNode({ data, selected }: NodeProps & { data: GroupNodeData 
       <NodeResizer
         color={data.color}
         isVisible={selected}
-        minWidth={280}
-        minHeight={180}
-        handleStyle={{ pointerEvents: "all", width: 10, height: 10 }}
-        lineStyle={{ pointerEvents: "all", borderWidth: 6, opacity: 0 }}
+        minWidth={300}
+        minHeight={200}
+        handleStyle={{
+          pointerEvents: "all",
+          width: 16,
+          height: 16,
+          borderRadius: 4,
+          border: "2px solid white",
+          background: data.color,
+        }}
+        lineStyle={{ pointerEvents: "all", borderWidth: 12, opacity: 0 }}
         onResizeEnd={(_, p) => data.onResize?.({ x: p.x, y: p.y, w: p.width, h: p.height })}
       />
       <div
-        className="h-full w-full rounded-2xl"
+        className="h-full w-full overflow-hidden rounded-2xl"
         style={{
           borderWidth: selected ? 3 : 2,
           borderStyle: selected ? "solid" : "dashed",
@@ -295,7 +302,7 @@ export function GroupNode({ data, selected }: NodeProps & { data: GroupNodeData 
       >
         <Handle type="target" position={Position.Left} style={{ ...handleStyle, opacity: 0 }} />
         <div
-          className="grp-handle flex w-fit max-w-full cursor-move items-center gap-2 rounded-tl-[14px] rounded-br-xl px-3 py-1.5"
+          className="grp-handle flex w-full cursor-move items-center gap-2 px-3 py-2"
           style={{ background: data.color, pointerEvents: "auto" }}
         >
           <button
@@ -305,16 +312,23 @@ export function GroupNode({ data, selected }: NodeProps & { data: GroupNodeData 
               e.stopPropagation();
               data.onRecolor?.();
             }}
-            className="nodrag nopan h-3 w-3 shrink-0 rounded-full border border-white/70 bg-white/30"
+            className="nodrag nopan h-3.5 w-3.5 shrink-0 rounded-full border border-white/70 bg-white/30"
           />
           <EditableText
             value={data.title}
             placeholder="Bloco"
             onCommit={data.onRename}
-            className="text-[13px] font-bold text-white"
+            className="flex-1 text-[13px] font-bold text-white"
           />
           {data.empty && (
-            <span className="text-[11px] font-normal text-white/80">· solte cards aqui dentro</span>
+            <span className="shrink-0 text-[11px] font-normal text-white/80">
+              solte cards aqui
+            </span>
+          )}
+          {selected && (
+            <span className="shrink-0 text-[11px] font-medium text-white/80">
+              arraste p/ mover tudo
+            </span>
           )}
         </div>
       </div>
