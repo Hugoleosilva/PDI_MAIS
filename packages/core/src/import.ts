@@ -18,6 +18,7 @@ const HEADER_HINTS = [
   "titulo",
   "título",
   "descri",
+  "tipo",
 ];
 const KNOWN_STATUS =
   /(n[aã]o inici|em progresso|em andamento|finaliz|conclu|^\s*todo\s*$|^\s*doing\s*$|^\s*done\s*$)/i;
@@ -101,11 +102,18 @@ const clean = (v: string | undefined) => {
 /**
  * Converte uma tabela colada/CSV numa payload de PDI.
  *
- * Colunas (nessa ordem):
- *   `Área`, `Ação`, `Status`, `Prazo`, `Descrição da ação`, `Descrição da área`
- * Só as duas primeiras são obrigatórias. Descrições longas: envolva em "aspas"
- * (podem ter vírgulas e quebras de linha). Separador (`,` `;` tab) e cabeçalho
- * são detectados sozinhos. Linhas problemáticas viram aviso — o resto entra.
+ * Colunas, nesta ordem:
+ *   1. Área de desenvolvimento          (obrigatória)
+ *   2. Descrição da área
+ *   3. Ação                             (obrigatória)
+ *   4. Descrição da ação
+ *   5. Tipo da ação                     (Desafio profissional | Treinamento e estudo | Mentoria e feedbacks)
+ *   6. Prazo da ação                    (DD/MM/AAAA, DD/MM/AA ou AAAA-MM-DD)
+ *   7. Status da ação                   (Não iniciado | Em progresso | Finalizado)
+ *
+ * Descrições longas: envolva em "aspas" (podem ter vírgulas e quebras de linha).
+ * Separador (`,` `;` tab) e cabeçalho são detectados sozinhos. Linhas
+ * problemáticas viram aviso — o resto entra (sync parcial).
  */
 export function parseImportTable(
   text: string,
@@ -132,11 +140,12 @@ export function parseImportTable(
   dataRows.forEach((cells, i) => {
     const n = i + 1;
     const areaTitle = clean(cells[0]);
-    const actionTitle = clean(cells[1]);
-    const statusRaw = (cells[2] ?? "").trim();
-    const dateRaw = (cells[3] ?? "").trim();
-    const actionDesc = clean(cells[4]);
-    const areaDesc = clean(cells[5]);
+    const areaDesc = clean(cells[1]);
+    const actionTitle = clean(cells[2]);
+    const actionDesc = clean(cells[3]);
+    const kindRaw = clean(cells[4]);
+    const dateRaw = (cells[5] ?? "").trim();
+    const statusRaw = (cells[6] ?? "").trim();
 
     if (!areaTitle) {
       warnings.push(`Linha ${n}: área vazia — ignorada.`);
@@ -156,7 +165,7 @@ export function parseImportTable(
 
     const action: NonNullable<Area["actions"]>[number] = {
       title: actionTitle,
-      kind: "Treinamento e estudo",
+      kind: kindRaw ?? "Treinamento e estudo",
       status: "todo",
     };
     if (actionDesc) action.description = actionDesc;

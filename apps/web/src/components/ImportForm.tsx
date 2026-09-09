@@ -5,11 +5,11 @@ import { useRouter } from "next/navigation";
 import { parseImportTable, type ImportResult } from "@pdi-mais/core";
 import { brand } from "@/lib/theme";
 
-const EXAMPLE = `Área,Ação,Status,Prazo,Descrição da ação,Descrição da área
-Tecnologias de Backend,Udemy: Node.js do Zero a Maestria,Em progresso,03/10/2026,"Fundamentos de Node, Express e boas práticas de API.","Consolidar o backend do ecossistema."
-Tecnologias de Backend,Télos: NodeJS + MongoDB,Finalizado,15/05/2026,,
-Tecnologias de Frontend,Udemy: Next.js do Zero ao Avançado,Em progresso,30/10/2026,,
-Inglês Técnico,Hashtag: Curso de Inglês,Não iniciado,,,`;
+const EXAMPLE = `Área de desenvolvimento,Descrição da área,Ação,Descrição da ação,Tipo da ação,Prazo,Status
+Tecnologias de Backend,"Consolidar o backend do ecossistema.",Udemy: Node.js do Zero a Maestria,"Fundamentos de Node, Express e boas práticas de API.",Treinamento e estudo,03/10/2026,Em progresso
+Tecnologias de Backend,,Télos: NodeJS + MongoDB,,Treinamento e estudo,15/05/2026,Finalizado
+Tecnologias de Frontend,,Udemy: Next.js do Zero ao Avançado,,Treinamento e estudo,30/10/2026,Em progresso
+Inglês Técnico,,Hashtag: Curso de Inglês,,Treinamento e estudo,,Não iniciado`;
 
 export function ImportForm({
   initialTitle,
@@ -96,11 +96,16 @@ export function ImportForm({
 
       <div>
         <label className={label}>
-          Tabela — 1 linha por ação:{" "}
-          <code>Área, Ação, Status, Prazo, Descrição da ação, Descrição da área</code>
+          Tabela — 1 linha por ação, nesta ordem:
+          <br />
+          <code className="text-[11px]">
+            Área de desenvolvimento, Descrição da área, Ação, Descrição da ação, Tipo da ação,
+            Prazo, Status
+          </code>
           <br />
           <span className="font-normal text-neutral-400">
-            só Área e Ação são obrigatórias · descrição longa: envolva em &quot;aspas&quot;
+            só Área e Ação são obrigatórias · a descrição da área vai na 1ª linha dela ·
+            descrição longa: envolva em &quot;aspas&quot;
           </span>
         </label>
         <textarea
@@ -179,6 +184,7 @@ export function ImportForm({
                   {a.actions?.map((ac, j) => (
                     <li key={j}>
                       {ac.title}
+                      {ac.kind ? ` · ${ac.kind}` : ""}
                       {ac.status ? ` · ${ac.status}` : ""}
                       {ac.dueDate ? ` · ${ac.dueDate}` : ""}
                       {ac.description ? " · 📝" : ""}
