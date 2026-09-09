@@ -271,7 +271,8 @@ export function BandNode({ data }: NodeProps & { data: BandNodeData }) {
  * Corpo "clique-através" (deixa o pan passar); a barra de título move o frame
  * e as alças redimensionam. Quem cair dentro do frame entra no bloco.
  */
-export function GroupNode({ data, selected }: NodeProps & { data: GroupNodeData }) {
+export function GroupNode({ data }: NodeProps & { data: GroupNodeData }) {
+  const selected = data.isSelected;
   return (
     <>
       <NodeResizer

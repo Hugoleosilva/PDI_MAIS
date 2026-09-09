@@ -83,6 +83,7 @@ export interface GroupNodeData extends Record<string, unknown> {
   width: number;
   height: number;
   empty: boolean;
+  isSelected: boolean;
   onRename?: (v: string) => void;
   onRecolor?: () => void;
   onResize?: (box: FrameBox) => void;
@@ -368,7 +369,8 @@ export function computeFrames(
         position: { x: box.x, y: box.y },
         width: box.w,
         height: box.h,
-        selectable: true,
+        // RF nunca seleciona o frame; a seleção do bloco é um estado à parte.
+        selectable: false,
         draggable: true,
         deletable: false,
         connectable: false,
@@ -380,6 +382,7 @@ export function computeFrames(
           width: box.w,
           height: box.h,
           empty: grp.areaIds.length === 0,
+          isSelected: false,
         },
       };
     });

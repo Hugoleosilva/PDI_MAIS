@@ -93,6 +93,8 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
   const [layoutKind, setLayoutKind] = useState<Layout>("tree-lr");
   const [showGroups, setShowGroups] = useState(true);
   const [selected, setSelected] = useState<PdiNode | null>(null);
+  // Seleção do BLOCO — estado à parte, não mexe na seleção de cards do RF.
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [links, setLinks] = useState<PdiLink[]>(pdi.links ?? []);
   const [groups, setGroups] = useState<PdiGroup[]>(pdi.groups ?? []);
   const [positions, setPositions] = useState<PosMap>(pdi.canvas?.positions ?? {});
@@ -301,6 +303,7 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
       });
       const { [id]: _d, ...rest } = frameBoxesRef.current;
       frameBoxesRef.current = rest;
+      setSelectedGroupId((cur) => (cur === id ? null : cur));
     },
     [groups, commitGroups],
   );
@@ -479,8 +482,8 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
   const onNodeDragStart = useCallback(
     (_: unknown, node: Node, dragged: Node[]) => {
       frameDrag.current = null;
-      // arraste SOLO da barra do frame (sem multi-seleção) → carrega os membros
-      if (node.type === "group" && dragged.length === 1) {
+      // arrastar o frame → carrega os cards que estão dentro dele
+      if (node.type === "group") {
         const gid = (node.data as { groupId: string }).groupId;
         const members = memberIdsOf(gid);
         const map: PosMap = {};
@@ -609,6 +612,7 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
   const clearSelection = useCallback(() => {
     setNodes((ns) => (ns.some((n) => n.selected) ? ns.map((n) => ({ ...n, selected: false })) : ns));
     setEdges((es) => (es.some((e) => e.selected) ? es.map((e) => ({ ...e, selected: false })) : es));
+    setSelectedGroupId(null);
   }, [setNodes, setEdges]);
 
   useEffect(() => {
@@ -619,6 +623,10 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
         setSelected(null);
         clearSelection();
       }
+      if ((e.key === "Delete" || e.key === "Backspace") && selectedGroupId) {
+        e.preventDefault();
+        deleteGroup(selectedGroupId);
+      }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
         e.preventDefault();
         undo();
@@ -626,41 +634,23 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [undo, clearSelection]);
-
-  const deselectFrames = useCallback(() => {
-    setNodes((ns) =>
-      ns.some((n) => n.type === "group" && n.selected)
-        ? ns.map((n) => (n.type === "group" ? { ...n, selected: false } : n))
-        : ns,
-    );
-  }, [setNodes]);
-
-  const selectGroupWithMembers = useCallback(
-    (frameNodeId: string, gid: string) => {
-      const members = new Set<string>(memberIdsOf(gid));
-      setNodes((ns) =>
-        ns.map((n) => ({ ...n, selected: n.id === frameNodeId || members.has(n.id) })),
-      );
-      setSelected(null);
-    },
-    [memberIdsOf, setNodes],
-  );
+  }, [undo, clearSelection, selectedGroupId, deleteGroup]);
 
   const onNodeClick = useCallback(
     (_: unknown, node: Node) => {
       if (node.type === "group") {
-        selectGroupWithMembers(node.id, (node.data as { groupId: string }).groupId);
+        setSelectedGroupId((node.data as { groupId: string }).groupId);
+        setSelected(null);
         return;
       }
-      deselectFrames();
+      setSelectedGroupId(null);
       if (node.type === "root" || node.type === "band") {
         setSelected(null);
         return;
       }
       setSelected(node as PdiNode);
     },
-    [selectGroupWithMembers, deselectFrames],
+    [],
   );
 
   // Duplo clique em qualquer lugar de um bloco (área vazia) seleciona o bloco.
@@ -670,17 +660,17 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
     if (!el) return;
     const onDbl = (e: MouseEvent) => {
       const p = screenToFlowPosition({ x: e.clientX, y: e.clientY });
-      const frames = nodesRef.current
+      const hit = nodesRef.current
         .filter((n) => n.type === "group")
         .map((n) => ({ n, area: ((n.width as number) ?? 1) * ((n.height as number) ?? 1) }))
-        .sort((a, b) => a.area - b.area);
-      const hit = frames.find(
-        ({ n }) =>
-          p.x >= n.position.x &&
-          p.x <= n.position.x + ((n.width as number) ?? 0) &&
-          p.y >= n.position.y &&
-          p.y <= n.position.y + ((n.height as number) ?? 0),
-      );
+        .sort((a, b) => a.area - b.area)
+        .find(
+          ({ n }) =>
+            p.x >= n.position.x &&
+            p.x <= n.position.x + ((n.width as number) ?? 0) &&
+            p.y >= n.position.y &&
+            p.y <= n.position.y + ((n.height as number) ?? 0),
+        );
       if (!hit) return;
       const onCard = nodesRef.current.some(
         (n) =>
@@ -691,19 +681,32 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
           p.y <= n.position.y + NODE_SIZE[n.type as "area" | "action"].height,
       );
       if (onCard) return;
-      selectGroupWithMembers(hit.n.id, (hit.n.data as { groupId: string }).groupId);
+      setSelectedGroupId((hit.n.data as { groupId: string }).groupId);
     };
     el.addEventListener("dblclick", onDbl);
     return () => el.removeEventListener("dblclick", onDbl);
-  }, [screenToFlowPosition, selectGroupWithMembers]);
+  }, [screenToFlowPosition]);
 
-  const selectedGroupId = nodes.find((n) => n.type === "group" && n.selected)?.id;
-  const selectedGroup = groups.find((g) => `frame-${g.id}` === selectedGroupId);
+  const selectedGroup = groups.find((g) => g.id === selectedGroupId);
+
+  // Injeta o "selecionado" nos frames sem passar pela seleção do React Flow.
+  const rfNodes = useMemo(
+    () =>
+      nodes.map((n) =>
+        n.type === "group"
+          ? ({
+              ...n,
+              data: { ...n.data, isSelected: (n.data as { groupId: string }).groupId === selectedGroupId },
+            } as PdiNode)
+          : n,
+      ),
+    [nodes, selectedGroupId],
+  );
 
   return (
     <div ref={wrapperRef} className="relative h-full w-full">
       <ReactFlow
-        nodes={nodes}
+        nodes={rfNodes}
         edges={edges}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
@@ -712,7 +715,6 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
         onConnect={onConnect}
         onEdgesDelete={onEdgesDelete}
         onNodeClick={onNodeClick}
-        onSelectionStart={deselectFrames}
         onNodeDragStart={onNodeDragStart}
         onNodeDrag={onNodeDrag}
         onNodeDragStop={onNodeDragStop}
