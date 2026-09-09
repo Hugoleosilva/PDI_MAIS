@@ -2,10 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Handle, Position, type NodeProps } from "@xyflow/react";
-import { ACTION_KIND_LABEL, formatPercent } from "@pdi-mais/core";
+import { formatPercent } from "@pdi-mais/core";
 import type {
   ActionNodeData,
   AreaNodeData,
+  BandNodeData,
   Direction,
   RootNodeData,
 } from "@/lib/pdi-to-graph";
@@ -203,13 +204,15 @@ export function ActionNode({ data, selected }: NodeProps & { data: ActionNodeDat
           <span className="text-[11px]" style={{ color: brand.muted }}>Prazo: {formatDate(data.dueDate)}</span>
         )}
       </div>
-      <div className="line-clamp-3 text-[13px] font-semibold leading-snug" style={{ color: brand.ink }}>
+      <div className="line-clamp-2 text-[13px] font-semibold leading-snug" style={{ color: brand.ink }}>
         {data.title}
       </div>
-      <div className="mt-auto flex items-center justify-between">
-        <span className="text-[11px]" style={{ color: brand.muted }}>{ACTION_KIND_LABEL[data.kind]}</span>
+      <div className="mt-auto flex items-center justify-between gap-2">
+        <span className="truncate text-[11px]" style={{ color: brand.muted }} title={data.areaTitle}>
+          {data.areaTitle}
+        </span>
         {data.description && (
-          <span className="text-[11px] font-medium" style={{ color: brand.orange }}>ver descrição ↗</span>
+          <span className="shrink-0 text-[11px] font-medium" style={{ color: brand.orange }}>descrição ↗</span>
         )}
       </div>
       <Handle type="target" position={targetPos(data.dir)} style={handleStyle} />
@@ -218,4 +221,53 @@ export function ActionNode({ data, selected }: NodeProps & { data: ActionNodeDat
   );
 }
 
-export const nodeTypes = { root: RootNode, area: AreaNode, action: ActionNode };
+/** Cabeçalho de coluna (Kanban) ou faixa de fundo (Raias). */
+export function BandNode({ data }: NodeProps & { data: BandNodeData }) {
+  if (data.variant === "lane") {
+    return (
+      <div
+        className="flex items-start rounded-xl"
+        style={{
+          width: data.width,
+          height: data.height,
+          background: `${data.accent}0F`,
+          borderLeftWidth: 4,
+          borderLeftStyle: "solid",
+          borderLeftColor: data.accent,
+        }}
+      >
+        <div className="max-w-[190px] p-3">
+          <div className="line-clamp-2 text-[13px] font-semibold" style={{ color: brand.ink }}>
+            {data.label}
+          </div>
+          {data.sub && (
+            <div className="text-[11px]" style={{ color: brand.muted }}>{data.sub} concluído</div>
+          )}
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div
+      className="flex items-center justify-between rounded-lg px-3"
+      style={{ width: data.width, height: data.height, background: `${data.accent}1A` }}
+    >
+      <span className="text-[13px] font-bold" style={{ color: data.accent }}>{data.label}</span>
+      {data.sub && (
+        <span
+          className="rounded-full px-2 py-0.5 text-[11px] font-semibold"
+          style={{ background: "white", color: brand.muted }}
+        >
+          {data.sub}
+        </span>
+      )}
+    </div>
+  );
+}
+
+export const nodeTypes = {
+  root: RootNode,
+  area: AreaNode,
+  action: ActionNode,
+  band: BandNode,
+};

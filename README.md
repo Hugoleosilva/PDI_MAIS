@@ -44,10 +44,12 @@ para o canvas.
 | Rodada | Escopo | Status |
 |---|---|---|
 | 1 | Fundação: Auth Google + Mongo + `/api/sync` + `/api/pdi` | ✅ feito |
-| 2 | Canvas read-only (React Flow) + painel de detalhe | ✅ feito |
+| 2 | Canvas (React Flow): 5 formatos, painel, edição da raiz, conexões n8n, guias de alinhamento | ✅ feito |
 | 3 | Extensão Manifest V3 | ⬜ |
-| 4 | Drawer + edição, deep link Gemini, modo gestor, PWA | ⬜ |
+| 4 | Edição no canvas, persistir layout, deep link Gemini, modo gestor, PWA | ⬜ |
 | 5 | Import manual (plano B) | ⬜ |
+
+Detalhe do que foi entregue: [`docs/PROGRESSO.md`](docs/PROGRESSO.md).
 
 ## Documentação
 

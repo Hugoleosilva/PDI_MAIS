@@ -14,13 +14,22 @@ import {
   type Connection,
   type Edge,
   type Node,
+  type NodeChange,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import type { PdiDoc, PdiLink } from "@pdi-mais/core";
-import { layoutGraph, linkEdge, type Direction, type PdiNode } from "@/lib/pdi-to-graph";
+import {
+  LAYOUT_LABEL,
+  layoutGraph,
+  linkEdge,
+  type Layout,
+  type PdiNode,
+} from "@/lib/pdi-to-graph";
+import { getHelperLines } from "@/lib/helper-lines";
 import { brand } from "@/lib/theme";
 import { nodeTypes } from "./nodes";
 import { edgeTypes } from "./edges";
+import { HelperLines } from "./HelperLines";
 import { DetailPanel } from "./DetailPanel";
 
 type PosMap = Record<string, { x: number; y: number }>;
@@ -32,25 +41,25 @@ type UndoEntry =
   | { kind: "link-add"; link: PdiLink }
   | { kind: "link-remove"; link: PdiLink };
 
-function ToolButton({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
+const LAYOUTS: Layout[] = ["tree-lr", "tree-tb", "kanban", "swimlane", "radial"];
+
+function Group({ children }: { children: React.ReactNode }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="px-2.5 py-1 text-xs font-medium"
-      style={{ background: "white", color: brand.muted }}
+    <div
+      className="flex overflow-hidden rounded-md border shadow-sm"
+      style={{ borderColor: brand.border }}
     >
       {children}
-    </button>
+    </div>
   );
 }
 
-function DirButton({
+function TBtn({
   active,
   onClick,
   children,
 }: {
-  active: boolean;
+  active?: boolean;
   onClick: () => void;
   children: React.ReactNode;
 }) {
@@ -58,7 +67,7 @@ function DirButton({
     <button
       type="button"
       onClick={onClick}
-      className="px-2.5 py-1 text-xs font-medium"
+      className="whitespace-nowrap px-2.5 py-1 text-xs font-medium"
       style={{ background: active ? brand.ink : "white", color: active ? "white" : brand.muted }}
     >
       {children}
@@ -66,16 +75,8 @@ function DirButton({
   );
 }
 
-function Group({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex overflow-hidden rounded-md border shadow-sm" style={{ borderColor: brand.border }}>
-      {children}
-    </div>
-  );
-}
-
 function Canvas({ pdi }: { pdi: PdiDoc }) {
-  const [direction, setDirection] = useState<Direction>("LR");
+  const [layoutKind, setLayoutKind] = useState<Layout>("tree-lr");
   const [selected, setSelected] = useState<PdiNode | null>(null);
   const [links, setLinks] = useState<PdiLink[]>(pdi.links ?? []);
   const linksRef = useRef(links);
@@ -84,12 +85,19 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
   }, [links]);
 
   const layout = useMemo(
-    () => layoutGraph(pdi, { direction, links: [] }),
-    [pdi, direction],
+    () => layoutGraph(pdi, { layout: layoutKind, links: [] }),
+    [pdi, layoutKind],
   );
   const [nodes, setNodes, onNodesChange] = useNodesState(layout.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(layout.edges);
+  const nodesRef = useRef(nodes);
+  useEffect(() => {
+    nodesRef.current = nodes;
+  }, [nodes]);
   const { fitView } = useReactFlow();
+
+  const [lineH, setLineH] = useState<number>();
+  const [lineV, setLineV] = useState<number>();
 
   const undoStack = useRef<UndoEntry[]>([]);
   const [canUndo, setCanUndo] = useState(false);
@@ -100,16 +108,6 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
   }, []);
 
   // ---- conexões manuais ----
-  const apiAddLink = (link: PdiLink) =>
-    fetch("/api/pdi/link", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(link),
-    }).catch(() => {});
-
-  const apiRemoveLink = (id: string) =>
-    fetch(`/api/pdi/link?id=${encodeURIComponent(id)}`, { method: "DELETE" }).catch(() => {});
-
   const addLink = useCallback(
     (link: PdiLink, undoable: boolean) => {
       setLinks((ls) => [
@@ -117,7 +115,11 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
         link,
       ]);
       if (undoable) pushUndo({ kind: "link-add", link });
-      void apiAddLink(link);
+      void fetch("/api/pdi/link", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(link),
+      }).catch(() => {});
     },
     [pushUndo],
   );
@@ -127,7 +129,7 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
       const link = linksRef.current.find((l) => l.id === id);
       setLinks((ls) => ls.filter((l) => l.id !== id));
       if (link && undoable) pushUndo({ kind: "link-remove", link });
-      void apiRemoveLink(id);
+      void fetch(`/api/pdi/link?id=${encodeURIComponent(id)}`, { method: "DELETE" }).catch(() => {});
     },
     [pushUndo],
   );
@@ -214,10 +216,10 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
   const reorganize = useCallback(() => {
     undoStack.current = [];
     setCanUndo(false);
-    const g = layoutGraph(pdi, { direction });
+    const g = layoutGraph(pdi, { layout: layoutKind });
     setNodes(withHandlers(g.nodes));
     requestAnimationFrame(() => fitView({ padding: 0.12, duration: 250 }));
-  }, [pdi, direction, withHandlers, setNodes, fitView]);
+  }, [pdi, layoutKind, withHandlers, setNodes, fitView]);
 
   const undo = useCallback(() => {
     const entry = undoStack.current.pop();
@@ -242,6 +244,28 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
     [pushUndo],
   );
 
+  // Interceptador: aplica snap das guias de alinhamento a um nó sendo arrastado.
+  const handleNodesChange = useCallback(
+    (changes: NodeChange<PdiNode>[]) => {
+      setLineH(undefined);
+      setLineV(undefined);
+      const c = changes[0];
+      if (changes.length === 1 && c.type === "position" && c.dragging && c.position) {
+        const guides = getHelperLines(c, nodesRef.current);
+        if (guides.snapPosition.x != null) c.position.x = guides.snapPosition.x;
+        if (guides.snapPosition.y != null) c.position.y = guides.snapPosition.y;
+        setLineH(guides.horizontal);
+        setLineV(guides.vertical);
+      }
+      onNodesChange(changes);
+    },
+    [onNodesChange],
+  );
+  const onNodeDragStop = useCallback(() => {
+    setLineH(undefined);
+    setLineV(undefined);
+  }, []);
+
   const clearSelection = useCallback(() => {
     setNodes((ns) => (ns.some((n) => n.selected) ? ns.map((n) => ({ ...n, selected: false })) : ns));
     setEdges((es) => (es.some((e) => e.selected) ? es.map((e) => ({ ...e, selected: false })) : es));
@@ -265,7 +289,11 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
   }, [undo, clearSelection]);
 
   const onNodeClick = useCallback((_: unknown, node: Node) => {
-    setSelected(node.type === "root" ? null : (node as PdiNode));
+    if (node.type === "root" || node.type === "band") {
+      setSelected(null);
+      return;
+    }
+    setSelected(node as PdiNode);
   }, []);
 
   return (
@@ -275,12 +303,13 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
         edges={edges}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
-        onNodesChange={onNodesChange}
+        onNodesChange={handleNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         onEdgesDelete={onEdgesDelete}
         onNodeClick={onNodeClick}
         onNodeDragStart={onNodeDragStart}
+        onNodeDragStop={onNodeDragStop}
         onSelectionDragStart={onSelectionDragStart}
         onPaneClick={() => {
           setSelected(null);
@@ -298,18 +327,22 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
         <Background gap={20} color="#D4D4D8" />
         <Controls showInteractive={false} />
         <MiniMap pannable zoomable nodeStrokeWidth={2} />
+        <HelperLines horizontal={lineH} vertical={lineV} />
 
         <Panel position="top-left">
           <div className="flex flex-wrap items-center gap-2">
             <Group>
-              <DirButton active={direction === "LR"} onClick={() => setDirection("LR")}>Horizontal</DirButton>
-              <DirButton active={direction === "TB"} onClick={() => setDirection("TB")}>Vertical</DirButton>
+              {LAYOUTS.map((l) => (
+                <TBtn key={l} active={layoutKind === l} onClick={() => setLayoutKind(l)}>
+                  {LAYOUT_LABEL[l]}
+                </TBtn>
+              ))}
             </Group>
             <Group>
-              <ToolButton onClick={undo}>
+              <TBtn onClick={undo}>
                 <span style={{ opacity: canUndo ? 1 : 0.4 }}>↩ Desfazer</span>
-              </ToolButton>
-              <ToolButton onClick={reorganize}>⟳ Reorganizar</ToolButton>
+              </TBtn>
+              <TBtn onClick={reorganize}>⟳ Reorganizar</TBtn>
             </Group>
           </div>
         </Panel>
