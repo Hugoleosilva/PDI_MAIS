@@ -115,18 +115,30 @@ Recalculado ao mover/redimensionar frame ou mover um card (`recapture`).
 
 ## ✅ Rodada 5 — Import manual
 
-Página **`/import`**: nome do ciclo + trilha, textarea pra colar a tabela
-(ou upload de `.csv`), pré-visualização com contagem e avisos, confirmar →
-canvas.
+Página **`/import`** com duas abas:
 
-- Formato: `Área, Ação, Status, Prazo` (uma linha por ação).
-- Separador detectado sozinho: vírgula, `;` ou tab (copiar do Excel).
-- Cabeçalho ignorado. Prazo aceita `DD/MM/AAAA`, `DD/MM/AA`, `AAAA-MM-DD`.
-- **Sync parcial**: linha com área/ação vazia é ignorada com aviso; status
-  desconhecido vira "Não iniciado" com aviso; prazo inválido → ação sem prazo.
-- `POST /api/import` (`source: "manual"`) → reusa `applySync`, então o merge
-  preserva posições/blocos/edições manuais. Reimportar = atualizar o PDI.
-- `parseImportTable` em `packages/core/src/import.ts` (testado).
+**Preencher à mão** (`ManualBuilder`) — formulário campo a campo: área +
+descrição, e por ação título · descrição · tipo · prazo · status. Vem
+pré-preenchido com o PDI atual (dá pra editar/completar). Salvar → canvas.
+
+**Colar tabela / CSV** (`ImportForm`) — cola a tabela ou sobe `.csv`,
+pré-visualização com contagem e avisos, confirmar → canvas.
+- Colunas: `Área, Descrição da área, Ação, Descrição da ação, Tipo, Prazo, Status`.
+- Parser RFC 4180 (`parseImportTable`): campos entre `"aspas"` com vírgula/
+  quebra de linha; separador (`,` `;` tab) e cabeçalho detectados sozinhos.
+- **Sync parcial**: linha com área/ação vazia → ignorada com aviso; status
+  desconhecido → "Não iniciado" com aviso; prazo inválido → ação sem prazo.
+
+`POST /api/import` (`source: "manual"`) reusa `applySync` → o merge preserva
+posições, blocos e edições manuais. Reimportar = atualizar o PDI.
+
+## ✅ Extra — Insight para 1-on-1 (Gemini)
+
+Botão **"✦ Insight p/ 1-on-1"** no cabeçalho → modal com o prompt montado a
+partir do PDI (`buildInsightPrompt` em `packages/core/src/insight.ts`):
+ciclo, trilha, progresso, áreas com status/%/descrição, ações com status/prazo/
+contexto, e o pedido de resumo executivo (entregas · riscos de prazo · lacunas ·
+argumentos para pedir apoio). Botões: copiar prompt · abrir gemini.google.com.
 
 ---
 
@@ -135,6 +147,6 @@ canvas.
 | Rodada | Escopo |
 |---|---|
 | 3 | Extensão Chrome (Manifest V3): parser do DOM da plataforma + sync 1-clique + link "PDI+" na navbar. **Validar com TI/Segurança do CESAR antes.** |
-| 4 | Edição no canvas (status/prazo/nota), deep link Gemini, modo gestor (share link), PWA |
+| 4 (resto) | Editar status/prazo/nota clicando no card (o `DetailPanel` hoje é read-only); modo gestor (share link `/r/[shareId]`); PWA. |
 
 Checklist de teste manual: [`TEST-CHECKLIST.md`](TEST-CHECKLIST.md).
