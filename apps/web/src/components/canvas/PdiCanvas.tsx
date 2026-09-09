@@ -578,17 +578,11 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
       setLineH(undefined);
       setLineV(undefined);
 
-      // caixa de seleção: se vários cards estão sendo selecionados, não deixa
-      // o frame de bloco entrar junto
-      const cardsSelecting = changes.some(
-        (ch) => ch.type === "select" && ch.selected && !String(ch.id).startsWith("frame-"),
+      // o React Flow NUNCA seleciona um frame de bloco sozinho (só o nosso
+      // código, via clique/2 cliques). assim a caixa de seleção pega só cards.
+      const filtered = changes.filter(
+        (ch) => !(ch.type === "select" && ch.selected && String(ch.id).startsWith("frame-")),
       );
-      const filtered = cardsSelecting
-        ? changes.filter(
-            (ch) =>
-              !(ch.type === "select" && ch.selected && String(ch.id).startsWith("frame-")),
-          )
-        : changes;
 
       const c = filtered[0];
       if (
@@ -634,6 +628,14 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [undo, clearSelection]);
 
+  const deselectFrames = useCallback(() => {
+    setNodes((ns) =>
+      ns.some((n) => n.type === "group" && n.selected)
+        ? ns.map((n) => (n.type === "group" ? { ...n, selected: false } : n))
+        : ns,
+    );
+  }, [setNodes]);
+
   const selectGroupWithMembers = useCallback(
     (frameNodeId: string, gid: string) => {
       const members = new Set<string>(memberIdsOf(gid));
@@ -648,18 +650,17 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
   const onNodeClick = useCallback(
     (_: unknown, node: Node) => {
       if (node.type === "group") {
-        const gid = (node.data as { groupId: string }).groupId;
-        requestAnimationFrame(() => selectGroupWithMembers(node.id, gid));
-        setSelected(null);
+        selectGroupWithMembers(node.id, (node.data as { groupId: string }).groupId);
         return;
       }
+      deselectFrames();
       if (node.type === "root" || node.type === "band") {
         setSelected(null);
         return;
       }
       setSelected(node as PdiNode);
     },
-    [selectGroupWithMembers],
+    [selectGroupWithMembers, deselectFrames],
   );
 
   // Duplo clique em qualquer lugar de um bloco (área vazia) seleciona o bloco.
@@ -711,6 +712,7 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
         onConnect={onConnect}
         onEdgesDelete={onEdgesDelete}
         onNodeClick={onNodeClick}
+        onSelectionStart={deselectFrames}
         onNodeDragStart={onNodeDragStart}
         onNodeDrag={onNodeDrag}
         onNodeDragStop={onNodeDragStop}
