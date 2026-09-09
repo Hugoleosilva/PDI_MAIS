@@ -279,15 +279,15 @@ export function GroupNode({ data, selected }: NodeProps & { data: GroupNodeData 
         width: data.width,
         height: data.height,
         borderWidth: selected ? 3 : 2,
-        borderStyle: "solid",
+        borderStyle: "dashed",
         borderColor: data.color,
-        background: `${data.color}0D`,
+        background: `${data.color}12`,
       }}
     >
       <Handle type="target" position={Position.Left} style={{ ...handleStyle, opacity: 0 }} />
       <div
-        className="flex w-fit max-w-full items-center gap-2 rounded-br-lg px-3 py-1.5"
-        style={{ pointerEvents: "auto", background: `${data.color}14` }}
+        className="flex w-fit max-w-full items-center gap-2 rounded-tl-[14px] rounded-br-xl px-3 py-1.5"
+        style={{ pointerEvents: "auto", background: data.color }}
       >
         <button
           type="button"
@@ -296,20 +296,16 @@ export function GroupNode({ data, selected }: NodeProps & { data: GroupNodeData 
             e.stopPropagation();
             data.onRecolor?.();
           }}
-          className="nodrag nopan h-3 w-3 shrink-0 rounded-full"
-          style={{ background: data.color }}
+          className="nodrag nopan h-3 w-3 shrink-0 rounded-full border border-white/70 bg-white/30"
         />
         <EditableText
           value={data.title}
           placeholder="Bloco"
           onCommit={data.onRename}
-          className="text-[13px] font-bold"
-          style={{ color: data.color }}
+          className="text-[13px] font-bold text-white"
         />
         {data.empty && (
-          <span className="text-[11px] font-normal" style={{ color: brand.muted }}>
-            · arraste uma área pra cá
-          </span>
+          <span className="text-[11px] font-normal text-white/80">· arraste uma área pra cá</span>
         )}
       </div>
     </div>

@@ -21,6 +21,7 @@ import "@xyflow/react/dist/style.css";
 import {
   GROUP_COLORS,
   groupOfArea,
+  resolveSeedGroups,
   type PdiCanvasState,
   type PdiDoc,
   type PdiGroup,
@@ -131,21 +132,39 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
   const [lineV, setLineV] = useState<number>();
 
   // ---- persistência do canvas (debounce) ----
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
   const saveTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const savedTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const groupsRef = useRef(groups);
+  useEffect(() => void (groupsRef.current = groups), [groups]);
+
   const saveCanvas = useCallback(() => {
     const body: PdiCanvasState = {
       positions: positionsRef.current,
       frames: frameBoxesRef.current,
     };
-    fetch("/api/pdi/canvas", {
-      method: "PUT",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(body),
-    }).catch(() => {});
+    setSaveState("saving");
+    Promise.allSettled([
+      fetch("/api/pdi/canvas", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+      }),
+      fetch("/api/pdi/groups", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ groups: groupsRef.current }),
+      }),
+    ]).finally(() => {
+      setSaveState("saved");
+      clearTimeout(savedTimer.current);
+      savedTimer.current = setTimeout(() => setSaveState("idle"), 2500);
+    });
   }, []);
   const scheduleSave = useCallback(() => {
+    setSaveState("saving");
     clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(saveCanvas, 600);
+    saveTimer.current = setTimeout(saveCanvas, 700);
   }, [saveCanvas]);
 
   // ---- undo ----
@@ -158,16 +177,24 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
   }, []);
 
   // ---- blocos ----
-  const putGroups = (next: PdiGroup[]) =>
-    fetch("/api/pdi/groups", {
-      method: "PUT",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ groups: next }),
-    }).catch(() => {});
-  const commitGroups = useCallback((next: PdiGroup[]) => {
-    setGroups(next);
-    void putGroups(next);
-  }, []);
+  const commitGroups = useCallback(
+    (next: PdiGroup[]) => {
+      setGroups(next);
+      groupsRef.current = next;
+      scheduleSave();
+    },
+    [scheduleSave],
+  );
+
+  const applySuggestedGroups = useCallback(() => {
+    commitGroups(resolveSeedGroups(pdi));
+    setPositions({});
+    positionsRef.current = {};
+    setFrameBoxes({});
+    frameBoxesRef.current = {};
+    if (!showGroups) setShowGroups(true);
+    requestAnimationFrame(() => fitView({ padding: 0.14, duration: 300 }));
+  }, [pdi, commitGroups, showGroups, fitView]);
 
   const renameGroup = useCallback(
     (id: string, title: string) =>
@@ -559,12 +586,18 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
             <Group>
               <TBtn active={showGroups} onClick={() => setShowGroups((v) => !v)}>▦ Blocos</TBtn>
               <TBtn onClick={addGroup}>+ Bloco</TBtn>
+              <TBtn onClick={applySuggestedGroups}>★ Sugeridos</TBtn>
             </Group>
             <Group>
               <TBtn onClick={undo}>
                 <span style={{ opacity: canUndo ? 1 : 0.4 }}>↩ Desfazer</span>
               </TBtn>
               <TBtn onClick={reorganize}>⟳ Reorganizar</TBtn>
+            </Group>
+            <Group>
+              <TBtn onClick={saveCanvas}>
+                {saveState === "saving" ? "⟳ Salvando…" : saveState === "saved" ? "✓ Salvo" : "💾 Salvar"}
+              </TBtn>
             </Group>
           </div>
         </Panel>
