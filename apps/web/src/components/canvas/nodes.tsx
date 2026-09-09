@@ -287,9 +287,10 @@ export function GroupNode({ data, selected }: NodeProps & { data: GroupNodeData 
         className="h-full w-full cursor-move rounded-2xl"
         style={{
           borderWidth: selected ? 3 : 2,
-          borderStyle: "dashed",
+          borderStyle: selected ? "solid" : "dashed",
           borderColor: data.color,
-          background: `${data.color}12`,
+          background: selected ? `${data.color}22` : `${data.color}12`,
+          boxShadow: selected ? `0 0 0 4px ${data.color}33` : undefined,
         }}
       >
         <Handle type="target" position={Position.Left} style={{ ...handleStyle, opacity: 0 }} />

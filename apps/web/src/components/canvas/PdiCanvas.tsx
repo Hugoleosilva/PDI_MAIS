@@ -27,6 +27,7 @@ import {
   type PdiLink,
 } from "@pdi-mais/core";
 import {
+  areasInBox,
   EMPTY_FRAME,
   hugBox,
   LAYOUT_LABEL,
@@ -90,6 +91,7 @@ function TBtn({
 
 function Canvas({ pdi }: { pdi: PdiDoc }) {
   const [layoutKind, setLayoutKind] = useState<Layout>("tree-lr");
+  const [tool, setTool] = useState<"select" | "hand">("select");
   const [showGroups, setShowGroups] = useState(true);
   const [selected, setSelected] = useState<PdiNode | null>(null);
   const [links, setLinks] = useState<PdiLink[]>(pdi.links ?? []);
@@ -449,12 +451,26 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
   // arraste de um frame: leva os cards membros junto (estilo FigJam)
   const frameDrag = useRef<{ gid: string; start: Pos; members: PosMap } | null>(null);
 
+  // membros = áreas salvas no bloco ∪ áreas cujo card está dentro do frame agora
   const memberIdsOf = useCallback(
     (gid: string): string[] => {
       const g = groupsRef.current.find((x) => x.id === gid);
-      const ids = new Set<string>(g?.areaIds ?? []);
+      const areaIds = new Set<string>(g?.areaIds ?? []);
+      const frameNode = nodesRef.current.find(
+        (n) => n.type === "group" && (n.data as GroupNodeData).groupId === gid,
+      );
+      if (frameNode) {
+        const box = {
+          x: frameNode.position.x,
+          y: frameNode.position.y,
+          w: (frameNode.width as number) ?? (frameNode.data as GroupNodeData).width,
+          h: (frameNode.height as number) ?? (frameNode.data as GroupNodeData).height,
+        };
+        for (const id of areasInBox(nodesRef.current, box)) areaIds.add(id);
+      }
+      const ids = new Set<string>(areaIds);
       for (const area of pdi.areas) {
-        if (ids.has(area.id)) area.actions.forEach((a) => ids.add(a.id));
+        if (areaIds.has(area.id)) area.actions.forEach((a) => ids.add(a.id));
       }
       return [...ids];
     },
@@ -658,8 +674,10 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
         deleteKeyCode={["Delete"]}
         selectionMode={SelectionMode.Partial}
         zoomOnDoubleClick={false}
-        panOnDrag
-        selectionOnDrag={false}
+        nodesDraggable={tool === "select"}
+        panOnDrag={tool === "hand"}
+        selectionOnDrag={tool === "select"}
+        panActivationKeyCode="Space"
         fitView
         fitViewOptions={{ padding: 0.14 }}
         minZoom={0.06}
@@ -672,6 +690,10 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
 
         <Panel position="top-left">
           <div className="flex flex-wrap items-center gap-2">
+            <Group>
+              <TBtn active={tool === "select"} onClick={() => setTool("select")}>↖ Selecionar</TBtn>
+              <TBtn active={tool === "hand"} onClick={() => setTool("hand")}>🖐 Navegar</TBtn>
+            </Group>
             <Group>
               {LAYOUTS.map((l) => (
                 <TBtn key={l} active={layoutKind === l} onClick={() => setLayoutKind(l)}>
@@ -725,9 +747,11 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
             className="rounded-full border bg-white/90 px-3 py-1 text-[11px] shadow-sm backdrop-blur"
             style={{ borderColor: brand.border, color: brand.muted }}
           >
-            {groupsActive
-              ? "Mover o bloco leva os cards junto · redimensione as bordas p/ pegar/soltar cards · Espaço+arraste = navegar"
-              : "Arraste da bolinha de um card até outro para conectar · Shift+arraste seleciona vários · Ctrl+Z desfaz"}
+            {tool === "hand"
+              ? "Modo navegar: arraste para mover a tela · troque para ↖ Selecionar para mexer nos cards/blocos"
+              : groupsActive
+                ? "Mover o bloco leva os cards junto · redimensione as bordas p/ pegar/soltar · Shift+arraste = seleção · Espaço = navegar"
+                : "Arraste da bolinha de um card até outro para conectar · Shift+arraste seleciona vários · Ctrl+Z desfaz"}
           </div>
         </Panel>
       </ReactFlow>
