@@ -446,11 +446,57 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
 
   // ---- arraste ----
   const dragSnapshot = useRef<PosMap>({});
-  const onNodeDragStart = useCallback((_: unknown, __: unknown, dragged: Node[]) => {
-    dragSnapshot.current = Object.fromEntries(
-      dragged.filter((d) => d.type !== "group").map((d) => [d.id, { ...d.position }]),
+  // arraste de um frame: leva os cards membros junto (estilo FigJam)
+  const frameDrag = useRef<{ gid: string; start: Pos; members: PosMap } | null>(null);
+
+  const memberIdsOf = useCallback(
+    (gid: string): string[] => {
+      const g = groupsRef.current.find((x) => x.id === gid);
+      const ids = new Set<string>(g?.areaIds ?? []);
+      for (const area of pdi.areas) {
+        if (ids.has(area.id)) area.actions.forEach((a) => ids.add(a.id));
+      }
+      return [...ids];
+    },
+    [pdi.areas],
+  );
+
+  const onNodeDragStart = useCallback(
+    (_: unknown, node: Node, dragged: Node[]) => {
+      if (node.type === "group") {
+        const gid = (node.data as { groupId: string }).groupId;
+        const members = memberIdsOf(gid);
+        const map: PosMap = {};
+        for (const n of nodesRef.current) {
+          if (members.includes(n.id)) map[n.id] = { ...n.position };
+        }
+        frameDrag.current = { gid, start: { ...node.position }, members: map };
+        if (Object.keys(map).length) pushUndo({ kind: "positions", data: { ...map } });
+        return;
+      }
+      frameDrag.current = null;
+      dragSnapshot.current = Object.fromEntries(
+        dragged.filter((d) => d.type !== "group").map((d) => [d.id, { ...d.position }]),
+      );
+    },
+    [memberIdsOf, pushUndo],
+  );
+
+  const onNodeDrag = useCallback((_: unknown, node: Node) => {
+    const fd = frameDrag.current;
+    if (node.type !== "group" || !fd || fd.gid !== (node.data as { groupId: string }).groupId) {
+      return;
+    }
+    const dx = node.position.x - fd.start.x;
+    const dy = node.position.y - fd.start.y;
+    setNodes((ns) =>
+      ns.map((n) =>
+        fd.members[n.id]
+          ? { ...n, position: { x: fd.members[n.id].x + dx, y: fd.members[n.id].y + dy } }
+          : n,
+      ),
     );
-  }, []);
+  }, [setNodes]);
 
   const onNodeDragStop = useCallback(
     (_: unknown, node: Node, dragged: Node[]) => {
@@ -465,6 +511,19 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
           w: (node.width as number) ?? frameBoxesRef.current[gid]?.w ?? EMPTY_FRAME.w,
           h: (node.height as number) ?? frameBoxesRef.current[gid]?.h ?? EMPTY_FRAME.h,
         });
+        const fd = frameDrag.current;
+        frameDrag.current = null;
+        if (fd && fd.gid === gid) {
+          const dx = node.position.x - fd.start.x;
+          const dy = node.position.y - fd.start.y;
+          setPositions((p) => {
+            const next = { ...p };
+            for (const [id, p0] of Object.entries(fd.members)) {
+              next[id] = { x: p0.x + dx, y: p0.y + dy };
+            }
+            return next;
+          });
+        }
         recapture();
         scheduleSave();
         return;
@@ -484,7 +543,6 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
           return next;
         });
         scheduleSave();
-        // um card mexeu → pode ter entrado/saído de um frame
         if (groupsActive) recapture();
       }
     },
@@ -579,6 +637,7 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
         onEdgesDelete={onEdgesDelete}
         onNodeClick={onNodeClick}
         onNodeDragStart={onNodeDragStart}
+        onNodeDrag={onNodeDrag}
         onNodeDragStop={onNodeDragStop}
         onPaneClick={() => {
           setSelected(null);
