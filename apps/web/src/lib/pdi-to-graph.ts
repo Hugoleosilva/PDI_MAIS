@@ -9,10 +9,13 @@ import {
 } from "@pdi-mais/core";
 import type { Edge, Node } from "@xyflow/react";
 
+/** Direção do layout: LR = esquerda→direita, TB = cima→baixo. */
+export type Direction = "LR" | "TB";
+
 export const NODE_SIZE = {
-  root: { width: 260, height: 132 },
-  area: { width: 288, height: 108 },
-  action: { width: 344, height: 132 },
+  root: { width: 236, height: 118 },
+  area: { width: 264, height: 96 },
+  action: { width: 320, height: 112 },
 } as const;
 
 export interface RootNodeData extends Record<string, unknown> {
@@ -20,6 +23,7 @@ export interface RootNodeData extends Record<string, unknown> {
   track?: string;
   progress: number;
   areaCount: number;
+  dir: Direction;
 }
 
 export interface AreaNodeData extends Record<string, unknown> {
@@ -29,6 +33,7 @@ export interface AreaNodeData extends Record<string, unknown> {
   actionCount: number;
   hasNotStarted: boolean;
   description?: string;
+  dir: Direction;
 }
 
 export interface ActionNodeData extends Record<string, unknown> {
@@ -37,6 +42,7 @@ export interface ActionNodeData extends Record<string, unknown> {
   dueDate?: string;
   kind: ActionKind;
   description?: string;
+  dir: Direction;
 }
 
 export type PdiNode =
@@ -46,8 +52,7 @@ export type PdiNode =
 
 const ROOT_ID = "root";
 
-/** Monta os nós e arestas (sem posição) a partir do documento. */
-function buildGraph(pdi: PdiDoc): { nodes: PdiNode[]; edges: Edge[] } {
+function buildGraph(pdi: PdiDoc, dir: Direction): { nodes: PdiNode[]; edges: Edge[] } {
   const nodes: PdiNode[] = [
     {
       id: ROOT_ID,
@@ -58,6 +63,7 @@ function buildGraph(pdi: PdiDoc): { nodes: PdiNode[]; edges: Edge[] } {
         track: pdi.root.track,
         progress: overallProgress(pdi.areas),
         areaCount: pdi.areas.length,
+        dir,
       },
     },
   ];
@@ -75,6 +81,7 @@ function buildGraph(pdi: PdiDoc): { nodes: PdiNode[]; edges: Edge[] } {
         actionCount: area.actions.length,
         hasNotStarted: hasNotStarted(area),
         description: area.description,
+        dir,
       },
     });
     edges.push(edge(ROOT_ID, area.id, area.status));
@@ -90,6 +97,7 @@ function buildGraph(pdi: PdiDoc): { nodes: PdiNode[]; edges: Edge[] } {
           dueDate: action.dueDate,
           kind: action.kind,
           description: action.description,
+          dir,
         },
       });
       edges.push(edge(area.id, action.id, action.status));
@@ -113,12 +121,22 @@ function edge(source: string, target: string, status: Status): Edge {
   };
 }
 
-/** Layout da esquerda para a direita com o Dagre. */
-export function layoutGraph(pdi: PdiDoc): { nodes: PdiNode[]; edges: Edge[] } {
-  const { nodes, edges } = buildGraph(pdi);
+/** Layout com o Dagre na direção pedida. */
+export function layoutGraph(
+  pdi: PdiDoc,
+  opts: { direction?: Direction } = {},
+): { nodes: PdiNode[]; edges: Edge[] } {
+  const dir = opts.direction ?? "LR";
+  const { nodes, edges } = buildGraph(pdi, dir);
 
   const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: "LR", nodesep: 18, ranksep: 110, marginx: 24, marginy: 24 });
+  g.setGraph({
+    rankdir: dir,
+    nodesep: dir === "LR" ? 16 : 26,
+    ranksep: dir === "LR" ? 84 : 64,
+    marginx: 24,
+    marginy: 24,
+  });
 
   for (const node of nodes) {
     const size = NODE_SIZE[node.type];

@@ -17,8 +17,8 @@ describe("layoutGraph", () => {
     expect(edges).toHaveLength(8 + 32);
   });
 
-  it("posiciona todo nó com coordenadas finitas e layout LR (raiz mais à esquerda)", () => {
-    const { nodes } = layoutGraph(pdi);
+  it("LR: raiz mais à esquerda que as ações; coordenadas finitas", () => {
+    const { nodes } = layoutGraph(pdi, { direction: "LR" });
     for (const n of nodes) {
       expect(Number.isFinite(n.position.x)).toBe(true);
       expect(Number.isFinite(n.position.y)).toBe(true);
@@ -26,6 +26,13 @@ describe("layoutGraph", () => {
     const rootX = nodes.find((n) => n.type === "root")!.position.x;
     const anyActionX = nodes.find((n) => n.type === "action")!.position.x;
     expect(rootX).toBeLessThan(anyActionX);
+  });
+
+  it("TB: raiz mais acima que as ações", () => {
+    const { nodes } = layoutGraph(pdi, { direction: "TB" });
+    const rootY = nodes.find((n) => n.type === "root")!.position.y;
+    const anyActionY = nodes.find((n) => n.type === "action")!.position.y;
+    expect(rootY).toBeLessThan(anyActionY);
   });
 
   it("IDs de nó são únicos", () => {
