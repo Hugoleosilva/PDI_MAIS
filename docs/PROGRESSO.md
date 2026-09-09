@@ -76,6 +76,31 @@ escolhido são por sessão (persistência = Rodada 4).
 
 ---
 
+## ✅ Rodada 2.5 — Blocos de agrupamento
+
+Frames coloridos (estilo FigJam) que agrupam áreas semelhantes em grandes
+blocos estratégicos. Modelo: `PdiDoc.groups` (`PdiGroup` = id, título, cor,
+`areaIds`). Pré-configurados 5 blocos para o PDI do Hugo
+(`core/groups.ts` → `SEED_GROUPS`):
+
+| Bloco | Áreas |
+|---|---|
+| Core · Engenharia Full-Stack | Backend · Frontend · TideFlow |
+| Inteligência · IA, Agentes & Automação | Inteligência Artificial / Automação |
+| Plataforma · Dados & Integrações | Engenharia e Análise de Dados |
+| Institucional & Carreira | Comportamental · Inglês |
+| Opcional · Plataformas Alternativas | Low-Code |
+
+- O bloco agrupa a **área inteira** (as ações vão junto).
+- **Arrastar** uma área para dentro de outro frame → move para o bloco
+  (persistido via `PUT /api/pdi/groups`).
+- Título editável (duplo clique), cor trocável (bolinha), `+ Bloco`,
+  `✕ Excluir bloco`, toggle `▦ Blocos`.
+- O auto-layout usa **Dagre compound**: áreas do mesmo bloco ficam juntas.
+- Só aparece nos layouts em árvore.
+
+---
+
 ## ⏭️ Próximas rodadas
 
 | Rodada | Escopo |
