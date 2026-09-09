@@ -625,17 +625,22 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [undo, clearSelection]);
 
+  const selectGroupWithMembers = useCallback(
+    (frameNodeId: string, gid: string) => {
+      const members = new Set<string>(memberIdsOf(gid));
+      setNodes((ns) =>
+        ns.map((n) => ({ ...n, selected: n.id === frameNodeId || members.has(n.id) })),
+      );
+      setSelected(null);
+    },
+    [memberIdsOf, setNodes],
+  );
+
   const onNodeClick = useCallback(
     (_: unknown, node: Node) => {
       if (node.type === "group") {
-        // o RF já selecionou o frame; adiciona os cards membros por cima
         const gid = (node.data as { groupId: string }).groupId;
-        const members = new Set<string>(memberIdsOf(gid));
-        requestAnimationFrame(() =>
-          setNodes((ns) =>
-            ns.map((n) => (members.has(n.id) && !n.selected ? { ...n, selected: true } : n)),
-          ),
-        );
+        requestAnimationFrame(() => selectGroupWithMembers(node.id, gid));
         setSelected(null);
         return;
       }
@@ -645,14 +650,48 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
       }
       setSelected(node as PdiNode);
     },
-    [memberIdsOf, setNodes],
+    [selectGroupWithMembers],
   );
+
+  // Duplo clique em qualquer lugar de um bloco (área vazia) seleciona o bloco.
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = wrapperRef.current;
+    if (!el) return;
+    const onDbl = (e: MouseEvent) => {
+      const p = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+      const frames = nodesRef.current
+        .filter((n) => n.type === "group")
+        .map((n) => ({ n, area: ((n.width as number) ?? 1) * ((n.height as number) ?? 1) }))
+        .sort((a, b) => a.area - b.area);
+      const hit = frames.find(
+        ({ n }) =>
+          p.x >= n.position.x &&
+          p.x <= n.position.x + ((n.width as number) ?? 0) &&
+          p.y >= n.position.y &&
+          p.y <= n.position.y + ((n.height as number) ?? 0),
+      );
+      if (!hit) return;
+      const onCard = nodesRef.current.some(
+        (n) =>
+          (n.type === "area" || n.type === "action") &&
+          p.x >= n.position.x &&
+          p.x <= n.position.x + NODE_SIZE[n.type as "area" | "action"].width &&
+          p.y >= n.position.y &&
+          p.y <= n.position.y + NODE_SIZE[n.type as "area" | "action"].height,
+      );
+      if (onCard) return;
+      selectGroupWithMembers(hit.n.id, (hit.n.data as { groupId: string }).groupId);
+    };
+    el.addEventListener("dblclick", onDbl);
+    return () => el.removeEventListener("dblclick", onDbl);
+  }, [screenToFlowPosition, selectGroupWithMembers]);
 
   const selectedGroupId = nodes.find((n) => n.type === "group" && n.selected)?.id;
   const selectedGroup = groups.find((g) => `frame-${g.id}` === selectedGroupId);
 
   return (
-    <div className="relative h-full w-full">
+    <div ref={wrapperRef} className="relative h-full w-full">
       <ReactFlow
         nodes={nodes}
         edges={edges}
