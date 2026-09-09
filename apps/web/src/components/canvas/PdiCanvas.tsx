@@ -721,7 +721,7 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
         deleteKeyCode={["Delete"]}
         selectionMode={SelectionMode.Partial}
         zoomOnDoubleClick={false}
-        panOnDrag
+        panOnDrag={[0, 1]}
         selectionOnDrag={false}
         panActivationKeyCode="Space"
         fitView
@@ -796,14 +796,13 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
           >
             {groupsActive ? (
               <>
-                <b style={{ color: brand.ink }}>Barra colorida do bloco:</b> clicar = seleciona ·
-                arrastar = move o bloco + cards &nbsp;·&nbsp;
-                <b style={{ color: brand.ink }}>Card:</b> arrastar = move só ele ·
-                <b style={{ color: brand.ink }}> Shift+arrastar</b> = caixa de seleção ·
-                <b style={{ color: brand.ink }}> Espaço</b> = navegar
+                <b style={{ color: brand.ink }}>Bloco:</b> clique/2 cliques seleciona ·
+                arrastar move o bloco + cards &nbsp;·&nbsp;
+                <b style={{ color: brand.ink }}>Card:</b> arrastar move só ele ·
+                <b style={{ color: brand.ink }}> Espaço+arrastar</b> ou <b style={{ color: brand.ink }}>botão do meio</b> = navegar
               </>
             ) : (
-              "Arraste da bolinha de um card até outro para conectar · Shift+arraste seleciona vários · Ctrl+Z desfaz"
+              "Arraste da bolinha de um card até outro para conectar · Espaço+arraste = navegar · Ctrl+Z desfaz"
             )}
           </div>
         </Panel>

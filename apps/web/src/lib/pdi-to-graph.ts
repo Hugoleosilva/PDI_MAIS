@@ -373,10 +373,6 @@ export function computeFrames(
         deletable: false,
         connectable: false,
         zIndex: 0,
-        // corpo do frame é clique-através: pan / seleção de cards passam por ele.
-        // só a barra de título e as alças reativam os eventos (pointerEvents no
-        // componente). sem dragHandle: assim o frame acompanha o multi-arraste.
-        style: { pointerEvents: "none" as const },
         data: {
           groupId: grp.id,
           title: grp.title,
