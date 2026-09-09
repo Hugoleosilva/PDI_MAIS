@@ -568,9 +568,22 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
     (changes: NodeChange<PdiNode>[]) => {
       setLineH(undefined);
       setLineV(undefined);
-      const c = changes[0];
+
+      // caixa de seleção: se vários cards estão sendo selecionados, não deixa
+      // o frame de bloco entrar junto
+      const cardsSelecting = changes.some(
+        (ch) => ch.type === "select" && ch.selected && !String(ch.id).startsWith("frame-"),
+      );
+      const filtered = cardsSelecting
+        ? changes.filter(
+            (ch) =>
+              !(ch.type === "select" && ch.selected && String(ch.id).startsWith("frame-")),
+          )
+        : changes;
+
+      const c = filtered[0];
       if (
-        changes.length === 1 &&
+        filtered.length === 1 &&
         c.type === "position" &&
         c.dragging &&
         c.position &&
@@ -585,7 +598,7 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
         setLineH(guides.horizontal);
         setLineV(guides.vertical);
       }
-      onNodesChange(changes);
+      onNodesChange(filtered);
     },
     [onNodesChange],
   );
@@ -612,46 +625,28 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [undo, clearSelection]);
 
-  const onNodeClick = useCallback((_: unknown, node: Node) => {
-    if (node.type === "group" || node.type === "root" || node.type === "band") {
-      setSelected(null);
-      return;
-    }
-    setSelected(node as PdiNode);
-  }, []);
-
-  // Selecionou SÓ um frame de bloco (clique na barra) → puxa os cards dele junto.
-  const selChangeGuard = useRef(false);
-  const onSelectionChange = useCallback(
-    ({ nodes: sel }: { nodes: Node[] }) => {
-      if (selChangeGuard.current) return;
-      if (sel.length === 1 && sel[0].type === "group") {
-        const gid = (sel[0].data as { groupId: string }).groupId;
+  const onNodeClick = useCallback(
+    (_: unknown, node: Node) => {
+      if (node.type === "group") {
+        // o RF já selecionou o frame; adiciona os cards membros por cima
+        const gid = (node.data as { groupId: string }).groupId;
         const members = new Set<string>(memberIdsOf(gid));
-        selChangeGuard.current = true;
-        setNodes((ns) =>
-          ns.map((n) =>
-            n.id === sel[0].id || members.has(n.id)
-              ? n.selected
-                ? n
-                : { ...n, selected: true }
-              : n,
+        requestAnimationFrame(() =>
+          setNodes((ns) =>
+            ns.map((n) => (members.has(n.id) && !n.selected ? { ...n, selected: true } : n)),
           ),
         );
-        requestAnimationFrame(() => (selChangeGuard.current = false));
+        setSelected(null);
+        return;
       }
+      if (node.type === "root" || node.type === "band") {
+        setSelected(null);
+        return;
+      }
+      setSelected(node as PdiNode);
     },
     [memberIdsOf, setNodes],
   );
-
-  // Caixa de seleção (Shift+arraste) nunca deve "pegar" um frame de bloco.
-  const onSelectionEnd = useCallback(() => {
-    setNodes((ns) =>
-      ns.filter((n) => n.type === "group" && n.selected).length && ns.some((n) => n.selected && n.type !== "group")
-        ? ns.map((n) => (n.type === "group" ? { ...n, selected: false } : n))
-        : ns,
-    );
-  }, [setNodes]);
 
   const selectedGroupId = nodes.find((n) => n.type === "group" && n.selected)?.id;
   const selectedGroup = groups.find((g) => `frame-${g.id}` === selectedGroupId);
@@ -668,8 +663,6 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
         onConnect={onConnect}
         onEdgesDelete={onEdgesDelete}
         onNodeClick={onNodeClick}
-        onSelectionChange={onSelectionChange}
-        onSelectionEnd={onSelectionEnd}
         onNodeDragStart={onNodeDragStart}
         onNodeDrag={onNodeDrag}
         onNodeDragStop={onNodeDragStop}
