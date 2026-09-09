@@ -4,6 +4,7 @@ import { auth, signIn, signOut } from "@/auth";
 import { getPdiByUserId } from "@/lib/pdi-repo";
 import { PdiCanvas } from "@/components/canvas/PdiCanvas";
 import { EmptyState } from "@/components/EmptyState";
+import { GeminiButton } from "@/components/GeminiButton";
 
 export default async function Home() {
   const session = await auth();
@@ -64,6 +65,7 @@ export default async function Home() {
         )}
 
         <div className="ml-auto flex items-center gap-3">
+          {pdi && <GeminiButton pdi={pdi} />}
           <Link
             href="/import"
             className="rounded-md border border-neutral-300 px-3 py-1 text-xs font-medium text-neutral-700 hover:bg-neutral-100"

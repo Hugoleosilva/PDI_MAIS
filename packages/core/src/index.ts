@@ -6,4 +6,5 @@ export * from "./schema";
 export * from "./merge";
 export * from "./groups";
 export * from "./import";
+export * from "./insight";
 export { seedHugo } from "./fixtures/seed-hugo";
