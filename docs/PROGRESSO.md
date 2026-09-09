@@ -91,13 +91,23 @@ blocos estratégicos. Modelo: `PdiDoc.groups` (`PdiGroup` = id, título, cor,
 | Institucional & Carreira | Comportamental · Inglês |
 | Opcional · Plataformas Alternativas | Low-Code |
 
-- O bloco agrupa a **área inteira** (as ações vão junto).
-- **Arrastar** uma área para dentro de outro frame → move para o bloco
-  (persistido via `PUT /api/pdi/groups`).
-- Título editável (duplo clique), cor trocável (bolinha), `+ Bloco`,
-  `✕ Excluir bloco`, toggle `▦ Blocos`.
-- O auto-layout usa **Dagre compound**: áreas do mesmo bloco ficam juntas.
-- Só aparece nos layouts em árvore.
+**Regra de participação (geométrica):** um card pertence ao bloco quando a
+**área de desenvolvimento** está dentro do frame. As ações seguem a área.
+Recalculado ao mover/redimensionar frame ou mover um card (`recapture`).
+
+**Interação (sem modos):**
+- Arrastar um **card** → move só o card.
+- Arrastar o **frame** → move o frame + os cards das áreas que estão dentro.
+- **Clique / 2 cliques** no bloco → seleciona só o bloco (alças de
+  redimensionar + `✕ Excluir`); não seleciona card nenhum.
+- **Alças** nas 4 pontas redimensionam; quem entrar/sair pela borda ganha/perde
+  o vínculo.
+- **Shift+arrastar** → caixa de seleção só de cards.
+- **Espaço+arrastar** ou botão do meio → navega.
+- Título editável (duplo clique), cor (bolinha), `+ Bloco`, `★ Sugeridos`,
+  `💾 Salvar`, toggle `▦ Blocos`.
+- Persistência: `PUT /api/pdi/groups` (blocos) + `PUT /api/pdi/canvas`
+  (posições + caixas dos frames). Só nos layouts em árvore.
 
 ---
 
