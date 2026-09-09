@@ -8,6 +8,7 @@ import type {
   AreaNodeData,
   BandNodeData,
   Direction,
+  GroupNodeData,
   RootNodeData,
 } from "@/lib/pdi-to-graph";
 import { NODE_SIZE } from "@/lib/pdi-to-graph";
@@ -265,9 +266,47 @@ export function BandNode({ data }: NodeProps & { data: BandNodeData }) {
   );
 }
 
+/** Frame de agrupamento (bloco estratégico). Fica atrás dos cards. */
+export function GroupNode({ data, selected }: NodeProps & { data: GroupNodeData }) {
+  return (
+    <div
+      className="rounded-2xl"
+      style={{
+        width: data.width,
+        height: data.height,
+        borderWidth: selected ? 3 : 2,
+        borderStyle: "solid",
+        borderColor: data.color,
+        background: `${data.color}0D`,
+      }}
+    >
+      <div className="flex items-center gap-2 px-3 py-1.5">
+        <button
+          type="button"
+          title="Trocar a cor"
+          onClick={(e) => {
+            e.stopPropagation();
+            data.onRecolor?.();
+          }}
+          className="nodrag nopan h-3 w-3 shrink-0 rounded-full"
+          style={{ background: data.color }}
+        />
+        <EditableText
+          value={data.title}
+          placeholder="Bloco"
+          onCommit={data.onRename}
+          className="text-[13px] font-bold"
+          style={{ color: data.color }}
+        />
+      </div>
+    </div>
+  );
+}
+
 export const nodeTypes = {
   root: RootNode,
   area: AreaNode,
   action: ActionNode,
   band: BandNode,
+  group: GroupNode,
 };

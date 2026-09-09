@@ -73,6 +73,20 @@ export interface PdiLink {
   label?: string;
 }
 
+/**
+ * Bloco de agrupamento (frame) — o usuário organiza áreas semelhantes em
+ * grandes blocos estratégicos. Agrupa a ÁREA inteira (as ações vão junto).
+ */
+export interface PdiGroup {
+  id: string;
+  title: string;
+  /** Cor de destaque (hex). */
+  color: string;
+  order: number;
+  /** Ids das áreas dentro do bloco. */
+  areaIds: string[];
+}
+
 /** Um documento por usuário na coleção `pdis`. */
 export interface PdiDoc {
   /** Google `sub` — índice único. */
@@ -86,4 +100,6 @@ export interface PdiDoc {
   areas: Area[];
   /** Conexões manuais entre nós (estilo n8n). */
   links?: PdiLink[];
+  /** Blocos de agrupamento de áreas. */
+  groups?: PdiGroup[];
 }

@@ -94,6 +94,13 @@ export function mergePdi(
     (l) => nodeIds.has(l.source) && nodeIds.has(l.target),
   );
 
+  // Blocos: preserva, removendo referências a áreas que sumiram.
+  const areaIds = new Set(areas.map((a) => a.id));
+  const groups = (existing?.groups ?? []).map((g) => ({
+    ...g,
+    areaIds: g.areaIds.filter((id) => areaIds.has(id)),
+  }));
+
   return {
     userId: opts.userId,
     shareId: existing?.shareId ?? null,
@@ -105,5 +112,6 @@ export function mergePdi(
     syncedAt: opts.source === "extension" ? now : (existing?.syncedAt ?? null),
     areas,
     links,
+    groups,
   };
 }

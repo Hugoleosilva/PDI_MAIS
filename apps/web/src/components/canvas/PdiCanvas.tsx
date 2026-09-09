@@ -17,11 +17,19 @@ import {
   type NodeChange,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import type { PdiDoc, PdiLink } from "@pdi-mais/core";
 import {
+  GROUP_COLORS,
+  groupOfArea,
+  type PdiDoc,
+  type PdiGroup,
+  type PdiLink,
+} from "@pdi-mais/core";
+import {
+  computeFrames,
   LAYOUT_LABEL,
   layoutGraph,
   linkEdge,
+  NODE_SIZE,
   type Layout,
   type PdiNode,
 } from "@/lib/pdi-to-graph";
@@ -42,6 +50,8 @@ type UndoEntry =
   | { kind: "link-remove"; link: PdiLink };
 
 const LAYOUTS: Layout[] = ["tree-lr", "tree-tb", "kanban", "swimlane", "radial"];
+const uuid = () =>
+  globalThis.crypto?.randomUUID?.() ?? `x${Date.now()}${Math.random().toString(36).slice(2, 8)}`;
 
 function Group({ children }: { children: React.ReactNode }) {
   return (
@@ -78,15 +88,22 @@ function TBtn({
 function Canvas({ pdi }: { pdi: PdiDoc }) {
   const [layoutKind, setLayoutKind] = useState<Layout>("tree-lr");
   const [selected, setSelected] = useState<PdiNode | null>(null);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [links, setLinks] = useState<PdiLink[]>(pdi.links ?? []);
+  const [groups, setGroups] = useState<PdiGroup[]>(pdi.groups ?? []);
+  const [showGroups, setShowGroups] = useState(true);
+
   const linksRef = useRef(links);
   useEffect(() => {
     linksRef.current = links;
   }, [links]);
 
+  const isTree = layoutKind === "tree-lr" || layoutKind === "tree-tb";
+  const groupsActive = showGroups && isTree;
+
   const layout = useMemo(
-    () => layoutGraph(pdi, { layout: layoutKind, links: [] }),
-    [pdi, layoutKind],
+    () => layoutGraph(pdi, { layout: layoutKind, links: [], groups: groupsActive ? groups : [] }),
+    [pdi, layoutKind, groups, groupsActive],
   );
   const [nodes, setNodes, onNodesChange] = useNodesState(layout.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(layout.edges);
@@ -106,6 +123,60 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
     if (undoStack.current.length > 80) undoStack.current.shift();
     setCanUndo(true);
   }, []);
+
+  // ---- blocos ----
+  const putGroups = (next: PdiGroup[]) =>
+    fetch("/api/pdi/groups", {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ groups: next }),
+    }).catch(() => {});
+
+  const commitGroups = useCallback((next: PdiGroup[]) => {
+    setGroups(next);
+    void putGroups(next);
+  }, []);
+
+  const renameGroup = useCallback(
+    (id: string, title: string) =>
+      commitGroups(groups.map((g) => (g.id === id ? { ...g, title } : g))),
+    [groups, commitGroups],
+  );
+  const recolorGroup = useCallback(
+    (id: string) =>
+      commitGroups(
+        groups.map((g) =>
+          g.id === id
+            ? {
+                ...g,
+                color:
+                  GROUP_COLORS[(GROUP_COLORS.indexOf(g.color as (typeof GROUP_COLORS)[number]) + 1) % GROUP_COLORS.length],
+              }
+            : g,
+        ),
+      ),
+    [groups, commitGroups],
+  );
+  const addGroup = useCallback(() => {
+    commitGroups([
+      ...groups,
+      {
+        id: uuid(),
+        title: "Novo bloco",
+        color: GROUP_COLORS[groups.length % GROUP_COLORS.length],
+        order: groups.length,
+        areaIds: [],
+      },
+    ]);
+    if (!showGroups) setShowGroups(true);
+  }, [groups, commitGroups, showGroups]);
+  const deleteGroup = useCallback(
+    (id: string) => {
+      commitGroups(groups.filter((g) => g.id !== id).map((g, i) => ({ ...g, order: i })));
+      setSelectedGroupId(null);
+    },
+    [groups, commitGroups],
+  );
 
   // ---- conexões manuais ----
   const addLink = useCallback(
@@ -137,10 +208,7 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
   const onConnect = useCallback(
     (c: Connection) => {
       if (!c.source || !c.target || c.source === c.target) return;
-      const id =
-        globalThis.crypto?.randomUUID?.() ??
-        `l${Date.now()}${Math.random().toString(36).slice(2, 8)}`;
-      addLink({ id, source: c.source, target: c.target }, true);
+      addLink({ id: uuid(), source: c.source, target: c.target }, true);
     },
     [addLink],
   );
@@ -205,7 +273,7 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
     setNodes(withHandlers(layout.nodes));
     undoStack.current = [];
     setCanUndo(false);
-    const id = requestAnimationFrame(() => fitView({ padding: 0.12, duration: 250 }));
+    const id = requestAnimationFrame(() => fitView({ padding: 0.14, duration: 250 }));
     return () => cancelAnimationFrame(id);
   }, [layout.nodes, withHandlers, setNodes, fitView]);
 
@@ -213,13 +281,29 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
     setEdges([...layout.edges, ...linkEdgesMemo]);
   }, [layout.edges, linkEdgesMemo, setEdges]);
 
+  // Frames dos blocos, derivados das posições atuais dos nós.
+  const frames = useMemo<PdiNode[]>(() => {
+    if (!groupsActive) return [];
+    return computeFrames(nodes, groups).map((f) => ({
+      ...f,
+      selected: selectedGroupId === (f.data.groupId as string),
+      data: {
+        ...f.data,
+        onRename: (v: string) => renameGroup(f.data.groupId as string, v),
+        onRecolor: () => recolorGroup(f.data.groupId as string),
+      },
+    })) as PdiNode[];
+  }, [groupsActive, nodes, groups, selectedGroupId, renameGroup, recolorGroup]);
+
+  const rfNodes = useMemo(() => [...frames, ...nodes], [frames, nodes]);
+
   const reorganize = useCallback(() => {
     undoStack.current = [];
     setCanUndo(false);
-    const g = layoutGraph(pdi, { layout: layoutKind });
+    const g = layoutGraph(pdi, { layout: layoutKind, groups: groupsActive ? groups : [] });
     setNodes(withHandlers(g.nodes));
-    requestAnimationFrame(() => fitView({ padding: 0.12, duration: 250 }));
-  }, [pdi, layoutKind, withHandlers, setNodes, fitView]);
+    requestAnimationFrame(() => fitView({ padding: 0.14, duration: 250 }));
+  }, [pdi, layoutKind, groups, groupsActive, withHandlers, setNodes, fitView]);
 
   const undo = useCallback(() => {
     const entry = undoStack.current.pop();
@@ -244,31 +328,56 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
     [pushUndo],
   );
 
-  // Interceptador: aplica snap das guias de alinhamento a um nó sendo arrastado.
-  const handleNodesChange = useCallback(
-    (changes: NodeChange<PdiNode>[]) => {
+  // Soltar uma ÁREA dentro de um frame → move a área pro bloco.
+  const onNodeDragStop = useCallback(
+    (_: unknown, node: Node) => {
       setLineH(undefined);
       setLineV(undefined);
-      const c = changes[0];
-      if (changes.length === 1 && c.type === "position" && c.dragging && c.position) {
+      if (!groupsActive || node.type !== "area") return;
+      const cx = node.position.x + NODE_SIZE.area.width / 2;
+      const cy = node.position.y + NODE_SIZE.area.height / 2;
+      const hit = frames.find(
+        (f) =>
+          cx >= f.position.x &&
+          cx <= f.position.x + (f.width ?? 0) &&
+          cy >= f.position.y &&
+          cy <= f.position.y + (f.height ?? 0),
+      );
+      const target = hit ? (hit.data.groupId as string) : null;
+      const current = groupOfArea(groups).get(node.id) ?? null;
+      if (target === current) return;
+      const next = groups.map((g) => ({
+        ...g,
+        areaIds: g.areaIds.filter((id) => id !== node.id),
+      }));
+      if (target) next.find((g) => g.id === target)?.areaIds.push(node.id);
+      commitGroups(next);
+    },
+    [groupsActive, frames, groups, commitGroups],
+  );
+
+  const handleNodesChange = useCallback(
+    (changes: NodeChange<PdiNode>[]) => {
+      const real = changes.filter((c) => !("id" in c) || !String(c.id).startsWith("frame-"));
+      setLineH(undefined);
+      setLineV(undefined);
+      const c = real[0];
+      if (real.length === 1 && c.type === "position" && c.dragging && c.position) {
         const guides = getHelperLines(c, nodesRef.current);
         if (guides.snapPosition.x != null) c.position.x = guides.snapPosition.x;
         if (guides.snapPosition.y != null) c.position.y = guides.snapPosition.y;
         setLineH(guides.horizontal);
         setLineV(guides.vertical);
       }
-      onNodesChange(changes);
+      onNodesChange(real);
     },
     [onNodesChange],
   );
-  const onNodeDragStop = useCallback(() => {
-    setLineH(undefined);
-    setLineV(undefined);
-  }, []);
 
   const clearSelection = useCallback(() => {
     setNodes((ns) => (ns.some((n) => n.selected) ? ns.map((n) => ({ ...n, selected: false })) : ns));
     setEdges((es) => (es.some((e) => e.selected) ? es.map((e) => ({ ...e, selected: false })) : es));
+    setSelectedGroupId(null);
   }, [setNodes, setEdges]);
 
   useEffect(() => {
@@ -289,6 +398,12 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
   }, [undo, clearSelection]);
 
   const onNodeClick = useCallback((_: unknown, node: Node) => {
+    if (node.type === "group") {
+      setSelectedGroupId((node.data as { groupId: string }).groupId);
+      setSelected(null);
+      return;
+    }
+    setSelectedGroupId(null);
     if (node.type === "root" || node.type === "band") {
       setSelected(null);
       return;
@@ -296,10 +411,12 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
     setSelected(node as PdiNode);
   }, []);
 
+  const selectedGroup = groups.find((g) => g.id === selectedGroupId);
+
   return (
     <div className="relative h-full w-full">
       <ReactFlow
-        nodes={nodes}
+        nodes={rfNodes}
         edges={edges}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
@@ -320,8 +437,8 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
         panOnDrag
         selectionOnDrag={false}
         fitView
-        fitViewOptions={{ padding: 0.12 }}
-        minZoom={0.1}
+        fitViewOptions={{ padding: 0.14 }}
+        minZoom={0.08}
         style={{ background: brand.pageBg }}
       >
         <Background gap={20} color="#D4D4D8" />
@@ -339,6 +456,15 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
               ))}
             </Group>
             <Group>
+              <TBtn
+                active={showGroups}
+                onClick={() => setShowGroups((v) => !v)}
+              >
+                ▦ Blocos
+              </TBtn>
+              <TBtn onClick={addGroup}>+ Bloco</TBtn>
+            </Group>
+            <Group>
               <TBtn onClick={undo}>
                 <span style={{ opacity: canUndo ? 1 : 0.4 }}>↩ Desfazer</span>
               </TBtn>
@@ -347,12 +473,36 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
           </div>
         </Panel>
 
+        {selectedGroup && (
+          <Panel position="top-right">
+            <div
+              className="flex items-center gap-2 rounded-md border bg-white px-3 py-1.5 text-xs shadow-sm"
+              style={{ borderColor: brand.border }}
+            >
+              <span className="h-2.5 w-2.5 rounded-full" style={{ background: selectedGroup.color }} />
+              <span className="max-w-[180px] truncate font-medium" style={{ color: brand.ink }}>
+                {selectedGroup.title}
+              </span>
+              <button
+                type="button"
+                onClick={() => deleteGroup(selectedGroup.id)}
+                className="rounded px-1.5 py-0.5 font-medium hover:bg-neutral-100"
+                style={{ color: "#DC2626" }}
+              >
+                ✕ Excluir bloco
+              </button>
+            </div>
+          </Panel>
+        )}
+
         <Panel position="bottom-center">
           <div
             className="rounded-full border bg-white/90 px-3 py-1 text-[11px] shadow-sm backdrop-blur"
             style={{ borderColor: brand.border, color: brand.muted }}
           >
-            Arraste da bolinha de um card até outro para conectar · Shift+arraste seleciona vários · Ctrl+Z desfaz
+            {groupsActive
+              ? "Arraste uma área para dentro de um bloco para movê-la · duplo clique no título do bloco renomeia"
+              : "Arraste da bolinha de um card até outro para conectar · Shift+arraste seleciona vários · Ctrl+Z desfaz"}
           </div>
         </Panel>
       </ReactFlow>

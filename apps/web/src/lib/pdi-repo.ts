@@ -1,6 +1,7 @@
 import {
   mergePdi,
   type PdiDoc,
+  type PdiGroup,
   type PdiLink,
   type Source,
   type SyncPayload,
@@ -78,6 +79,12 @@ export async function removeLink(userId: string, id: string): Promise<void> {
     { userId },
     { $pull: { links: { id } }, $set: { updatedAt: new Date() } },
   );
+}
+
+/** Substitui a lista de blocos (o canvas manda a lista inteira). */
+export async function setGroups(userId: string, groups: PdiGroup[]): Promise<void> {
+  const col = await collection();
+  await col.updateOne({ userId }, { $set: { groups, updatedAt: new Date() } });
 }
 
 /** Edita campos do nó raiz (title / track). `track: null` remove a trilha. */

@@ -1,10 +1,12 @@
 import Dagre from "@dagrejs/dagre";
 import {
   areaProgress,
+  groupOfArea,
   hasNotStarted,
   overallProgress,
   type ActionKind,
   type PdiDoc,
+  type PdiGroup,
   type PdiLink,
   type Status,
 } from "@pdi-mais/core";
@@ -60,6 +62,7 @@ export interface ActionNodeData extends Record<string, unknown> {
   dueDate?: string;
   kind: ActionKind;
   description?: string;
+  areaId: string;
   areaTitle: string;
   dir: Direction;
 }
@@ -73,11 +76,22 @@ export interface BandNodeData extends Record<string, unknown> {
   height: number;
 }
 
+export interface GroupNodeData extends Record<string, unknown> {
+  groupId: string;
+  title: string;
+  color: string;
+  width: number;
+  height: number;
+  onRename?: (v: string) => void;
+  onRecolor?: () => void;
+}
+
 export type PdiNode =
   | Node<RootNodeData, "root">
   | Node<AreaNodeData, "area">
   | Node<ActionNodeData, "action">
-  | Node<BandNodeData, "band">;
+  | Node<BandNodeData, "band">
+  | Node<GroupNodeData, "group">;
 
 const ROOT_ID = "root";
 
@@ -129,6 +143,7 @@ function baseNodes(pdi: PdiDoc, dir: Direction) {
         dueDate: action.dueDate,
         kind: action.kind,
         description: action.description,
+        areaId: area.id,
         areaTitle: area.title,
         dir,
       },
@@ -185,12 +200,19 @@ export function linkEdge(link: PdiLink): Edge {
 // Layouts
 // ---------------------------------------------------------------------------
 
-function treeLayout(pdi: PdiDoc, dir: Direction) {
+function treeLayout(pdi: PdiDoc, dir: Direction, groups: PdiGroup[]) {
   const { root, areaNodes, actionNodes } = baseNodes(pdi, dir);
   const nodes = [root, ...areaNodes, ...actionNodes];
   const edges = treeEdges(pdi);
 
-  const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
+  const areaToGroup = groupOfArea(groups);
+  const usedGroups = new Set(
+    pdi.areas.map((a) => areaToGroup.get(a.id)).filter((x): x is string => Boolean(x)),
+  );
+
+  const g = new Dagre.graphlib.Graph({ compound: usedGroups.size > 0 }).setDefaultEdgeLabel(
+    () => ({}),
+  );
   g.setGraph({
     rankdir: dir,
     nodesep: dir === "LR" ? 16 : 26,
@@ -198,9 +220,17 @@ function treeLayout(pdi: PdiDoc, dir: Direction) {
     marginx: 24,
     marginy: 24,
   });
+  for (const gid of usedGroups) g.setNode(gid, {});
   for (const n of nodes) {
     const s = NODE_SIZE[n.type];
     g.setNode(n.id, { width: s.width, height: s.height });
+  }
+  for (const area of pdi.areas) {
+    const gid = areaToGroup.get(area.id);
+    if (gid && usedGroups.has(gid)) {
+      g.setParent(area.id, gid);
+      for (const act of area.actions) g.setParent(act.id, gid);
+    }
   }
   for (const e of edges) g.setEdge(e.source, e.target);
   Dagre.layout(g);
@@ -211,6 +241,82 @@ function treeLayout(pdi: PdiDoc, dir: Direction) {
     return { ...n, position: { x: x - s.width / 2, y: y - s.height / 2 } };
   });
   return { nodes: positioned as PdiNode[], edges };
+}
+
+const FRAME_PAD = 22;
+const FRAME_TITLE = 34;
+const EMPTY_FRAME = { w: 300, h: 120 };
+
+/**
+ * Frames dos blocos, calculados a partir das posições atuais dos nós — assim o
+ * frame "abraça" os cards mesmo depois de arrastados. Blocos vazios ganham um
+ * frame placeholder na coluna da esquerda.
+ */
+export function computeFrames(
+  nodes: PdiNode[],
+  groups: PdiGroup[],
+): Node<GroupNodeData, "group">[] {
+  const areaToGroup = groupOfArea(groups);
+  const rects = new Map<string, { minX: number; minY: number; maxX: number; maxY: number }>();
+
+  for (const n of nodes) {
+    let gid: string | undefined;
+    if (n.type === "area") gid = areaToGroup.get(n.id);
+    else if (n.type === "action") gid = areaToGroup.get((n.data as ActionNodeData).areaId);
+    if (!gid) continue;
+    const s = NODE_SIZE[n.type as "area" | "action"];
+    const r = rects.get(gid);
+    const x1 = n.position.x;
+    const y1 = n.position.y;
+    const x2 = x1 + s.width;
+    const y2 = y1 + s.height;
+    rects.set(
+      gid,
+      r
+        ? {
+            minX: Math.min(r.minX, x1),
+            minY: Math.min(r.minY, y1),
+            maxX: Math.max(r.maxX, x2),
+            maxY: Math.max(r.maxY, y2),
+          }
+        : { minX: x1, minY: y1, maxX: x2, maxY: y2 },
+    );
+  }
+
+  let emptyIndex = 0;
+  return [...groups]
+    .sort((a, b) => a.order - b.order)
+    .map((grp) => {
+      const r = rects.get(grp.id);
+      let x: number;
+      let y: number;
+      let width: number;
+      let height: number;
+      if (r) {
+        x = r.minX - FRAME_PAD;
+        y = r.minY - FRAME_PAD - FRAME_TITLE;
+        width = r.maxX - r.minX + FRAME_PAD * 2;
+        height = r.maxY - r.minY + FRAME_PAD * 2 + FRAME_TITLE;
+      } else {
+        x = -EMPTY_FRAME.w - 120;
+        y = emptyIndex++ * (EMPTY_FRAME.h + 24);
+        width = EMPTY_FRAME.w;
+        height = EMPTY_FRAME.h;
+      }
+      return {
+        id: `frame-${grp.id}`,
+        type: "group" as const,
+        position: { x, y },
+        width,
+        height,
+        selectable: false,
+        draggable: false,
+        deletable: false,
+        connectable: false,
+        zIndex: -1,
+        data: { groupId: grp.id, title: grp.title, color: grp.color, width, height },
+      };
+    });
 }
 
 function kanbanLayout(pdi: PdiDoc) {
@@ -358,15 +464,16 @@ function radialLayout(pdi: PdiDoc) {
 /** Monta nós + arestas para o layout escolhido. Links manuais ficam por cima. */
 export function layoutGraph(
   pdi: PdiDoc,
-  opts: { layout?: Layout; links?: PdiLink[] } = {},
+  opts: { layout?: Layout; links?: PdiLink[]; groups?: PdiGroup[] } = {},
 ): { nodes: PdiNode[]; edges: Edge[] } {
   const layout = opts.layout ?? "tree-lr";
+  const groups = opts.groups ?? [];
 
   let result: { nodes: PdiNode[]; edges: Edge[] };
   if (layout === "kanban") result = kanbanLayout(pdi);
   else if (layout === "swimlane") result = swimlaneLayout(pdi);
   else if (layout === "radial") result = radialLayout(pdi);
-  else result = treeLayout(pdi, dirFor(layout));
+  else result = treeLayout(pdi, dirFor(layout), groups);
 
   const linkEdges = (opts.links ?? pdi.links ?? []).map(linkEdge);
   return { nodes: result.nodes, edges: [...result.edges, ...linkEdges] };

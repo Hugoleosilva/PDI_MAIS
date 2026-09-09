@@ -1,11 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { mergePdi, seedHugo, syncPayloadSchema } from "@pdi-mais/core";
-import { layoutGraph, type Layout } from "./pdi-to-graph";
+import {
+  mergePdi,
+  resolveSeedGroups,
+  seedHugo,
+  syncPayloadSchema,
+} from "@pdi-mais/core";
+import { computeFrames, layoutGraph, type Layout } from "./pdi-to-graph";
 
 const pdi = mergePdi(null, syncPayloadSchema.parse(seedHugo), {
   userId: "u1",
   source: "manual",
 });
+const groups = resolveSeedGroups(pdi);
 
 describe("layoutGraph — árvore", () => {
   it("tree-lr: 1 raiz + 8 áreas + 32 ações + 40 arestas", () => {
@@ -61,6 +67,31 @@ describe("layoutGraph — formatos alternativos", () => {
       const { nodes } = layoutGraph(pdi, { layout });
       const ids = nodes.map((n) => n.id);
       expect(new Set(ids).size).toBe(ids.length);
+    }
+  });
+});
+
+describe("blocos de agrupamento", () => {
+  it("resolveSeedGroups mapeia as 8 áreas nos 5 blocos", () => {
+    const total = groups.reduce((s, g) => s + g.areaIds.length, 0);
+    expect(groups).toHaveLength(5);
+    expect(total).toBe(pdi.areas.length);
+  });
+
+  it("tree com grupos: layout continua com 1 raiz + 8 áreas + 32 ações", () => {
+    const { nodes } = layoutGraph(pdi, { layout: "tree-lr", groups });
+    expect(nodes.filter((n) => n.type === "area")).toHaveLength(8);
+    expect(nodes.filter((n) => n.type === "action")).toHaveLength(32);
+  });
+
+  it("computeFrames: um frame por bloco, abraçando os cards", () => {
+    const { nodes } = layoutGraph(pdi, { layout: "tree-lr", groups });
+    const frames = computeFrames(nodes, groups);
+    expect(frames).toHaveLength(5);
+    for (const f of frames) {
+      expect(f.width).toBeGreaterThan(0);
+      expect(f.height).toBeGreaterThan(0);
+      expect(Number.isFinite(f.position.x)).toBe(true);
     }
   });
 });

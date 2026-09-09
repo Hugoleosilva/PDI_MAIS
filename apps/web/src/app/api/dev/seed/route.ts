@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { seedHugo, syncPayloadSchema } from "@pdi-mais/core";
+import { resolveSeedGroups, seedHugo, syncPayloadSchema } from "@pdi-mais/core";
 import { auth } from "@/auth";
-import { applySync } from "@/lib/pdi-repo";
+import { applySync, setGroups } from "@/lib/pdi-repo";
 
 export const runtime = "nodejs";
 
@@ -22,7 +22,8 @@ export async function GET(req: Request) {
   }
 
   const payload = syncPayloadSchema.parse(seedHugo);
-  await applySync(session.user.id, payload, "manual");
+  const doc = await applySync(session.user.id, payload, "manual");
+  await setGroups(session.user.id, resolveSeedGroups(doc));
 
   return NextResponse.redirect(new URL("/", req.url));
 }

@@ -74,6 +74,17 @@ describe("mergePdi", () => {
     expect(after.areas[0].actions[1].layout).toEqual({ x: 400, y: 200 });
   });
 
+  it("preserva blocos, tirando áreas que sumiram", () => {
+    const first = mergePdi(null, payload, opts);
+    const a0 = first.areas[0].id;
+    const edited: PdiDoc = structuredClone(first);
+    edited.groups = [
+      { id: "g1", title: "Bloco", color: "#2563EB", order: 0, areaIds: [a0, "fantasma"] },
+    ];
+    const after = mergePdi(edited, payload, opts);
+    expect(after.groups?.[0].areaIds).toEqual([a0]);
+  });
+
   it("preserva links válidos e descarta os que perderam um nó", () => {
     const first = mergePdi(null, payload, opts);
     const a0 = first.areas[0].id;
