@@ -65,8 +65,12 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
   const [selected, setSelected] = useState<PdiNode | null>(null);
   const [links, setLinks] = useState<PdiLink[]>(pdi.links ?? []);
 
-  // Só nós + arestas estruturais (não depende dos links → criar link não re-organiza).
-  const layout = useMemo(() => layoutGraph(pdi, { direction }), [pdi, direction]);
+  // Só nós + arestas estruturais. `links: []` para o layout NÃO emitir arestas de
+  // link — essas vêm só do `linkEdgesMemo` (senão duplicam e quebram a key).
+  const layout = useMemo(
+    () => layoutGraph(pdi, { direction, links: [] }),
+    [pdi, direction],
+  );
   const [nodes, setNodes, onNodesChange] = useNodesState(layout.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(layout.edges);
   const { fitView } = useReactFlow();
@@ -200,19 +204,30 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
 
   const clearSelection = useCallback(() => {
     setNodes((ns) =>
-      ns.some((n) => n.selected) ? ns.map((n) => (n.selected ? { ...n, selected: false } : n)) : ns,
+      ns.some((n) => n.selected) ? ns.map((n) => ({ ...n, selected: false })) : ns,
     );
-  }, [setNodes]);
+    setEdges((es) =>
+      es.some((e) => e.selected) ? es.map((e) => ({ ...e, selected: false })) : es,
+    );
+  }, [setNodes, setEdges]);
   const afterBlockMove = useCallback(() => {
     clearSelection();
     setMode("pan");
   }, [clearSelection]);
 
+  // Trocar de modo sempre limpa a seleção atual.
+  useEffect(() => {
+    clearSelection();
+  }, [mode, clearSelection]);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement;
       if (t.tagName === "INPUT" || t.tagName === "TEXTAREA") return;
-      if (e.key === "Escape") setSelected(null);
+      if (e.key === "Escape") {
+        setSelected(null);
+        clearSelection();
+      }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
         e.preventDefault();
         undo();
@@ -220,7 +235,7 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [undo]);
+  }, [undo, clearSelection]);
 
   const onNodeClick = useCallback((_: unknown, node: Node) => {
     setSelected(node.type === "root" ? null : (node as PdiNode));
