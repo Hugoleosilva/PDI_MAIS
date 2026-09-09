@@ -373,6 +373,10 @@ export function computeFrames(
         deletable: false,
         connectable: false,
         zIndex: 0,
+        // corpo do frame é clique-através: pan / seleção de cards passam por ele.
+        // só a barra de título (`.grp-handle`) e as alças reativam os eventos.
+        dragHandle: ".grp-handle",
+        style: { pointerEvents: "none" as const },
         data: {
           groupId: grp.id,
           title: grp.title,

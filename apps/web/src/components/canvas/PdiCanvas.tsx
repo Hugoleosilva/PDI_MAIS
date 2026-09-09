@@ -91,7 +91,6 @@ function TBtn({
 
 function Canvas({ pdi }: { pdi: PdiDoc }) {
   const [layoutKind, setLayoutKind] = useState<Layout>("tree-lr");
-  const [tool, setTool] = useState<"select" | "hand">("select");
   const [showGroups, setShowGroups] = useState(true);
   const [selected, setSelected] = useState<PdiNode | null>(null);
   const [links, setLinks] = useState<PdiLink[]>(pdi.links ?? []);
@@ -627,7 +626,9 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
   const onNodeClick = useCallback(
     (_: unknown, node: Node) => {
       if (node.type === "group") {
-        selectGroup(node.id, (node.data as { groupId: string }).groupId);
+        const gid = (node.data as { groupId: string }).groupId;
+        // roda depois da seleção interna do React Flow, pra a nossa vencer
+        requestAnimationFrame(() => selectGroup(node.id, gid));
         return;
       }
       if (node.type === "root" || node.type === "band") {
@@ -639,14 +640,7 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
     [selectGroup],
   );
 
-  const onNodeDoubleClick = useCallback(
-    (_: unknown, node: Node) => {
-      if (node.type === "group") {
-        selectGroup(node.id, (node.data as { groupId: string }).groupId);
-      }
-    },
-    [selectGroup],
-  );
+  const onNodeDoubleClick = onNodeClick;
 
   const selectedGroupId = nodes.find((n) => n.type === "group" && n.selected)?.id;
   const selectedGroup = groups.find((g) => `frame-${g.id}` === selectedGroupId);
@@ -674,9 +668,8 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
         deleteKeyCode={["Delete"]}
         selectionMode={SelectionMode.Partial}
         zoomOnDoubleClick={false}
-        nodesDraggable={tool === "select"}
-        panOnDrag={tool === "hand"}
-        selectionOnDrag={tool === "select"}
+        panOnDrag
+        selectionOnDrag={false}
         panActivationKeyCode="Space"
         fitView
         fitViewOptions={{ padding: 0.14 }}
@@ -690,10 +683,6 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
 
         <Panel position="top-left">
           <div className="flex flex-wrap items-center gap-2">
-            <Group>
-              <TBtn active={tool === "select"} onClick={() => setTool("select")}>↖ Selecionar</TBtn>
-              <TBtn active={tool === "hand"} onClick={() => setTool("hand")}>🖐 Navegar</TBtn>
-            </Group>
             <Group>
               {LAYOUTS.map((l) => (
                 <TBtn key={l} active={layoutKind === l} onClick={() => setLayoutKind(l)}>
@@ -747,11 +736,9 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
             className="rounded-full border bg-white/90 px-3 py-1 text-[11px] shadow-sm backdrop-blur"
             style={{ borderColor: brand.border, color: brand.muted }}
           >
-            {tool === "hand"
-              ? "Modo navegar: arraste para mover a tela · troque para ↖ Selecionar para mexer nos cards/blocos"
-              : groupsActive
-                ? "Mover o bloco leva os cards junto · redimensione as bordas p/ pegar/soltar · Shift+arraste = seleção · Espaço = navegar"
-                : "Arraste da bolinha de um card até outro para conectar · Shift+arraste seleciona vários · Ctrl+Z desfaz"}
+            {groupsActive
+              ? "Barra colorida do bloco: clique seleciona tudo · arraste move tudo junto · Shift+arraste = caixa de seleção"
+              : "Arraste da bolinha de um card até outro para conectar · Shift+arraste seleciona vários · Ctrl+Z desfaz"}
           </div>
         </Panel>
       </ReactFlow>
