@@ -53,4 +53,16 @@ describe("parseImportTable", () => {
     const r = parseImportTable("Backend;Node;doing;03/10/2026", root);
     expect(r.actionCount).toBe(1);
   });
+
+  it("descrições da ação e da área (campo entre aspas com vírgula e quebra)", () => {
+    const text =
+      'Backend,Node,doing,03/10/2026,"Aprender Express, rotas\ne middleware","Fundação das APIs"\n' +
+      "Backend,NestJS,todo,,,";
+    const r = parseImportTable(text, root);
+    expect(r.actionCount).toBe(2);
+    const parsed = syncPayloadSchema.parse(r.payload);
+    expect(parsed.areas[0].description).toBe("Fundação das APIs");
+    expect(parsed.areas[0].actions[0].description).toContain("middleware");
+    expect(parsed.areas[0].actions[1].description).toBeUndefined();
+  });
 });

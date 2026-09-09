@@ -5,10 +5,11 @@ import { useRouter } from "next/navigation";
 import { parseImportTable, type ImportResult } from "@pdi-mais/core";
 import { brand } from "@/lib/theme";
 
-const EXAMPLE = `Tecnologias de Backend,Udemy: Node.js do Zero a Maestria,Em progresso,03/10/2026
-Tecnologias de Backend,Télos: NodeJS + MongoDB,Finalizado,15/05/2026
-Tecnologias de Frontend,Udemy: Next.js do Zero ao Avançado,Em progresso,30/10/2026
-Inglês Técnico,Hashtag: Curso de Inglês,Não iniciado,`;
+const EXAMPLE = `Área,Ação,Status,Prazo,Descrição da ação,Descrição da área
+Tecnologias de Backend,Udemy: Node.js do Zero a Maestria,Em progresso,03/10/2026,"Fundamentos de Node, Express e boas práticas de API.","Consolidar o backend do ecossistema."
+Tecnologias de Backend,Télos: NodeJS + MongoDB,Finalizado,15/05/2026,,
+Tecnologias de Frontend,Udemy: Next.js do Zero ao Avançado,Em progresso,30/10/2026,,
+Inglês Técnico,Hashtag: Curso de Inglês,Não iniciado,,,`;
 
 export function ImportForm({
   initialTitle,
@@ -95,7 +96,12 @@ export function ImportForm({
 
       <div>
         <label className={label}>
-          Tabela — uma linha por ação: <code>Área, Ação, Status, Prazo</code>
+          Tabela — 1 linha por ação:{" "}
+          <code>Área, Ação, Status, Prazo, Descrição da ação, Descrição da área</code>
+          <br />
+          <span className="font-normal text-neutral-400">
+            só Área e Ação são obrigatórias · descrição longa: envolva em &quot;aspas&quot;
+          </span>
         </label>
         <textarea
           className={`${input} h-52 font-mono text-xs`}
@@ -163,13 +169,19 @@ export function ImportForm({
           <div className="mt-3 max-h-56 space-y-2 overflow-y-auto text-xs">
             {preview.payload.areas?.map((a, i) => (
               <div key={i}>
-                <div className="font-semibold">{a.title}</div>
+                <div className="font-semibold">
+                  {a.title}
+                  {a.description ? (
+                    <span className="ml-1 font-normal text-neutral-400">— {a.description}</span>
+                  ) : null}
+                </div>
                 <ul className="ml-3 list-disc text-neutral-600">
                   {a.actions?.map((ac, j) => (
                     <li key={j}>
                       {ac.title}
                       {ac.status ? ` · ${ac.status}` : ""}
                       {ac.dueDate ? ` · ${ac.dueDate}` : ""}
+                      {ac.description ? " · 📝" : ""}
                     </li>
                   ))}
                 </ul>

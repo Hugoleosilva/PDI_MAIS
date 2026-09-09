@@ -8,14 +8,78 @@ export interface ImportResult {
   actionCount: number;
 }
 
-const HEADER_HINTS = ["area", "área", "acao", "ação", "status", "prazo", "titulo", "título"];
+const HEADER_HINTS = [
+  "area",
+  "área",
+  "acao",
+  "ação",
+  "status",
+  "prazo",
+  "titulo",
+  "título",
+  "descri",
+];
 const KNOWN_STATUS =
   /(n[aã]o inici|em progresso|em andamento|finaliz|conclu|^\s*todo\s*$|^\s*doing\s*$|^\s*done\s*$)/i;
 
-/** Aceita YYYY-MM-DD, DD/MM/AAAA, DD/MM/AA (e separadores . - /). */
+/** Detecta o separador pela 1ª linha: tab > ; > , */
+function detectSep(text: string): string {
+  const firstLine = text.split(/\r?\n/, 1)[0] ?? "";
+  if (firstLine.includes("\t")) return "\t";
+  const semi = (firstLine.match(/;/g) ?? []).length;
+  const comma = (firstLine.match(/,/g) ?? []).length;
+  return semi > comma ? ";" : ",";
+}
+
+/**
+ * Tokenizador estilo RFC 4180: campos entre aspas podem conter o separador,
+ * quebras de linha e aspas escapadas (`""`).
+ */
+function parseDelimited(text: string, sep: string): string[][] {
+  const s = text.replace(/\r\n?/g, "\n");
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let field = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < s.length; i += 1) {
+    const ch = s[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (s[i + 1] === '"') {
+          field += '"';
+          i += 1;
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        field += ch;
+      }
+      continue;
+    }
+    if (ch === '"') inQuotes = true;
+    else if (ch === sep) {
+      row.push(field);
+      field = "";
+    } else if (ch === "\n") {
+      row.push(field);
+      rows.push(row);
+      row = [];
+      field = "";
+    } else {
+      field += ch;
+    }
+  }
+  if (field.length || row.length) {
+    row.push(field);
+    rows.push(row);
+  }
+  return rows.filter((r) => r.some((c) => c.trim() !== ""));
+}
+
 function parseDate(raw: string): { date?: string; ok: boolean } {
   const s = raw.trim();
-  if (!s) return { ok: true }; // sem prazo é ok
+  if (!s) return { ok: true };
   if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return { date: s, ok: true };
   const m = /^(\d{1,2})[/.\-](\d{1,2})[/.\-](\d{2}|\d{4})$/.exec(s);
   if (m) {
@@ -29,45 +93,50 @@ function parseDate(raw: string): { date?: string; ok: boolean } {
   return { ok: false };
 }
 
+const clean = (v: string | undefined) => {
+  const t = (v ?? "").trim();
+  return t.length ? t : undefined;
+};
+
 /**
  * Converte uma tabela colada/CSV numa payload de PDI.
  *
- * Colunas (nessa ordem): `Área`, `Ação`, `Status` (opcional), `Prazo` (opcional).
- * Separador detectado automaticamente: tab, `;` ou `,`. Cabeçalho é ignorado.
- * Linhas problemáticas viram aviso — o resto do import continua (sync parcial).
+ * Colunas (nessa ordem):
+ *   `Área`, `Ação`, `Status`, `Prazo`, `Descrição da ação`, `Descrição da área`
+ * Só as duas primeiras são obrigatórias. Descrições longas: envolva em "aspas"
+ * (podem ter vírgulas e quebras de linha). Separador (`,` `;` tab) e cabeçalho
+ * são detectados sozinhos. Linhas problemáticas viram aviso — o resto entra.
  */
 export function parseImportTable(
   text: string,
   root: { title: string; track?: string },
 ): ImportResult {
   const warnings: string[] = [];
-  const lines = text
-    .split(/\r?\n/)
-    .map((l) => l.trim())
-    .filter(Boolean);
+  const sep = detectSep(text);
+  const rows = parseDelimited(text, sep);
 
-  if (lines.length === 0) {
+  if (rows.length === 0) {
     return { payload: { root, areas: [] }, warnings: ["Nada para importar."], areaCount: 0, actionCount: 0 };
   }
 
-  const first = lines[0];
-  const sep = first.includes("\t") ? "\t" : first.includes(";") ? ";" : ",";
-
-  const firstCells = first.split(sep).map((c) => c.trim().toLowerCase());
+  const firstCells = rows[0].map((c) => c.trim().toLowerCase());
   const hasHeader =
     firstCells.length >= 2 &&
     firstCells.filter((c) => HEADER_HINTS.some((h) => c.includes(h))).length >= 2;
-  const rows = hasHeader ? lines.slice(1) : lines;
+  const dataRows = hasHeader ? rows.slice(1) : rows;
 
   type Area = NonNullable<SyncPayloadInput["areas"]>[number];
   const areas = new Map<string, Area>();
   let actionCount = 0;
 
-  rows.forEach((line, i) => {
-    const n = i + 1 + (hasHeader ? 1 : 0);
-    const [areaTitle = "", actionTitle = "", statusRaw = "", dateRaw = ""] = line
-      .split(sep)
-      .map((c) => c.trim());
+  dataRows.forEach((cells, i) => {
+    const n = i + 1;
+    const areaTitle = clean(cells[0]);
+    const actionTitle = clean(cells[1]);
+    const statusRaw = (cells[2] ?? "").trim();
+    const dateRaw = (cells[3] ?? "").trim();
+    const actionDesc = clean(cells[4]);
+    const areaDesc = clean(cells[5]);
 
     if (!areaTitle) {
       warnings.push(`Linha ${n}: área vazia — ignorada.`);
@@ -83,12 +152,14 @@ export function parseImportTable(
       area = { title: areaTitle, kind: "Desenvolver", actions: [] };
       areas.set(areaTitle, area);
     }
+    if (areaDesc && !area.description) area.description = areaDesc;
 
     const action: NonNullable<Area["actions"]>[number] = {
       title: actionTitle,
       kind: "Treinamento e estudo",
       status: "todo",
     };
+    if (actionDesc) action.description = actionDesc;
 
     if (statusRaw) {
       action.status = statusFromLabel(statusRaw);
