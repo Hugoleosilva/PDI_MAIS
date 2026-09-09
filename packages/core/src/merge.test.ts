@@ -74,6 +74,20 @@ describe("mergePdi", () => {
     expect(after.areas[0].actions[1].layout).toEqual({ x: 400, y: 200 });
   });
 
+  it("preserva links válidos e descarta os que perderam um nó", () => {
+    const first = mergePdi(null, payload, opts);
+    const a0 = first.areas[0].id;
+    const a1 = first.areas[1].id;
+    const edited: PdiDoc = structuredClone(first);
+    edited.links = [
+      { id: "l1", source: a0, target: a1 },
+      { id: "l2", source: a0, target: "fantasma" },
+    ];
+
+    const after = mergePdi(edited, payload, opts);
+    expect(after.links?.map((l) => l.id)).toEqual(["l1"]);
+  });
+
   it("gera o mesmo ID ignorando acento e caixa", () => {
     const p1 = mergePdi(null, payload, opts);
     const p2 = mergePdi(

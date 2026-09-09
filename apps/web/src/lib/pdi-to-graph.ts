@@ -5,9 +5,10 @@ import {
   overallProgress,
   type ActionKind,
   type PdiDoc,
+  type PdiLink,
   type Status,
 } from "@pdi-mais/core";
-import type { Edge, Node } from "@xyflow/react";
+import { MarkerType, type Edge, type Node } from "@xyflow/react";
 
 /** Direção do layout: LR = esquerda→direita, TB = cima→baixo. */
 export type Direction = "LR" | "TB";
@@ -116,6 +117,8 @@ function edge(source: string, target: string, status: Status): Edge {
     target,
     type: "smoothstep",
     animated: status === "doing",
+    deletable: false,
+    selectable: false,
     style: {
       strokeWidth: status === "todo" ? 1 : 1.75,
       opacity: status === "todo" ? 0.4 : 1,
@@ -123,10 +126,23 @@ function edge(source: string, target: string, status: Status): Edge {
   };
 }
 
-/** Layout com o Dagre na direção pedida. */
+/** Conexão manual (estilo n8n): curva, com seta e botão de remover ao selecionar. */
+export function linkEdge(link: PdiLink): Edge {
+  return {
+    id: link.id,
+    source: link.source,
+    target: link.target,
+    type: "link",
+    deletable: true,
+    data: { userLink: true, label: link.label },
+    markerEnd: { type: MarkerType.ArrowClosed, width: 16, height: 16 },
+  };
+}
+
+/** Layout com o Dagre na direção pedida. Os links manuais NÃO entram no Dagre. */
 export function layoutGraph(
   pdi: PdiDoc,
-  opts: { direction?: Direction } = {},
+  opts: { direction?: Direction; links?: PdiLink[] } = {},
 ): { nodes: PdiNode[]; edges: Edge[] } {
   const dir = opts.direction ?? "LR";
   const { nodes, edges } = buildGraph(pdi, dir);
@@ -158,5 +174,7 @@ export function layoutGraph(
     };
   });
 
-  return { nodes: positioned as PdiNode[], edges };
+  const linkEdges = (opts.links ?? pdi.links ?? []).map(linkEdge);
+
+  return { nodes: positioned as PdiNode[], edges: [...edges, ...linkEdges] };
 }

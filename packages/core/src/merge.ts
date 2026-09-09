@@ -83,6 +83,17 @@ export function mergePdi(
     };
   });
 
+  // Conexões manuais: preserva as existentes, descartando as que apontam
+  // para nós que sumiram do PDI.
+  const nodeIds = new Set<string>(["root"]);
+  for (const area of areas) {
+    nodeIds.add(area.id);
+    for (const a of area.actions) nodeIds.add(a.id);
+  }
+  const links = (existing?.links ?? []).filter(
+    (l) => nodeIds.has(l.source) && nodeIds.has(l.target),
+  );
+
   return {
     userId: opts.userId,
     shareId: existing?.shareId ?? null,
@@ -93,5 +104,6 @@ export function mergePdi(
     updatedAt: now,
     syncedAt: opts.source === "extension" ? now : (existing?.syncedAt ?? null),
     areas,
+    links,
   };
 }

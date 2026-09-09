@@ -155,6 +155,7 @@ export function RootNode({ data }: NodeProps & { data: RootNodeData }) {
         <span className="shrink-0 text-xs font-bold" style={{ color: brand.ink }}>{formatPercent(data.progress)}</span>
       </div>
       <div className="text-[11px]" style={{ color: brand.muted }}>{data.areaCount} áreas de desenvolvimento</div>
+      <Handle type="target" position={targetPos(data.dir)} style={handleStyle} />
       <Handle type="source" position={sourcePos(data.dir)} style={handleStyle} />
     </div>
   );
@@ -212,6 +213,7 @@ export function ActionNode({ data, selected }: NodeProps & { data: ActionNodeDat
         )}
       </div>
       <Handle type="target" position={targetPos(data.dir)} style={handleStyle} />
+      <Handle type="source" position={sourcePos(data.dir)} style={handleStyle} />
     </div>
   );
 }

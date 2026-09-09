@@ -61,6 +61,18 @@ export interface PdiRoot {
   track?: string;
 }
 
+/**
+ * Conexão manual entre dois nós do canvas (estilo n8n) — o usuário liga
+ * áreas/ações que se complementam. `source`/`target` são ids de área/ação
+ * (ou "root"). Nunca vem do sync.
+ */
+export interface PdiLink {
+  id: string;
+  source: string;
+  target: string;
+  label?: string;
+}
+
 /** Um documento por usuário na coleção `pdis`. */
 export interface PdiDoc {
   /** Google `sub` — índice único. */
@@ -72,4 +84,6 @@ export interface PdiDoc {
   syncedAt: Date | null;
   root: PdiRoot;
   areas: Area[];
+  /** Conexões manuais entre nós (estilo n8n). */
+  links?: PdiLink[];
 }
