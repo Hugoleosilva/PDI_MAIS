@@ -8,7 +8,6 @@ import {
   Panel,
   ReactFlow,
   ReactFlowProvider,
-  SelectionMode,
   useEdgesState,
   useNodesState,
   useReactFlow,
@@ -28,14 +27,30 @@ type PosMap = Record<string, { x: number; y: number }>;
 const posMap = (ns: Node[]): PosMap =>
   Object.fromEntries(ns.map((n) => [n.id, { ...n.position }]));
 
-type Mode = "pan" | "select";
+type UndoEntry =
+  | { kind: "positions"; data: PosMap }
+  | { kind: "link-add"; link: PdiLink }
+  | { kind: "link-remove"; link: PdiLink };
 
-function ToolButton({
+function ToolButton({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="px-2.5 py-1 text-xs font-medium"
+      style={{ background: "white", color: brand.muted }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function DirButton({
   active,
   onClick,
   children,
 }: {
-  active?: boolean;
+  active: boolean;
   onClick: () => void;
   children: React.ReactNode;
 }) {
@@ -61,12 +76,13 @@ function Group({ children }: { children: React.ReactNode }) {
 
 function Canvas({ pdi }: { pdi: PdiDoc }) {
   const [direction, setDirection] = useState<Direction>("LR");
-  const [mode, setMode] = useState<Mode>("pan");
   const [selected, setSelected] = useState<PdiNode | null>(null);
   const [links, setLinks] = useState<PdiLink[]>(pdi.links ?? []);
+  const linksRef = useRef(links);
+  useEffect(() => {
+    linksRef.current = links;
+  }, [links]);
 
-  // Só nós + arestas estruturais. `links: []` para o layout NÃO emitir arestas de
-  // link — essas vêm só do `linkEdgesMemo` (senão duplicam e quebram a key).
   const layout = useMemo(
     () => layoutGraph(pdi, { direction, links: [] }),
     [pdi, direction],
@@ -75,54 +91,77 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
   const [edges, setEdges, onEdgesChange] = useEdgesState(layout.edges);
   const { fitView } = useReactFlow();
 
-  const undoStack = useRef<PosMap[]>([]);
+  const undoStack = useRef<UndoEntry[]>([]);
   const [canUndo, setCanUndo] = useState(false);
-
-  // ---- links (conexões manuais estilo n8n) ----
-  const removeLinkById = useCallback((id: string) => {
-    setLinks((ls) => ls.filter((l) => l.id !== id));
-    fetch(`/api/pdi/link?id=${encodeURIComponent(id)}`, { method: "DELETE" }).catch(() => {});
+  const pushUndo = useCallback((entry: UndoEntry) => {
+    undoStack.current.push(entry);
+    if (undoStack.current.length > 80) undoStack.current.shift();
+    setCanUndo(true);
   }, []);
 
-  const onConnect = useCallback((c: Connection) => {
-    if (!c.source || !c.target || c.source === c.target) return;
-    const id =
-      globalThis.crypto?.randomUUID?.() ?? `l${Date.now()}${Math.random().toString(36).slice(2, 8)}`;
-    const link: PdiLink = { id, source: c.source, target: c.target };
-    setLinks((ls) => [
-      ...ls.filter((l) => !(l.source === link.source && l.target === link.target)),
-      link,
-    ]);
+  // ---- conexões manuais ----
+  const apiAddLink = (link: PdiLink) =>
     fetch("/api/pdi/link", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(link),
-    })
-      .then((r) => {
-        if (!r.ok) setLinks((ls) => ls.filter((l) => l.id !== id));
-      })
-      .catch(() => setLinks((ls) => ls.filter((l) => l.id !== id)));
-  }, []);
+    }).catch(() => {});
+
+  const apiRemoveLink = (id: string) =>
+    fetch(`/api/pdi/link?id=${encodeURIComponent(id)}`, { method: "DELETE" }).catch(() => {});
+
+  const addLink = useCallback(
+    (link: PdiLink, undoable: boolean) => {
+      setLinks((ls) => [
+        ...ls.filter((l) => !(l.source === link.source && l.target === link.target)),
+        link,
+      ]);
+      if (undoable) pushUndo({ kind: "link-add", link });
+      void apiAddLink(link);
+    },
+    [pushUndo],
+  );
+
+  const removeLink = useCallback(
+    (id: string, undoable: boolean) => {
+      const link = linksRef.current.find((l) => l.id === id);
+      setLinks((ls) => ls.filter((l) => l.id !== id));
+      if (link && undoable) pushUndo({ kind: "link-remove", link });
+      void apiRemoveLink(id);
+    },
+    [pushUndo],
+  );
+
+  const onConnect = useCallback(
+    (c: Connection) => {
+      if (!c.source || !c.target || c.source === c.target) return;
+      const id =
+        globalThis.crypto?.randomUUID?.() ??
+        `l${Date.now()}${Math.random().toString(36).slice(2, 8)}`;
+      addLink({ id, source: c.source, target: c.target }, true);
+    },
+    [addLink],
+  );
 
   const onEdgesDelete = useCallback(
     (deleted: Edge[]) => {
       for (const e of deleted) {
-        if ((e.data as { userLink?: boolean } | undefined)?.userLink) removeLinkById(e.id);
+        if ((e.data as { userLink?: boolean } | undefined)?.userLink) removeLink(e.id, true);
       }
     },
-    [removeLinkById],
+    [removeLink],
   );
 
   const linkEdgesMemo = useMemo(
     () =>
       links.map((l) => {
         const e = linkEdge(l);
-        return { ...e, data: { ...e.data, onRemove: removeLinkById } };
+        return { ...e, data: { ...e.data, onRemove: (id: string) => removeLink(id, true) } };
       }),
-    [links, removeLinkById],
+    [links, removeLink],
   );
 
-  // Nós: re-layout só quando muda direção/PDI.
+  // ---- nó raiz editável ----
   const patchRoot = useCallback(
     async (patch: { title?: string; track?: string }) => {
       setNodes((ns) =>
@@ -168,7 +207,6 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
     return () => cancelAnimationFrame(id);
   }, [layout.nodes, withHandlers, setNodes, fitView]);
 
-  // Arestas = estruturais + links manuais.
   useEffect(() => {
     setEdges([...layout.edges, ...linkEdgesMemo]);
   }, [layout.edges, linkEdgesMemo, setEdges]);
@@ -182,43 +220,32 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
   }, [pdi, direction, withHandlers, setNodes, fitView]);
 
   const undo = useCallback(() => {
-    const prev = undoStack.current.pop();
+    const entry = undoStack.current.pop();
     setCanUndo(undoStack.current.length > 0);
-    if (!prev) return;
-    setNodes((ns) => ns.map((n) => (prev[n.id] ? { ...n, position: prev[n.id] } : n)));
-  }, [setNodes]);
+    if (!entry) return;
+    if (entry.kind === "positions") {
+      setNodes((ns) => ns.map((n) => (entry.data[n.id] ? { ...n, position: entry.data[n.id] } : n)));
+    } else if (entry.kind === "link-add") {
+      removeLink(entry.link.id, false);
+    } else {
+      addLink(entry.link, false);
+    }
+  }, [setNodes, addLink, removeLink]);
 
-  const snapshot = useCallback((dragged: Node[]) => {
-    undoStack.current.push(posMap(dragged));
-    if (undoStack.current.length > 60) undoStack.current.shift();
-    setCanUndo(true);
-  }, []);
   const onNodeDragStart = useCallback(
-    (_: unknown, __: unknown, d: Node[]) => snapshot(d),
-    [snapshot],
+    (_: unknown, __: unknown, dragged: Node[]) =>
+      pushUndo({ kind: "positions", data: posMap(dragged) }),
+    [pushUndo],
   );
   const onSelectionDragStart = useCallback(
-    (_: unknown, d: Node[]) => snapshot(d),
-    [snapshot],
+    (_: unknown, dragged: Node[]) => pushUndo({ kind: "positions", data: posMap(dragged) }),
+    [pushUndo],
   );
 
   const clearSelection = useCallback(() => {
-    setNodes((ns) =>
-      ns.some((n) => n.selected) ? ns.map((n) => ({ ...n, selected: false })) : ns,
-    );
-    setEdges((es) =>
-      es.some((e) => e.selected) ? es.map((e) => ({ ...e, selected: false })) : es,
-    );
+    setNodes((ns) => (ns.some((n) => n.selected) ? ns.map((n) => ({ ...n, selected: false })) : ns));
+    setEdges((es) => (es.some((e) => e.selected) ? es.map((e) => ({ ...e, selected: false })) : es));
   }, [setNodes, setEdges]);
-  const afterBlockMove = useCallback(() => {
-    clearSelection();
-    setMode("pan");
-  }, [clearSelection]);
-
-  // Trocar de modo sempre limpa a seleção atual.
-  useEffect(() => {
-    clearSelection();
-  }, [mode, clearSelection]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -255,16 +282,14 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
         onNodeClick={onNodeClick}
         onNodeDragStart={onNodeDragStart}
         onSelectionDragStart={onSelectionDragStart}
-        onSelectionDragStop={afterBlockMove}
         onPaneClick={() => {
           setSelected(null);
           clearSelection();
         }}
         deleteKeyCode={["Delete"]}
         zoomOnDoubleClick={false}
-        selectionOnDrag={mode === "select"}
-        panOnDrag={mode === "select" ? [1, 2] : true}
-        selectionMode={SelectionMode.Partial}
+        panOnDrag
+        selectionOnDrag={false}
         fitView
         fitViewOptions={{ padding: 0.12 }}
         minZoom={0.1}
@@ -277,12 +302,8 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
         <Panel position="top-left">
           <div className="flex flex-wrap items-center gap-2">
             <Group>
-              <ToolButton active={direction === "LR"} onClick={() => setDirection("LR")}>Horizontal</ToolButton>
-              <ToolButton active={direction === "TB"} onClick={() => setDirection("TB")}>Vertical</ToolButton>
-            </Group>
-            <Group>
-              <ToolButton active={mode === "pan"} onClick={() => setMode("pan")}>🖐 Navegar</ToolButton>
-              <ToolButton active={mode === "select"} onClick={() => setMode("select")}>⬚ Selecionar</ToolButton>
+              <DirButton active={direction === "LR"} onClick={() => setDirection("LR")}>Horizontal</DirButton>
+              <DirButton active={direction === "TB"} onClick={() => setDirection("TB")}>Vertical</DirButton>
             </Group>
             <Group>
               <ToolButton onClick={undo}>
@@ -298,9 +319,7 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
             className="rounded-full border bg-white/90 px-3 py-1 text-[11px] shadow-sm backdrop-blur"
             style={{ borderColor: brand.border, color: brand.muted }}
           >
-            {mode === "select"
-              ? "Arraste para selecionar vários · mova o bloco junto · botão direito navega"
-              : "Arraste da bolinha de um card até outro para conectar · clique na conexão + Del ou × para remover"}
+            Arraste da bolinha de um card até outro para conectar · Shift+arraste seleciona vários · Ctrl+Z desfaz
           </div>
         </Panel>
       </ReactFlow>

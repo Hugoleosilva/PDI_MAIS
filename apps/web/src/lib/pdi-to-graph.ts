@@ -134,6 +134,9 @@ export function linkEdge(link: PdiLink): Edge {
     target: link.target,
     type: "link",
     deletable: true,
+    selectable: true,
+    focusable: true,
+    interactionWidth: 32,
     data: { userLink: true, label: link.label },
     markerEnd: { type: MarkerType.ArrowClosed, width: 16, height: 16 },
   };
