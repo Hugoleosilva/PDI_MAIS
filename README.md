@@ -46,8 +46,8 @@ para o canvas.
 | 1 | Fundação: Auth Google + Mongo + `/api/sync` + `/api/pdi` | ✅ feito |
 | 2 | Canvas (React Flow): 5 formatos, painel, edição da raiz, conexões n8n, guias de alinhamento | ✅ feito |
 | 3 | Extensão Manifest V3 | ⬜ |
-| 4 | Edição no canvas, persistir layout, deep link Gemini, modo gestor, PWA | ⬜ |
-| 5 | Import manual (plano B) | ⬜ |
+| 4 | Edição no canvas, deep link Gemini, modo gestor, PWA | ⬜ |
+| 5 | Import manual (colar tabela / CSV) | ✅ feito |
 
 Detalhe do que foi entregue: [`docs/PROGRESSO.md`](docs/PROGRESSO.md).
 

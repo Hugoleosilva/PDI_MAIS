@@ -111,12 +111,30 @@ Recalculado ao mover/redimensionar frame ou mover um card (`recapture`).
 
 ---
 
+---
+
+## ✅ Rodada 5 — Import manual
+
+Página **`/import`**: nome do ciclo + trilha, textarea pra colar a tabela
+(ou upload de `.csv`), pré-visualização com contagem e avisos, confirmar →
+canvas.
+
+- Formato: `Área, Ação, Status, Prazo` (uma linha por ação).
+- Separador detectado sozinho: vírgula, `;` ou tab (copiar do Excel).
+- Cabeçalho ignorado. Prazo aceita `DD/MM/AAAA`, `DD/MM/AA`, `AAAA-MM-DD`.
+- **Sync parcial**: linha com área/ação vazia é ignorada com aviso; status
+  desconhecido vira "Não iniciado" com aviso; prazo inválido → ação sem prazo.
+- `POST /api/import` (`source: "manual"`) → reusa `applySync`, então o merge
+  preserva posições/blocos/edições manuais. Reimportar = atualizar o PDI.
+- `parseImportTable` em `packages/core/src/import.ts` (testado).
+
+---
+
 ## ⏭️ Próximas rodadas
 
 | Rodada | Escopo |
 |---|---|
 | 3 | Extensão Chrome (Manifest V3): parser do DOM da plataforma + sync 1-clique + link "PDI+" na navbar. **Validar com TI/Segurança do CESAR antes.** |
-| 4 | Edição no canvas (status/prazo/nota), persistir layout, deep link Gemini, modo gestor (share link), PWA |
-| 5 | Import manual (colar tabela / CSV) — plano B se a extensão não for aprovada |
+| 4 | Edição no canvas (status/prazo/nota), deep link Gemini, modo gestor (share link), PWA |
 
 Checklist de teste manual: [`TEST-CHECKLIST.md`](TEST-CHECKLIST.md).
