@@ -29,6 +29,23 @@ export async function applySync(
   return merged;
 }
 
+/** Edita campos do nó raiz (title / track). `track: null` remove a trilha. */
+export async function updateRoot(
+  userId: string,
+  patch: { title?: string; track?: string | null },
+): Promise<void> {
+  const col = await collection();
+  const $set: Record<string, unknown> = { updatedAt: new Date() };
+  const $unset: Record<string, unknown> = {};
+  if (patch.title !== undefined) $set["root.title"] = patch.title;
+  if (patch.track === null) $unset["root.track"] = "";
+  else if (patch.track !== undefined) $set["root.track"] = patch.track;
+
+  const update: Record<string, unknown> = { $set };
+  if (Object.keys($unset).length > 0) update.$unset = $unset;
+  await col.updateOne({ userId }, update);
+}
+
 /**
  * Cria os índices da coleção. Idempotente — pode rodar sempre.
  * Chame uma vez (ex.: script de setup) ou deixe o Atlas criar via UI.

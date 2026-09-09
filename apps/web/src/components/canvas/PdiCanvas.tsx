@@ -8,9 +8,11 @@ import {
   Panel,
   ReactFlow,
   ReactFlowProvider,
+  SelectionMode,
   useEdgesState,
   useNodesState,
   useReactFlow,
+  type Edge,
   type Node,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
@@ -23,6 +25,8 @@ import { DetailPanel } from "./DetailPanel";
 type PosMap = Record<string, { x: number; y: number }>;
 const posMap = (ns: Node[]): PosMap =>
   Object.fromEntries(ns.map((n) => [n.id, { ...n.position }]));
+
+type Mode = "pan" | "select";
 
 function ToolButton({
   active,
@@ -48,8 +52,20 @@ function ToolButton({
   );
 }
 
+function Group({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      className="flex overflow-hidden rounded-md border shadow-sm"
+      style={{ borderColor: brand.border }}
+    >
+      {children}
+    </div>
+  );
+}
+
 function Canvas({ pdi }: { pdi: PdiDoc }) {
   const [direction, setDirection] = useState<Direction>("LR");
+  const [mode, setMode] = useState<Mode>("pan");
   const [selected, setSelected] = useState<PdiNode | null>(null);
 
   const graph = useMemo(() => layoutGraph(pdi, { direction }), [pdi, direction]);
@@ -57,20 +73,57 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
   const [edges, setEdges, onEdgesChange] = useEdgesState(graph.edges);
   const { fitView } = useReactFlow();
 
-  // Pilha de posições para desfazer (Ctrl+Z). Guarda o estado ANTES de cada arraste.
   const undoStack = useRef<PosMap[]>([]);
   const [canUndo, setCanUndo] = useState(false);
 
+  const patchRoot = useCallback(
+    async (patch: { title?: string; track?: string }) => {
+      setNodes((ns) =>
+        ns.map((n) =>
+          n.id === "root"
+            ? ({ ...n, data: { ...n.data, ...patch } } as PdiNode)
+            : n,
+        ),
+      );
+      try {
+        await fetch("/api/pdi/root", {
+          method: "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(patch),
+        });
+      } catch {
+        /* silencioso — recarregar mostra o estado real */
+      }
+    },
+    [setNodes],
+  );
+
+  const withHandlers = useCallback(
+    (list: PdiNode[]): PdiNode[] =>
+      list.map((n) =>
+        n.type === "root"
+          ? ({
+              ...n,
+              data: {
+                ...n.data,
+                onEditTitle: (v: string) => patchRoot({ title: v }),
+                onEditTrack: (v: string) => patchRoot({ track: v }),
+              },
+            } as PdiNode)
+          : n,
+      ),
+    [patchRoot],
+  );
+
   const applyLayout = useCallback(
-    (g: { nodes: PdiNode[]; edges: typeof edges }) => {
-      setNodes(g.nodes);
+    (g: { nodes: PdiNode[]; edges: Edge[] }) => {
+      setNodes(withHandlers(g.nodes));
       setEdges(g.edges);
       requestAnimationFrame(() => fitView({ padding: 0.12, duration: 250 }));
     },
-    [setNodes, setEdges, fitView],
+    [setNodes, setEdges, fitView, withHandlers],
   );
 
-  // Re-aplica o layout quando muda a direção (ou o PDI).
   useEffect(() => {
     undoStack.current = [];
     setCanUndo(false);
@@ -93,7 +146,6 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
   }, [setNodes]);
 
   const pushUndo = useCallback((_: unknown, __: unknown, dragged: Node[]) => {
-    // no início do arraste, `dragged` traz as posições atuais de todos os nós
     undoStack.current.push(posMap(dragged));
     if (undoStack.current.length > 60) undoStack.current.shift();
     setCanUndo(true);
@@ -101,6 +153,8 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement;
+      if (t.tagName === "INPUT" || t.tagName === "TEXTAREA") return;
       if (e.key === "Escape") setSelected(null);
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
         e.preventDefault();
@@ -127,6 +181,10 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
         onNodeDragStart={pushUndo}
         onPaneClick={() => setSelected(null)}
         nodesConnectable={false}
+        zoomOnDoubleClick={false}
+        selectionOnDrag={mode === "select"}
+        panOnDrag={mode === "select" ? [1, 2] : true}
+        selectionMode={SelectionMode.Partial}
         fitView
         fitViewOptions={{ padding: 0.12 }}
         minZoom={0.1}
@@ -137,27 +195,29 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
         <MiniMap pannable zoomable nodeStrokeWidth={2} />
 
         <Panel position="top-left">
-          <div className="flex items-center gap-2">
-            <div
-              className="flex overflow-hidden rounded-md border shadow-sm"
-              style={{ borderColor: brand.border }}
-            >
+          <div className="flex flex-wrap items-center gap-2">
+            <Group>
               <ToolButton active={direction === "LR"} onClick={() => setDirection("LR")}>
                 Horizontal
               </ToolButton>
               <ToolButton active={direction === "TB"} onClick={() => setDirection("TB")}>
                 Vertical
               </ToolButton>
-            </div>
-            <div
-              className="flex overflow-hidden rounded-md border shadow-sm"
-              style={{ borderColor: brand.border }}
-            >
+            </Group>
+            <Group>
+              <ToolButton active={mode === "pan"} onClick={() => setMode("pan")}>
+                🖐 Navegar
+              </ToolButton>
+              <ToolButton active={mode === "select"} onClick={() => setMode("select")}>
+                ⬚ Selecionar
+              </ToolButton>
+            </Group>
+            <Group>
               <ToolButton onClick={undo}>
                 <span style={{ opacity: canUndo ? 1 : 0.4 }}>↩ Desfazer</span>
               </ToolButton>
               <ToolButton onClick={reorganize}>⟳ Reorganizar</ToolButton>
-            </div>
+            </Group>
           </div>
         </Panel>
 
@@ -166,7 +226,9 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
             className="rounded-full border bg-white/90 px-3 py-1 text-[11px] shadow-sm backdrop-blur"
             style={{ borderColor: brand.border, color: brand.muted }}
           >
-            Clique num card para ver detalhes · arraste para reorganizar · Ctrl+Z desfaz · scroll para zoom
+            {mode === "select"
+              ? "Arraste para selecionar vários · mova o bloco junto · botão direito para navegar"
+              : "Clique num card p/ detalhes · duplo clique no PDI p/ editar · arraste p/ mover · Ctrl+Z desfaz"}
           </div>
         </Panel>
       </ReactFlow>

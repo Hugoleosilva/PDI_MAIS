@@ -13,7 +13,7 @@ import type { Edge, Node } from "@xyflow/react";
 export type Direction = "LR" | "TB";
 
 export const NODE_SIZE = {
-  root: { width: 236, height: 118 },
+  root: { width: 250, height: 168 },
   area: { width: 264, height: 96 },
   action: { width: 320, height: 112 },
 } as const;
@@ -24,6 +24,8 @@ export interface RootNodeData extends Record<string, unknown> {
   progress: number;
   areaCount: number;
   dir: Direction;
+  onEditTitle?: (v: string) => void;
+  onEditTrack?: (v: string) => void;
 }
 
 export interface AreaNodeData extends Record<string, unknown> {
