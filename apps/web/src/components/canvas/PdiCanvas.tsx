@@ -478,7 +478,9 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
 
   const onNodeDragStart = useCallback(
     (_: unknown, node: Node, dragged: Node[]) => {
-      if (node.type === "group") {
+      frameDrag.current = null;
+      // arraste SOLO da barra do frame (sem multi-seleção) → carrega os membros
+      if (node.type === "group" && dragged.length === 1) {
         const gid = (node.data as { groupId: string }).groupId;
         const members = memberIdsOf(gid);
         const map: PosMap = {};
@@ -489,7 +491,6 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
         if (Object.keys(map).length) pushUndo({ kind: "positions", data: { ...map } });
         return;
       }
-      frameDrag.current = null;
       dragSnapshot.current = Object.fromEntries(
         dragged.filter((d) => d.type !== "group").map((d) => [d.id, { ...d.position }]),
       );
@@ -518,19 +519,30 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
       setLineH(undefined);
       setLineV(undefined);
 
-      if (node.type === "group") {
-        const gid = (node.data as { groupId: string }).groupId;
+      const list = dragged.length ? dragged : [node];
+
+      // 1. persiste a caixa de qualquer frame que se moveu (solo ou em conjunto)
+      for (const d of list) {
+        if (d.type !== "group") continue;
+        const gid = (d.data as { groupId: string }).groupId;
         setFrameBox(gid, {
-          x: node.position.x,
-          y: node.position.y,
-          w: (node.width as number) ?? frameBoxesRef.current[gid]?.w ?? EMPTY_FRAME.w,
-          h: (node.height as number) ?? frameBoxesRef.current[gid]?.h ?? EMPTY_FRAME.h,
+          x: d.position.x,
+          y: d.position.y,
+          w: (d.width as number) ?? frameBoxesRef.current[gid]?.w ?? EMPTY_FRAME.w,
+          h: (d.height as number) ?? frameBoxesRef.current[gid]?.h ?? EMPTY_FRAME.h,
         });
-        const fd = frameDrag.current;
-        frameDrag.current = null;
-        if (fd && fd.gid === gid) {
-          const dx = node.position.x - fd.start.x;
-          const dy = node.position.y - fd.start.y;
+      }
+
+      // 2. arraste SOLO da barra de um frame → carrega os membros que ele já tinha
+      const fd = frameDrag.current;
+      frameDrag.current = null;
+      if (fd) {
+        const grabbed = list.find(
+          (d) => d.type === "group" && (d.data as { groupId: string }).groupId === fd.gid,
+        );
+        if (grabbed) {
+          const dx = grabbed.position.x - fd.start.x;
+          const dy = grabbed.position.y - fd.start.y;
           setPositions((p) => {
             const next = { ...p };
             for (const [id, p0] of Object.entries(fd.members)) {
@@ -539,27 +551,24 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
             return next;
           });
         }
-        recapture();
-        scheduleSave();
-        return;
       }
 
-      const moved = (dragged.length ? dragged : [node]).filter(
-        (d) => d.type === "area" || d.type === "action",
-      );
-      if (moved.length) {
+      // 3. persiste posição de todo card que se moveu (multi-arraste inclusive)
+      const cards = list.filter((d) => d.type === "area" || d.type === "action");
+      if (cards.length) {
         if (Object.keys(dragSnapshot.current).length) {
           pushUndo({ kind: "positions", data: { ...dragSnapshot.current } });
           dragSnapshot.current = {};
         }
         setPositions((p) => {
           const next = { ...p };
-          for (const d of moved) next[d.id] = { x: d.position.x, y: d.position.y };
+          for (const d of cards) next[d.id] = { x: d.position.x, y: d.position.y };
           return next;
         });
-        scheduleSave();
-        if (groupsActive) recapture();
       }
+
+      scheduleSave();
+      if (groupsActive) recapture();
     },
     [groupsActive, recapture, pushUndo, scheduleSave, setFrameBox],
   );
