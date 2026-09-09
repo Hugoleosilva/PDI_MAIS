@@ -85,6 +85,7 @@ export interface GroupNodeData extends Record<string, unknown> {
   empty: boolean;
   onRename?: (v: string) => void;
   onRecolor?: () => void;
+  onResize?: (box: FrameBox) => void;
 }
 
 export type PdiNode =
@@ -283,102 +284,106 @@ function treeLayout(
   };
 }
 
-const FRAME_PAD = 22;
-const FRAME_TITLE = 34;
-export const EMPTY_FRAME = { w: 460, h: 300 };
+const FRAME_PAD = 26;
+const FRAME_TITLE = 36;
+export const EMPTY_FRAME = { w: 520, h: 340 };
 
 export type FrameBox = { x: number; y: number; w: number; h: number };
 
+/** Caixa que "abraça" os cards das áreas dadas (+ suas ações). null se nenhum. */
+export function hugBox(nodes: PdiNode[], areaIds: string[]): FrameBox | null {
+  const set = new Set(areaIds);
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  for (const n of nodes) {
+    const isMember =
+      (n.type === "area" && set.has(n.id)) ||
+      (n.type === "action" && set.has((n.data as ActionNodeData).areaId));
+    if (!isMember) continue;
+    const s = NODE_SIZE[n.type as "area" | "action"];
+    minX = Math.min(minX, n.position.x);
+    minY = Math.min(minY, n.position.y);
+    maxX = Math.max(maxX, n.position.x + s.width);
+    maxY = Math.max(maxY, n.position.y + s.height);
+  }
+  if (!Number.isFinite(minX)) return null;
+  return {
+    x: minX - FRAME_PAD,
+    y: minY - FRAME_PAD - FRAME_TITLE,
+    w: maxX - minX + FRAME_PAD * 2,
+    h: maxY - minY + FRAME_PAD * 2 + FRAME_TITLE,
+  };
+}
+
+/** IDs das áreas cujo centro do card cai dentro da caixa. */
+export function areasInBox(nodes: PdiNode[], box: FrameBox): string[] {
+  const out: string[] = [];
+  for (const n of nodes) {
+    if (n.type !== "area") continue;
+    const cx = n.position.x + NODE_SIZE.area.width / 2;
+    const cy = n.position.y + NODE_SIZE.area.height / 2;
+    if (cx >= box.x && cx <= box.x + box.w && cy >= box.y && cy <= box.y + box.h) {
+      out.push(n.id);
+    }
+  }
+  return out;
+}
+
 /**
- * Frames dos blocos:
- * - bloco com áreas → o frame "abraça" os cards (segue as posições atuais).
- * - bloco vazio → usa a caixa manual salva (`frameBoxes[id]`) ou um default.
+ * Frames dos blocos. Cada bloco tem uma caixa manual (`frameBoxes[id]`);
+ * se ainda não tiver, abraça os membros atuais, e por fim um default.
+ * A participação (quem está no bloco) vem da GEOMETRIA — ver `areasInBox`.
  */
 export function computeFrames(
   nodes: PdiNode[],
   groups: PdiGroup[],
   frameBoxes: Record<string, FrameBox> = {},
 ): Node<GroupNodeData, "group">[] {
-  const areaToGroup = groupOfArea(groups);
-  const rects = new Map<string, { minX: number; minY: number; maxX: number; maxY: number }>();
+  let fallbackIndex = 0;
+  const refX = Math.min(0, ...nodes.map((n) => n.position.x));
+  const refBottom = Math.max(
+    0,
+    ...nodes.map(
+      (n) => n.position.y + (NODE_SIZE[n.type as keyof typeof NODE_SIZE]?.height ?? 110),
+    ),
+  );
 
-  // referência para posicionar frames vazios sem caixa salva
-  let refX = 0;
-  let refBottom = 0;
-  for (const n of nodes) {
-    const s = NODE_SIZE[n.type as keyof typeof NODE_SIZE] ?? NODE_SIZE.area;
-    refX = Math.min(refX, n.position.x);
-    refBottom = Math.max(refBottom, n.position.y + s.height);
-  }
-
-  for (const n of nodes) {
-    let gid: string | undefined;
-    if (n.type === "area") gid = areaToGroup.get(n.id);
-    else if (n.type === "action") gid = areaToGroup.get((n.data as ActionNodeData).areaId);
-    if (!gid) continue;
-    const s = NODE_SIZE[n.type as "area" | "action"];
-    const r = rects.get(gid);
-    const x1 = n.position.x;
-    const y1 = n.position.y;
-    const x2 = x1 + s.width;
-    const y2 = y1 + s.height;
-    rects.set(
-      gid,
-      r
-        ? {
-            minX: Math.min(r.minX, x1),
-            minY: Math.min(r.minY, y1),
-            maxX: Math.max(r.maxX, x2),
-            maxY: Math.max(r.maxY, y2),
-          }
-        : { minX: x1, minY: y1, maxX: x2, maxY: y2 },
-    );
-  }
-
-  let emptyIndex = 0;
   return [...groups]
     .sort((a, b) => a.order - b.order)
     .map((grp) => {
-      const r = rects.get(grp.id);
-      const saved = frameBoxes[grp.id];
-      let x: number;
-      let y: number;
-      let width: number;
-      let height: number;
+      const box =
+        frameBoxes[grp.id] ??
+        hugBox(nodes, grp.areaIds) ?? {
+          x: refX,
+          y: refBottom + 80 + fallbackIndex++ * (EMPTY_FRAME.h + 40),
+          w: EMPTY_FRAME.w,
+          h: EMPTY_FRAME.h,
+        };
 
-      if (r) {
-        // bloco com áreas: abraça os cards
-        x = r.minX - FRAME_PAD;
-        y = r.minY - FRAME_PAD - FRAME_TITLE;
-        width = r.maxX - r.minX + FRAME_PAD * 2;
-        height = r.maxY - r.minY + FRAME_PAD * 2 + FRAME_TITLE;
-      } else if (saved) {
-        ({ x, y } = { x: saved.x, y: saved.y });
-        width = saved.w;
-        height = saved.h;
-      } else {
-        x = refX;
-        y = refBottom + 80 + emptyIndex++ * (EMPTY_FRAME.h + 32);
-        width = EMPTY_FRAME.w;
-        height = EMPTY_FRAME.h;
-      }
-
-      const empty = !r;
       return {
         id: `frame-${grp.id}`,
         type: "group" as const,
-        position: { x, y },
-        width,
-        height,
+        position: { x: box.x, y: box.y },
+        width: box.w,
+        height: box.h,
         selectable: true,
-        draggable: empty,
+        draggable: true,
         deletable: false,
         connectable: false,
         zIndex: 0,
-        // frame com áreas: corpo "clique-através" (a barra de título reativa
-        // os eventos). frame vazio: interativo por inteiro.
-        style: empty ? undefined : { pointerEvents: "none" as const },
-        data: { groupId: grp.id, title: grp.title, color: grp.color, width, height, empty },
+        // corpo "clique-através" (deixa passar o pan); a barra de título e as
+        // alças de redimensionar reativam os eventos.
+        style: { pointerEvents: "none" as const },
+        data: {
+          groupId: grp.id,
+          title: grp.title,
+          color: grp.color,
+          width: box.w,
+          height: box.h,
+          empty: grp.areaIds.length === 0,
+        },
       };
     });
 }

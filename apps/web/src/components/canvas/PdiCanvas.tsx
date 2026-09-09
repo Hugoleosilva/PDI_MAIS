@@ -20,7 +20,6 @@ import {
 import "@xyflow/react/dist/style.css";
 import {
   GROUP_COLORS,
-  groupOfArea,
   resolveSeedGroups,
   type PdiCanvasState,
   type PdiDoc,
@@ -29,11 +28,13 @@ import {
 } from "@pdi-mais/core";
 import {
   EMPTY_FRAME,
+  hugBox,
   LAYOUT_LABEL,
   layoutGraph,
   linkEdge,
   NODE_SIZE,
   type FrameBox,
+  type GroupNodeData,
   type Layout,
   type PdiNode,
 } from "@/lib/pdi-to-graph";
@@ -126,7 +127,7 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
   const [edges, setEdges, onEdgesChange] = useEdgesState(layout.edges);
   const nodesRef = useRef(nodes);
   useEffect(() => void (nodesRef.current = nodes), [nodes]);
-  const { fitView } = useReactFlow();
+  const { fitView, screenToFlowPosition } = useReactFlow();
 
   const [lineH, setLineH] = useState<number>();
   const [lineV, setLineV] = useState<number>();
@@ -185,13 +186,63 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
     },
     [scheduleSave],
   );
+  const setFrameBox = useCallback(
+    (gid: string, box: FrameBox) => {
+      setFrameBoxes((fb) => ({ ...fb, [gid]: box }));
+      frameBoxesRef.current = { ...frameBoxesRef.current, [gid]: box };
+    },
+    [],
+  );
+
+  /**
+   * Participação = geometria: cada área entra no bloco cujo frame contém o
+   * centro do seu card. Frames menores têm prioridade (mais específicos).
+   */
+  const recapture = useCallback(() => {
+    const cur = nodesRef.current;
+    const rects = cur
+      .filter((n) => n.type === "group")
+      .map((n) => {
+        const d = n.data as GroupNodeData;
+        return {
+          gid: d.groupId,
+          x: n.position.x,
+          y: n.position.y,
+          w: (n.width as number) ?? d.width,
+          h: (n.height as number) ?? d.height,
+        };
+      })
+      .sort((a, b) => a.w * a.h - b.w * b.h);
+
+    const byGid = new Map(groupsRef.current.map((g) => [g.id, [] as string[]]));
+    for (const n of cur) {
+      if (n.type !== "area") continue;
+      const cx = n.position.x + NODE_SIZE.area.width / 2;
+      const cy = n.position.y + NODE_SIZE.area.height / 2;
+      const hit = rects.find(
+        (f) => cx >= f.x && cx <= f.x + f.w && cy >= f.y && cy <= f.y + f.h,
+      );
+      if (hit) byGid.get(hit.gid)?.push(n.id);
+    }
+
+    const next = groupsRef.current.map((g) => ({ ...g, areaIds: byGid.get(g.id) ?? [] }));
+    const changed = next.some(
+      (g, i) =>
+        [...g.areaIds].sort().join() !== [...groupsRef.current[i].areaIds].sort().join(),
+    );
+    if (changed) commitGroups(next);
+  }, [commitGroups]);
 
   const applySuggestedGroups = useCallback(() => {
-    commitGroups(resolveSeedGroups(pdi));
-    setPositions({});
-    positionsRef.current = {};
-    setFrameBoxes({});
-    frameBoxesRef.current = {};
+    const sg = resolveSeedGroups(pdi);
+    const boxes: Record<string, FrameBox> = {};
+    for (const g of sg) {
+      const b = hugBox(nodesRef.current, g.areaIds);
+      if (b) boxes[g.id] = b;
+    }
+    setFrameBoxes(boxes);
+    frameBoxesRef.current = boxes;
+    commitGroups(sg);
     if (!showGroups) setShowGroups(true);
     requestAnimationFrame(() => fitView({ padding: 0.14, duration: 300 }));
   }, [pdi, commitGroups, showGroups, fitView]);
@@ -221,20 +272,13 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
   );
   const addGroup = useCallback(() => {
     const id = uuid();
-    const ns = nodesRef.current.filter((n) => n.type !== "group");
-    const minX = ns.length ? Math.min(...ns.map((n) => n.position.x)) : 0;
-    const maxY = ns.length
-      ? Math.max(
-          ...ns.map(
-            (n) =>
-              n.position.y + (NODE_SIZE[n.type as keyof typeof NODE_SIZE]?.height ?? 110),
-          ),
-        )
-      : 0;
-    setFrameBoxes((fb) => ({
-      ...fb,
-      [id]: { x: minX, y: maxY + 100, w: EMPTY_FRAME.w, h: EMPTY_FRAME.h },
-    }));
+    const c = screenToFlowPosition({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
+    setFrameBox(id, {
+      x: c.x - EMPTY_FRAME.w / 2,
+      y: c.y - EMPTY_FRAME.h / 2,
+      w: EMPTY_FRAME.w,
+      h: EMPTY_FRAME.h,
+    });
     commitGroups([
       ...groups,
       {
@@ -246,8 +290,7 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
       },
     ]);
     if (!showGroups) setShowGroups(true);
-    scheduleSave();
-  }, [groups, commitGroups, showGroups, scheduleSave]);
+  }, [groups, commitGroups, showGroups, screenToFlowPosition, setFrameBox]);
   const deleteGroup = useCallback(
     (id: string) => {
       commitGroups(groups.filter((g) => g.id !== id).map((g, i) => ({ ...g, order: i })));
@@ -255,9 +298,10 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
         const { [id]: _drop, ...rest } = fb;
         return rest;
       });
-      scheduleSave();
+      const { [id]: _d, ...rest } = frameBoxesRef.current;
+      frameBoxesRef.current = rest;
     },
-    [groups, commitGroups, scheduleSave],
+    [groups, commitGroups],
   );
 
   // ---- conexões manuais ----
@@ -347,12 +391,17 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
               ...n.data,
               onRename: (v: string) => renameGroup(gid, v),
               onRecolor: () => recolorGroup(gid),
+              onResize: (box: FrameBox) => {
+                setFrameBox(gid, box);
+                scheduleSave();
+                requestAnimationFrame(recapture);
+              },
             },
           } as PdiNode;
         }
         return n;
       }),
-    [patchRoot, renameGroup, recolorGroup],
+    [patchRoot, renameGroup, recolorGroup, setFrameBox, scheduleSave, recapture],
   );
 
   // ---- sincroniza estrutura; fitView só quando muda o formato ----
@@ -410,15 +459,13 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
 
       if (node.type === "group") {
         const gid = (node.data as { groupId: string }).groupId;
-        setFrameBoxes((fb) => ({
-          ...fb,
-          [gid]: {
-            x: node.position.x,
-            y: node.position.y,
-            w: fb[gid]?.w ?? EMPTY_FRAME.w,
-            h: fb[gid]?.h ?? EMPTY_FRAME.h,
-          },
-        }));
+        setFrameBox(gid, {
+          x: node.position.x,
+          y: node.position.y,
+          w: (node.width as number) ?? frameBoxesRef.current[gid]?.w ?? EMPTY_FRAME.w,
+          h: (node.height as number) ?? frameBoxesRef.current[gid]?.h ?? EMPTY_FRAME.h,
+        });
+        recapture();
         scheduleSave();
         return;
       }
@@ -437,33 +484,11 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
           return next;
         });
         scheduleSave();
-      }
-
-      // soltar uma ÁREA dentro de um frame → move pro bloco
-      if (groupsActive && node.type === "area") {
-        const cx = node.position.x + NODE_SIZE.area.width / 2;
-        const cy = node.position.y + NODE_SIZE.area.height / 2;
-        const hit = nodesRef.current.find(
-          (f) =>
-            f.type === "group" &&
-            cx >= f.position.x &&
-            cx <= f.position.x + ((f.width as number) ?? 0) &&
-            cy >= f.position.y &&
-            cy <= f.position.y + ((f.height as number) ?? 0),
-        );
-        const target = hit ? ((hit.data as { groupId: string }).groupId) : null;
-        const current = groupOfArea(groups).get(node.id) ?? null;
-        if (target !== current) {
-          const next = groups.map((g) => ({
-            ...g,
-            areaIds: g.areaIds.filter((id) => id !== node.id),
-          }));
-          if (target) next.find((g) => g.id === target)?.areaIds.push(node.id);
-          commitGroups(next);
-        }
+        // um card mexeu → pode ter entrado/saído de um frame
+        if (groupsActive) recapture();
       }
     },
-    [groupsActive, groups, commitGroups, pushUndo, scheduleSave],
+    [groupsActive, recapture, pushUndo, scheduleSave, setFrameBox],
   );
 
   const handleNodesChange = useCallback(

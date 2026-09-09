@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Handle, Position, type NodeProps } from "@xyflow/react";
+import { Handle, NodeResizer, Position, type NodeProps } from "@xyflow/react";
 import { formatPercent } from "@pdi-mais/core";
 import type {
   ActionNodeData,
@@ -268,47 +268,56 @@ export function BandNode({ data }: NodeProps & { data: BandNodeData }) {
 
 /**
  * Frame de agrupamento (bloco estratégico), atrás dos cards.
- * O corpo do frame com áreas é "clique-através" (deixa passar pan/seleção);
- * só a barra de título é interativa. Bloco vazio é todo arrastável.
+ * Corpo "clique-através" (deixa o pan passar); a barra de título move o frame
+ * e as alças redimensionam. Quem cair dentro do frame entra no bloco.
  */
 export function GroupNode({ data, selected }: NodeProps & { data: GroupNodeData }) {
   return (
-    <div
-      className="rounded-2xl"
-      style={{
-        width: data.width,
-        height: data.height,
-        borderWidth: selected ? 3 : 2,
-        borderStyle: "dashed",
-        borderColor: data.color,
-        background: `${data.color}12`,
-      }}
-    >
-      <Handle type="target" position={Position.Left} style={{ ...handleStyle, opacity: 0 }} />
+    <>
+      <NodeResizer
+        color={data.color}
+        isVisible={selected}
+        minWidth={280}
+        minHeight={180}
+        handleStyle={{ pointerEvents: "all", width: 8, height: 8 }}
+        lineStyle={{ pointerEvents: "all" }}
+        onResizeEnd={(_, p) => data.onResize?.({ x: p.x, y: p.y, w: p.width, h: p.height })}
+      />
       <div
-        className="flex w-fit max-w-full items-center gap-2 rounded-tl-[14px] rounded-br-xl px-3 py-1.5"
-        style={{ pointerEvents: "auto", background: data.color }}
+        className="h-full w-full rounded-2xl"
+        style={{
+          borderWidth: selected ? 3 : 2,
+          borderStyle: "dashed",
+          borderColor: data.color,
+          background: `${data.color}12`,
+        }}
       >
-        <button
-          type="button"
-          title="Trocar a cor do bloco"
-          onClick={(e) => {
-            e.stopPropagation();
-            data.onRecolor?.();
-          }}
-          className="nodrag nopan h-3 w-3 shrink-0 rounded-full border border-white/70 bg-white/30"
-        />
-        <EditableText
-          value={data.title}
-          placeholder="Bloco"
-          onCommit={data.onRename}
-          className="text-[13px] font-bold text-white"
-        />
-        {data.empty && (
-          <span className="text-[11px] font-normal text-white/80">· arraste uma área pra cá</span>
-        )}
+        <Handle type="target" position={Position.Left} style={{ ...handleStyle, opacity: 0 }} />
+        <div
+          className="flex w-fit max-w-full cursor-move items-center gap-2 rounded-tl-[14px] rounded-br-xl px-3 py-1.5"
+          style={{ pointerEvents: "auto", background: data.color }}
+        >
+          <button
+            type="button"
+            title="Trocar a cor do bloco"
+            onClick={(e) => {
+              e.stopPropagation();
+              data.onRecolor?.();
+            }}
+            className="nodrag nopan h-3 w-3 shrink-0 rounded-full border border-white/70 bg-white/30"
+          />
+          <EditableText
+            value={data.title}
+            placeholder="Bloco"
+            onCommit={data.onRename}
+            className="text-[13px] font-bold text-white"
+          />
+          {data.empty && (
+            <span className="text-[11px] font-normal text-white/80">· solte cards aqui dentro</span>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
