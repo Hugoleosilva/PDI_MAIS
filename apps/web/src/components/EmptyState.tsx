@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export function EmptyState() {
   const isDev = process.env.NODE_ENV === "development";
 
@@ -6,15 +8,17 @@ export function EmptyState() {
       <div className="text-4xl">🗺️</div>
       <h2 className="text-lg font-semibold">Seu PDI+ ainda está vazio</h2>
       <p className="max-w-sm text-sm text-neutral-500">
-        O import manual (colar tabela / CSV) chega na Rodada 5. A sincronização
-        pela extensão, na Rodada 3.
+        Cole a tabela do seu PDI (ou suba um CSV) para montar o roadmap.
       </p>
+      <Link
+        href="/import"
+        className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700"
+      >
+        Importar manualmente
+      </Link>
       {isDev && (
-        <a
-          href="/api/dev/seed"
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700"
-        >
-          Carregar dados de exemplo
+        <a href="/api/dev/seed" className="text-xs text-neutral-400 underline">
+          ou carregar dados de exemplo (dev)
         </a>
       )}
     </div>

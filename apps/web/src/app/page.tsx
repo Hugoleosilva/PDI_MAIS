@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { formatPercent, overallProgress } from "@pdi-mais/core";
 import { auth, signIn, signOut } from "@/auth";
 import { getPdiByUserId } from "@/lib/pdi-repo";
@@ -63,6 +64,12 @@ export default async function Home() {
         )}
 
         <div className="ml-auto flex items-center gap-3">
+          <Link
+            href="/import"
+            className="rounded-md border border-neutral-300 px-3 py-1 text-xs font-medium text-neutral-700 hover:bg-neutral-100"
+          >
+            Importar
+          </Link>
           <span className="hidden text-xs text-neutral-500 sm:inline">
             {session.user.email}
           </span>
