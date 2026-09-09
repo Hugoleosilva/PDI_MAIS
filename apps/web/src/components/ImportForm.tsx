@@ -72,7 +72,7 @@ export function ImportForm({
 
   const label = "mb-1 block text-xs font-medium text-neutral-600";
   const input =
-    "w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-500";
+    "w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-neutral-900";
 
   const warnings = useMemo(() => preview?.warnings ?? [], [preview]);
 

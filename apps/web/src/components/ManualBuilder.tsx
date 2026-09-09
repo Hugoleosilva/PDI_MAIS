@@ -35,9 +35,9 @@ const emptyAction = (): DraftAction => ({
 });
 const emptyArea = (): DraftArea => ({ title: "", description: "", actions: [emptyAction()] });
 
-const inputCls =
-  "w-full rounded-md border border-neutral-300 px-2.5 py-1.5 text-sm outline-none focus:border-neutral-500";
-const labelCls = "mb-1 block text-[11px] font-medium text-neutral-500";
+const field =
+  "w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-neutral-900";
+const lbl = "mb-1 block text-[11px] font-medium uppercase tracking-wide text-neutral-500";
 
 export function ManualBuilder({
   title: initialTitle,
@@ -74,7 +74,9 @@ export function ManualBuilder({
     (n, a) => n + a.actions.filter((x) => x.title.trim()).length,
     0,
   );
-  const validAreas = areas.filter((a) => a.title.trim() && a.actions.some((x) => x.title.trim()));
+  const validAreas = areas.filter(
+    (a) => a.title.trim() && a.actions.some((x) => x.title.trim()),
+  );
 
   const save = async () => {
     if (!title.trim() || validAreas.length === 0) return;
@@ -118,162 +120,162 @@ export function ManualBuilder({
   };
 
   return (
-    <div className="space-y-5">
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className={labelCls}>Nome do ciclo *</label>
-          <input className={inputCls} value={title} onChange={(e) => setTitle(e.target.value)} />
-        </div>
-        <div>
-          <label className={labelCls}>Trilha / tema</label>
+    <div className="space-y-6">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="block">
+          <span className={lbl}>Nome do ciclo *</span>
+          <input className={field} value={title} onChange={(e) => setTitle(e.target.value)} />
+        </label>
+        <label className="block">
+          <span className={lbl}>Trilha / tema</span>
           <input
-            className={inputCls}
+            className={field}
             value={track}
             onChange={(e) => setTrack(e.target.value)}
             placeholder="Desenvolvimento Fullstack"
           />
-        </div>
+        </label>
       </div>
 
       {areas.map((area, ai) => (
-        <div key={ai} className="rounded-lg border border-neutral-200 p-3">
-          <div className="flex items-start gap-2">
-            <div className="flex-1">
-              <label className={labelCls}>Área de desenvolvimento {ai + 1} *</label>
-              <input
-                className={inputCls}
-                value={area.title}
-                onChange={(e) => patchArea(ai, { title: e.target.value })}
-                placeholder="Ex.: Tecnologias de Backend"
-              />
-            </div>
+        <section key={ai} className="rounded-xl border border-neutral-200 bg-white">
+          <header className="flex items-center gap-3 border-b border-neutral-100 px-4 py-3">
+            <span className="text-xs font-semibold text-neutral-400">#{ai + 1}</span>
+            <input
+              className="flex-1 border-0 bg-transparent p-0 text-[15px] font-semibold text-neutral-900 outline-none placeholder:font-normal placeholder:text-neutral-400"
+              value={area.title}
+              onChange={(e) => patchArea(ai, { title: e.target.value })}
+              placeholder="Área de desenvolvimento"
+            />
             <button
               type="button"
               onClick={() => setAreas((a) => a.filter((_, i) => i !== ai))}
-              className="mt-5 rounded px-2 py-1 text-xs text-red-600 hover:bg-red-50"
-              title="Remover área"
+              className="shrink-0 rounded px-2 py-1 text-xs font-medium text-neutral-400 hover:bg-red-50 hover:text-red-600"
             >
-              ✕
+              remover
             </button>
-          </div>
+          </header>
 
-          <div className="mt-2">
-            <label className={labelCls}>Descrição da área</label>
-            <textarea
-              className={`${inputCls} h-16`}
-              value={area.description}
-              onChange={(e) => patchArea(ai, { description: e.target.value })}
-              placeholder="Por que essa área importa / o que você quer desenvolver"
-            />
-          </div>
+          <div className="space-y-4 p-4">
+            <label className="block">
+              <span className={lbl}>Descrição da área</span>
+              <textarea
+                className={`${field} min-h-[56px] resize-y`}
+                value={area.description}
+                onChange={(e) => patchArea(ai, { description: e.target.value })}
+                placeholder="Por que essa área importa / o que quer desenvolver"
+              />
+            </label>
 
-          <div className="mt-3 space-y-3">
-            {area.actions.map((ac, ci) => (
-              <div key={ci} className="rounded-md bg-neutral-50 p-2.5">
-                <div className="flex items-start gap-2">
-                  <div className="flex-1">
-                    <label className={labelCls}>Ação {ci + 1}</label>
+            <div className="space-y-3">
+              <span className={lbl}>Ações</span>
+              {area.actions.map((ac, ci) => (
+                <div key={ci} className="rounded-lg bg-neutral-50 p-3">
+                  <div className="flex items-center gap-2">
                     <input
-                      className={inputCls}
+                      className={field}
                       value={ac.title}
                       onChange={(e) => patchAction(ai, ci, { title: e.target.value })}
-                      placeholder="Ex.: Udemy: Node.js do Zero a Maestria"
+                      placeholder={`Ação ${ci + 1}`}
                     />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      patchArea(ai, { actions: area.actions.filter((_, j) => j !== ci) })
-                    }
-                    className="mt-5 rounded px-2 py-1 text-xs text-red-600 hover:bg-red-50"
-                    title="Remover ação"
-                  >
-                    ✕
-                  </button>
-                </div>
-
-                <textarea
-                  className={`${inputCls} mt-2 h-14`}
-                  value={ac.description}
-                  onChange={(e) => patchAction(ai, ci, { description: e.target.value })}
-                  placeholder="Descrição da ação (objetivo, entregas...)"
-                />
-
-                <div className="mt-2 grid grid-cols-3 gap-2">
-                  <div>
-                    <label className={labelCls}>Tipo</label>
-                    <select
-                      className={inputCls}
-                      value={ac.kind}
-                      onChange={(e) => patchAction(ai, ci, { kind: e.target.value as ActionKind })}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        patchArea(ai, { actions: area.actions.filter((_, j) => j !== ci) })
+                      }
+                      className="shrink-0 rounded px-2 py-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-600"
+                      title="Remover ação"
                     >
-                      {KINDS.map(([k, l]) => (
-                        <option key={k} value={k}>
-                          {l}
-                        </option>
-                      ))}
-                    </select>
+                      ✕
+                    </button>
                   </div>
-                  <div>
-                    <label className={labelCls}>Prazo</label>
-                    <input
-                      type="date"
-                      className={inputCls}
-                      value={ac.dueDate}
-                      onChange={(e) => patchAction(ai, ci, { dueDate: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <label className={labelCls}>Status</label>
-                    <select
-                      className={inputCls}
-                      value={ac.status}
-                      onChange={(e) => patchAction(ai, ci, { status: e.target.value as Status })}
-                    >
-                      {STATUSES.map(([s, l]) => (
-                        <option key={s} value={s}>
-                          {l}
-                        </option>
-                      ))}
-                    </select>
+
+                  <textarea
+                    className={`${field} mt-2 min-h-[44px] resize-y`}
+                    value={ac.description}
+                    onChange={(e) => patchAction(ai, ci, { description: e.target.value })}
+                    placeholder="Descrição da ação (opcional)"
+                  />
+
+                  <div className="mt-2 grid gap-2 sm:grid-cols-3">
+                    <label className="block">
+                      <span className={lbl}>Tipo</span>
+                      <select
+                        className={field}
+                        value={ac.kind}
+                        onChange={(e) =>
+                          patchAction(ai, ci, { kind: e.target.value as ActionKind })
+                        }
+                      >
+                        {KINDS.map(([k, l]) => (
+                          <option key={k} value={k}>
+                            {l}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="block">
+                      <span className={lbl}>Prazo</span>
+                      <input
+                        type="date"
+                        className={field}
+                        value={ac.dueDate}
+                        onChange={(e) => patchAction(ai, ci, { dueDate: e.target.value })}
+                      />
+                    </label>
+                    <label className="block">
+                      <span className={lbl}>Status</span>
+                      <select
+                        className={field}
+                        value={ac.status}
+                        onChange={(e) =>
+                          patchAction(ai, ci, { status: e.target.value as Status })
+                        }
+                      >
+                        {STATUSES.map(([s, l]) => (
+                          <option key={s} value={s}>
+                            {l}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
                   </div>
                 </div>
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={() => patchArea(ai, { actions: [...area.actions, emptyAction()] })}
-              className="text-xs font-medium text-neutral-600 hover:text-neutral-900"
-            >
-              + Ação
-            </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => patchArea(ai, { actions: [...area.actions, emptyAction()] })}
+                className="text-xs font-semibold text-neutral-500 hover:text-neutral-900"
+              >
+                + adicionar ação
+              </button>
+            </div>
           </div>
-        </div>
+        </section>
       ))}
 
       <button
         type="button"
         onClick={() => setAreas((a) => [...a, emptyArea()])}
-        className="rounded-md border border-dashed border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-50"
+        className="w-full rounded-xl border border-dashed border-neutral-300 py-3 text-sm font-semibold text-neutral-500 hover:border-neutral-400 hover:text-neutral-800"
       >
-        + Área de desenvolvimento
+        + adicionar área de desenvolvimento
       </button>
 
-      <div className="flex items-center gap-3 border-t border-neutral-200 pt-4">
+      <div className="sticky bottom-0 flex items-center gap-3 border-t border-neutral-200 bg-white/90 py-4 backdrop-blur">
         <button
           type="button"
           disabled={busy || !title.trim() || validAreas.length === 0}
           onClick={save}
-          className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-40"
+          className="rounded-md bg-emerald-600 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-500 disabled:opacity-40"
         >
           {busy ? "Salvando…" : hasExisting ? "Salvar (atualiza o PDI)" : "Salvar PDI"}
         </button>
         <span className="text-xs text-neutral-500">
           {validAreas.length} áreas · {actionCount} ações
         </span>
+        {error && <span className="text-xs text-red-600">{error}</span>}
       </div>
-
-      {error && <p className="text-sm text-red-600">{error}</p>}
     </div>
   );
 }
