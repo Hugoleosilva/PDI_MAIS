@@ -229,14 +229,16 @@ export function burndownSeries(
   const today = Date.parse(todayIso);
   const days = (ms: number) => Math.round((ms - start) / 86_400_000);
 
-  // previsto: reta do total -> 0 no ritmo semanal
-  const plannedEndDays =
-    weeklyHrs > 0 ? Math.ceil((total / weeklyHrs) * 7) : days(today);
+  // previsto: reta do total -> 0 no ritmo semanal (só quando há capacidade)
+  const plannedEndDays = weeklyHrs > 0 ? Math.ceil((total / weeklyHrs) * 7) : 0;
   const spanDays = Math.max(plannedEndDays, days(today), 7);
-  const planned = [
-    { t: 0, h: total },
-    { t: plannedEndDays, h: 0 },
-  ];
+  const planned =
+    weeklyHrs > 0
+      ? [
+          { t: 0, h: total },
+          { t: plannedEndDays, h: 0 },
+        ]
+      : [];
 
   // real: degraus nas datas de conclusão + ponto de hoje com o parcial
   const completions = actions

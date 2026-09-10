@@ -25,6 +25,7 @@ export function Burndown({
     pts.map((p, i) => `${i ? "L" : "M"}${x(p.t).toFixed(1)} ${y(p.h).toFixed(1)}`).join(" ");
 
   const behind =
+    series.planned.length > 0 &&
     series.actual.length > 1 &&
     series.actual.at(-1)!.h > pointOnPlanned(series.planned, series.actual.at(-1)!.t) + 0.5;
 

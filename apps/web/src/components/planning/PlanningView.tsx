@@ -33,6 +33,8 @@ const PLAN_BADGE: Record<PlanStatus, { label: string; bg: string; fg: string }> 
   "sem-meta": { label: "Sem prazo definido", bg: "#F3F4F6", fg: "#6b7280" },
 };
 
+type ProgMode = "units" | "hours" | "status";
+
 const num = (v: string) => (v.trim() === "" ? null : Math.max(0, Number(v) || 0));
 
 const addDays = (iso: string, n: number) => {
@@ -126,6 +128,19 @@ export function PlanningView({ pdi, today }: { pdi: PdiDoc; today: string }) {
     { est: 0, done: 0, rem: 0 },
   );
 
+  // gráfico geral consolidado
+  const allActions = doc.areas.flatMap((ar) => ar.actions);
+  const totalWeekly =
+    (doc.groups ?? []).reduce((s, g) => s + weeklyHours(g.capacity), 0) +
+    weeklyHours(doc.looseCapacity);
+  const allDone = allActions
+    .map((a) => a.completedAt)
+    .filter((x): x is string => Boolean(x) && x! < today)
+    .sort();
+  const gStart = allDone[0] ?? addDays(today, -21);
+  const gSeries = burndownSeries(allActions, totalWeekly, gStart, today);
+  const gTodayT = Math.max(0, daysBetween(gStart, today));
+
   const actionsById = new Map(doc.areas.flatMap((ar) => ar.actions.map((a) => [a.id, a])));
   const areaTitleOf = new Map(
     doc.areas.flatMap((ar) => ar.actions.map((a) => [a.id, ar.title])),
@@ -133,7 +148,7 @@ export function PlanningView({ pdi, today }: { pdi: PdiDoc; today: string }) {
 
   return (
     <div className="space-y-8">
-      {/* resumo geral */}
+      {/* resumo geral consolidado */}
       <section className="rounded-xl border border-neutral-200 bg-white p-5">
         <div className="flex flex-wrap items-baseline justify-between gap-3">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
@@ -146,10 +161,20 @@ export function PlanningView({ pdi, today }: { pdi: PdiDoc; today: string }) {
         <p className="mt-1 text-xs text-neutral-500">
           {Math.round(totals.est)}h estimadas · {Math.round(totals.done)}h feitas ·{" "}
           {Math.round(totals.rem)}h restantes
+          {totalWeekly > 0 && ` · ${totalWeekly}h por semana no total`}
           {plan.overallProjectedDate
             ? " · a data é a do bloco que termina por último"
             : " · defina a carga horária das ações e a capacidade dos blocos"}
         </p>
+
+        {totals.est > 0 && (
+          <div className="mt-4 rounded-lg border border-neutral-100 bg-neutral-50/60 p-3">
+            <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">
+              Consolidado — horas restantes de todo o PDI (previsto × real)
+            </p>
+            <Burndown series={gSeries} todayT={gTodayT} width={620} height={170} />
+          </div>
+        )}
       </section>
 
       {plan.blocks.map((b) => {
@@ -241,72 +266,134 @@ export function PlanningView({ pdi, today }: { pdi: PdiDoc; today: string }) {
                 <div className="space-y-2">
                   {b.actions.map((a) => {
                     const act = actionsById.get(a.id) ?? a;
+                    const mode: ProgMode = act.unitsTotal
+                      ? "units"
+                      : act.hoursDone != null
+                        ? "hours"
+                        : "status";
+                    const setMode = (m: ProgMode) => {
+                      if (m === "units")
+                        patchAction(a.id, {
+                          hoursDone: null,
+                          unitsTotal: act.unitsTotal ?? null,
+                          unitsDone: act.unitsDone ?? 0,
+                          unitsLabel: act.unitsLabel ?? "módulos",
+                        });
+                      else if (m === "hours")
+                        patchAction(a.id, {
+                          unitsTotal: null,
+                          unitsDone: null,
+                          unitsLabel: null,
+                          hoursDone: act.hoursDone ?? 0,
+                        });
+                      else
+                        patchAction(a.id, {
+                          unitsTotal: null,
+                          unitsDone: null,
+                          unitsLabel: null,
+                          hoursDone: null,
+                        });
+                    };
+
                     return (
-                      <div
-                        key={a.id}
-                        className="grid grid-cols-1 gap-2 rounded-lg bg-neutral-50 p-3 md:grid-cols-[1fr_auto]"
-                      >
-                        <div>
+                      <div key={a.id} className="rounded-lg bg-neutral-50 p-3">
+                        <div className="mb-2 flex items-baseline justify-between gap-3">
                           <p className="text-[13px] font-medium">{act.title}</p>
-                          <p className="text-[11px] text-neutral-400">
-                            {areaTitleOf.get(a.id)} · {formatPercent(actionCompletion(act))} concluído
-                          </p>
+                          <span className="shrink-0 text-[11px] font-semibold text-neutral-500">
+                            {formatPercent(actionCompletion(act))} concluído
+                          </span>
                         </div>
-                        <div className="flex flex-wrap items-end gap-2 text-xs">
-                          <Field label="Carga (h)">
-                            <input
-                              type="number"
-                              min={0}
-                              step={0.5}
-                              value={act.estimatedHours ?? ""}
-                              onChange={(e) =>
-                                patchAction(a.id, { estimatedHours: num(e.target.value) })
-                              }
-                              className={inp}
-                            />
+
+                        <div className="flex flex-wrap items-end gap-x-3 gap-y-2 text-xs">
+                          <Field label="Carga horária">
+                            <div className="flex items-center gap-1">
+                              <input
+                                type="number"
+                                min={0}
+                                step={0.5}
+                                value={act.estimatedHours ?? ""}
+                                onChange={(e) =>
+                                  patchAction(a.id, { estimatedHours: num(e.target.value) })
+                                }
+                                className={inp}
+                              />
+                              <span className="text-neutral-400">h</span>
+                            </div>
                           </Field>
-                          <Field label="Feito">
-                            <input
-                              type="number"
-                              min={0}
-                              value={act.unitsDone ?? ""}
-                              onChange={(e) =>
-                                patchAction(a.id, { unitsDone: num(e.target.value) })
-                              }
-                              className={inp}
-                            />
+
+                          <Field label="Medir progresso por">
+                            <select
+                              value={mode}
+                              onChange={(e) => setMode(e.target.value as ProgMode)}
+                              className={`${inp} w-auto`}
+                            >
+                              <option value="units">Módulos / aulas</option>
+                              <option value="hours">Horas feitas</option>
+                              <option value="status">Status</option>
+                            </select>
                           </Field>
-                          <span className="pb-1.5 text-neutral-400">/</span>
-                          <Field label="Total">
-                            <input
-                              type="number"
-                              min={1}
-                              value={act.unitsTotal ?? ""}
-                              onChange={(e) =>
-                                patchAction(a.id, { unitsTotal: num(e.target.value) })
-                              }
-                              className={inp}
-                            />
-                          </Field>
-                          <Field label="Unidade">
-                            <input
-                              type="text"
-                              value={act.unitsLabel ?? ""}
-                              placeholder="módulos"
-                              onChange={(e) =>
-                                patchAction(a.id, {
-                                  unitsLabel: e.target.value.trim() || null,
-                                })
-                              }
-                              className={`${inp} w-24`}
-                            />
-                          </Field>
+
+                          {mode === "units" && (
+                            <Field label={`${act.unitsLabel || "unidades"} feitas / total`}>
+                              <div className="flex items-center gap-1">
+                                <input
+                                  type="number"
+                                  min={0}
+                                  value={act.unitsDone ?? ""}
+                                  onChange={(e) =>
+                                    patchAction(a.id, { unitsDone: num(e.target.value) })
+                                  }
+                                  className={inp}
+                                />
+                                <span className="text-neutral-400">de</span>
+                                <input
+                                  type="number"
+                                  min={1}
+                                  value={act.unitsTotal ?? ""}
+                                  onChange={(e) =>
+                                    patchAction(a.id, { unitsTotal: num(e.target.value) })
+                                  }
+                                  className={inp}
+                                />
+                                <input
+                                  type="text"
+                                  value={act.unitsLabel ?? ""}
+                                  placeholder="módulos"
+                                  onChange={(e) =>
+                                    patchAction(a.id, {
+                                      unitsLabel: e.target.value.trim() || null,
+                                    })
+                                  }
+                                  className={`${inp} w-24 text-left`}
+                                />
+                              </div>
+                            </Field>
+                          )}
+
+                          {mode === "hours" && (
+                            <Field label="Horas feitas">
+                              <div className="flex items-center gap-1">
+                                <input
+                                  type="number"
+                                  min={0}
+                                  step={0.5}
+                                  value={act.hoursDone ?? ""}
+                                  onChange={(e) =>
+                                    patchAction(a.id, { hoursDone: num(e.target.value) })
+                                  }
+                                  className={inp}
+                                />
+                                <span className="text-neutral-400">
+                                  de {act.estimatedHours ?? "—"}h
+                                </span>
+                              </div>
+                            </Field>
+                          )}
+
                           <Field label="Status">
                             <select
                               value={act.status}
-                              onChange={(e) =>
-                                patchAction(a.id, { status: e.target.value })
-                              }
+                              onChange={(e) => patchAction(a.id, { status: e.target.value })}
                               className={`${inp} w-auto`}
                             >
                               {(["todo", "doing", "done"] as Status[]).map((s) => (
