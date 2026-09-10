@@ -38,6 +38,30 @@ export interface Action {
   dueDate?: string;
   source: Source;
   layout?: NodeLayout;
+
+  // --- planejamento (Rodada 6) ---
+  /** Carga horária estimada do curso/formação (horas). */
+  estimatedHours?: number;
+  /** Progresso granular por unidades: ex. 23 de 290 módulos. */
+  unitsTotal?: number;
+  unitsDone?: number;
+  /** Rótulo da unidade: "módulos", "aulas", "capítulos"… */
+  unitsLabel?: string;
+  /** Alternativa às unidades: horas já feitas. */
+  hoursDone?: number;
+  /** Data (YYYY-MM-DD) em que a ação virou "Finalizado". */
+  completedAt?: string;
+}
+
+/** Horas disponíveis por dia da semana. */
+export interface WeekCapacity {
+  mon: number;
+  tue: number;
+  wed: number;
+  thu: number;
+  fri: number;
+  sat: number;
+  sun: number;
 }
 
 export interface Area {
@@ -87,6 +111,8 @@ export interface PdiGroup {
   areaIds: string[];
   /** Anotação livre do usuário — aparece numa nota ao lado do bloco. */
   note?: string;
+  /** Horas semanais que o usuário dedica a este bloco. */
+  capacity?: WeekCapacity;
 }
 
 /** Um documento por usuário na coleção `pdis`. */
@@ -106,6 +132,8 @@ export interface PdiDoc {
   groups?: PdiGroup[];
   /** Estado visual do canvas (posições arrastadas, frames manuais). */
   canvas?: PdiCanvasState;
+  /** Capacidade semanal para o que está fora de qualquer bloco. */
+  looseCapacity?: WeekCapacity;
 }
 
 export interface PdiCanvasState {

@@ -25,6 +25,12 @@ export const incomingActionSchema = z.object({
   status: statusInput,
   dueDate: isoDate.optional(),
   description: z.string().trim().min(1).optional(),
+  estimatedHours: z.number().nonnegative().optional(),
+  unitsTotal: z.number().int().positive().optional(),
+  unitsDone: z.number().int().nonnegative().optional(),
+  unitsLabel: z.string().trim().min(1).max(30).optional(),
+  hoursDone: z.number().nonnegative().optional(),
+  completedAt: isoDate.optional(),
 });
 
 export const incomingAreaSchema = z.object({

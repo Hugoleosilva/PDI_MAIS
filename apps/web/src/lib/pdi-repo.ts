@@ -1,4 +1,5 @@
 import {
+  deriveAreaStatus,
   mergePdi,
   type PdiCanvasState,
   type PdiDoc,
@@ -6,6 +7,7 @@ import {
   type PdiLink,
   type Source,
   type SyncPayload,
+  type WeekCapacity,
 } from "@pdi-mais/core";
 import { getDb } from "./mongo";
 
@@ -92,6 +94,58 @@ export async function setGroups(userId: string, groups: PdiGroup[]): Promise<voi
 export async function setCanvas(userId: string, canvas: PdiCanvasState): Promise<void> {
   const col = await collection();
   await col.updateOne({ userId }, { $set: { canvas, updatedAt: new Date() } });
+}
+
+/** Capacidade semanal para o que está fora de bloco. */
+export async function setLooseCapacity(userId: string, cap: WeekCapacity): Promise<void> {
+  const col = await collection();
+  await col.updateOne({ userId }, { $set: { looseCapacity: cap, updatedAt: new Date() } });
+}
+
+/** Edita uma ação (status, prazo, descrição, campos de planejamento). */
+export async function updateAction(
+  userId: string,
+  actionId: string,
+  patch: Record<string, unknown>,
+): Promise<{ ok: boolean }> {
+  const col = await collection();
+  const doc = await col.findOne({ userId }, { projection: { _id: 0 } });
+  if (!doc) return { ok: false };
+
+  let hit: PdiDoc["areas"][number]["actions"][number] | undefined;
+  let area: PdiDoc["areas"][number] | undefined;
+  for (const ar of doc.areas) {
+    const a = ar.actions.find((x) => x.id === actionId);
+    if (a) {
+      hit = a;
+      area = ar;
+      break;
+    }
+  }
+  if (!hit || !area) return { ok: false };
+
+  const target = hit as unknown as Record<string, unknown>;
+  for (const [k, v] of Object.entries(patch)) {
+    if (v === undefined) continue;
+    if (v === null) delete target[k];
+    else target[k] = v;
+  }
+
+  // completedAt segue o status
+  const status = patch.status as string | undefined;
+  if (status === "done" && !hit.completedAt) {
+    hit.completedAt = new Date().toISOString().slice(0, 10);
+  }
+  if (status && status !== "done") delete hit.completedAt;
+
+  hit.source = "manual"; // o usuário assumiu a ação
+  area.status = deriveAreaStatus(area.actions);
+
+  await col.updateOne(
+    { userId },
+    { $set: { areas: doc.areas, updatedAt: new Date() } },
+  );
+  return { ok: true };
 }
 
 /** Edita campos do nó raiz (title / track). `track: null` remove a trilha. */

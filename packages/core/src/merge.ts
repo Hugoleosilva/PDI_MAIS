@@ -58,16 +58,26 @@ export function mergePdi(
       const prev = prevActions.get(aid);
       const isManual = prev?.source === "manual";
 
+      const status = isManual && prev ? prev.status : incoming.status;
       return {
         id: aid,
         title: incoming.title,
         kind: incoming.kind,
-        status: isManual && prev ? prev.status : incoming.status,
+        status,
         dueDate:
           isManual && prev ? prev.dueDate : (incoming.dueDate ?? prev?.dueDate),
         description: prev?.description ?? incoming.description,
         source: prev?.source ?? opts.source,
         layout: prev?.layout,
+        // planejamento: sempre preserva o que o usuário definiu; o import pode trazer
+        estimatedHours: prev?.estimatedHours ?? incoming.estimatedHours,
+        unitsTotal: prev?.unitsTotal ?? incoming.unitsTotal,
+        unitsDone: prev?.unitsDone ?? incoming.unitsDone,
+        unitsLabel: prev?.unitsLabel ?? incoming.unitsLabel,
+        hoursDone: prev?.hoursDone ?? incoming.hoursDone,
+        completedAt:
+          prev?.completedAt ??
+          (status === "done" ? now.toISOString().slice(0, 10) : undefined),
       };
     });
 
@@ -130,5 +140,6 @@ export function mergePdi(
     links,
     groups,
     ...(canvas ? { canvas } : {}),
+    ...(existing?.looseCapacity ? { looseCapacity: existing.looseCapacity } : {}),
   };
 }

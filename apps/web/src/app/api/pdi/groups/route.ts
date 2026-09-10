@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { setGroups } from "@/lib/pdi-repo";
+import { weekCapacitySchema } from "@/lib/schemas";
 
 export const runtime = "nodejs";
 
@@ -12,6 +13,7 @@ const groupSchema = z.object({
   order: z.number().int().min(0),
   areaIds: z.array(z.string().trim().min(1).max(64)).max(64),
   note: z.string().max(2000).optional(),
+  capacity: weekCapacitySchema.optional(),
 });
 
 const bodySchema = z.object({ groups: z.array(groupSchema).max(24) });

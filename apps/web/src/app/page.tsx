@@ -66,6 +66,14 @@ export default async function Home() {
 
         <div className="ml-auto flex items-center gap-3">
           {pdi && <GeminiButton pdi={pdi} />}
+          {pdi && (
+            <Link
+              href="/planejamento"
+              className="rounded-md border border-neutral-300 px-3 py-1 text-xs font-medium text-neutral-700 hover:bg-neutral-100"
+            >
+              Planejamento
+            </Link>
+          )}
           <Link
             href="/import"
             className="rounded-md border border-neutral-300 px-3 py-1 text-xs font-medium text-neutral-700 hover:bg-neutral-100"
