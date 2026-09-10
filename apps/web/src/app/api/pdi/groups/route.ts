@@ -11,6 +11,7 @@ const groupSchema = z.object({
   color: z.string().trim().regex(/^#[0-9a-fA-F]{6}$/),
   order: z.number().int().min(0),
   areaIds: z.array(z.string().trim().min(1).max(64)).max(64),
+  note: z.string().max(2000).optional(),
 });
 
 const bodySchema = z.object({ groups: z.array(groupSchema).max(24) });

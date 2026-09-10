@@ -333,7 +333,82 @@ export function GroupNode({ data }: NodeProps & { data: GroupNodeData }) {
           )}
         </div>
       </div>
+
+      <StickyNote note={data.note} color={data.color} onCommit={data.onEditNote} show={selected} />
     </>
+  );
+}
+
+/** Nota amarela ao lado do bloco (canto superior esquerdo, fora do frame). */
+function StickyNote({
+  note,
+  color,
+  onCommit,
+  show,
+}: {
+  note?: string;
+  color: string;
+  onCommit?: (v: string) => void;
+  show: boolean;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(note ?? "");
+  const ref = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => setDraft(note ?? ""), [note]);
+  useEffect(() => {
+    if (editing) ref.current?.focus();
+  }, [editing]);
+
+  const hasNote = Boolean(note && note.trim());
+  if (!hasNote && !show && !editing) return null;
+
+  return (
+    <div
+      className="nodrag nopan absolute w-[210px]"
+      style={{ right: "calc(100% + 12px)", top: 0, pointerEvents: "auto" }}
+    >
+      <div
+        className="rounded-lg p-2 text-[11px] leading-snug shadow-sm"
+        style={{ background: "#FEF3C7", borderLeft: `3px solid ${color}` }}
+      >
+        <div className="mb-1 font-semibold" style={{ color: brand.muted }}>
+          Anotação
+        </div>
+        {editing ? (
+          <textarea
+            ref={ref}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={() => {
+              setEditing(false);
+              const v = draft.trim();
+              if (v !== (note ?? "").trim()) onCommit?.(v);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                setDraft(note ?? "");
+                setEditing(false);
+              }
+            }}
+            onClick={(e) => e.stopPropagation()}
+            className="h-24 w-full resize-none rounded border-none bg-white/70 p-1 text-[11px] outline-none"
+            placeholder="Resumo das ações, lembrete…"
+          />
+        ) : (
+          <p
+            className="min-h-[16px] cursor-text whitespace-pre-wrap"
+            style={{ color: brand.ink }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setEditing(true);
+            }}
+            title="Clique para editar"
+          >
+            {hasNote ? note : <span style={{ color: brand.muted }}>+ anotação</span>}
+          </p>
+        )}
+      </div>
+    </div>
   );
 }
 

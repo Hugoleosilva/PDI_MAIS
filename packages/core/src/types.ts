@@ -85,6 +85,8 @@ export interface PdiGroup {
   order: number;
   /** Ids das áreas dentro do bloco. */
   areaIds: string[];
+  /** Anotação livre do usuário — aparece numa nota ao lado do bloco. */
+  note?: string;
 }
 
 /** Um documento por usuário na coleção `pdis`. */
