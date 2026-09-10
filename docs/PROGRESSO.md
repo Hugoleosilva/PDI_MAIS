@@ -142,11 +142,32 @@ argumentos para pedir apoio). Botões: copiar prompt · abrir gemini.google.com.
 
 ---
 
+## ✅ Rodada 6 — Planejamento de capacidade
+
+Página **`/planejamento`**. Responde a “quando eu termino isso, no meu ritmo?”.
+
+- **Progresso real por ação** — `Action.estimatedHours` (carga horária) +
+  `unitsTotal/unitsDone/unitsLabel` (ex. 23 de 290 módulos) ou `hoursDone`.
+  `actionCompletion`: módulos → horas feitas → status. Formação longa que
+  ficava em “Em progresso” eterno agora mostra o % real (23/290 ≈ 8%).
+- **Capacidade semanal** — grade de 7 dias por bloco (`PdiGroup.capacity`) e
+  uma grade para o que está fora de bloco (`PdiDoc.looseCapacity`).
+- **Projeção** — `restante (h) ÷ h por semana` → data prevista de conclusão,
+  por bloco; a data do PDI é a do bloco mais lento. Selo: no ritmo /
+  adiantado / atrasado (X semanas).
+- **Gráfico burn-down** — 2 linhas: previsto (reta do total → 0 no ritmo) e
+  real (degraus nas datas de conclusão + o parcial de hoje).
+- Editor inline: carga / módulos / status por ação, com save em debounce.
+- `PATCH /api/pdi/action/[id]`, `PUT /api/pdi/capacity`; `planning.ts` no
+  `core` com 12 testes.
+
+---
+
 ## ⏭️ Próximas rodadas
 
 | Rodada | Escopo |
 |---|---|
 | 3 | Extensão Chrome (Manifest V3): parser do DOM da plataforma + sync 1-clique + link "PDI+" na navbar. **Validar com TI/Segurança do CESAR antes.** |
-| 4 (resto) | Editar status/prazo/nota clicando no card (o `DetailPanel` hoje é read-only); modo gestor (share link `/r/[shareId]`); PWA. |
+| 4 (resto) | Editar status/prazo/nota clicando no card do canvas (o `DetailPanel` ainda é read-only; a edição de planejamento já existe em `/planejamento`); modo gestor (share link `/r/[shareId]`); PWA. |
 
 Checklist de teste manual: [`TEST-CHECKLIST.md`](TEST-CHECKLIST.md).
