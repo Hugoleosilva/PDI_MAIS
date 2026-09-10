@@ -109,9 +109,35 @@ export function Burndown({
         fill={behind ? brand.orange : brand.teal}
       />
 
-      <text x={pad.l} y={height - 4} fontSize="9" fill={brand.muted}>
-        — previsto&nbsp;&nbsp;━ real
-      </text>
+      <g fontSize="9" fill={brand.muted}>
+        {series.planned.length > 0 && (
+          <>
+            <line
+              x1={pad.l}
+              x2={pad.l + 16}
+              y1={height - 6}
+              y2={height - 6}
+              stroke={brand.muted}
+              strokeWidth="1.5"
+              strokeDasharray="4 4"
+            />
+            <text x={pad.l + 20} y={height - 3}>
+              previsto no ritmo
+            </text>
+          </>
+        )}
+        <line
+          x1={series.planned.length ? pad.l + 108 : pad.l}
+          x2={series.planned.length ? pad.l + 124 : pad.l + 16}
+          y1={height - 6}
+          y2={height - 6}
+          stroke={behind ? brand.orange : brand.teal}
+          strokeWidth="2.5"
+        />
+        <text x={(series.planned.length ? pad.l + 128 : pad.l + 20)} y={height - 3}>
+          andamento real{behind ? " (atrasado)" : ""}
+        </text>
+      </g>
     </svg>
   );
 }

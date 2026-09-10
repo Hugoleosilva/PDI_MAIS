@@ -48,6 +48,7 @@ const daysBetween = (a: string, b: string) =>
 export function PlanningView({ pdi, today }: { pdi: PdiDoc; today: string }) {
   const [doc, setDoc] = useState<PdiDoc>(pdi);
   const [open, setOpen] = useState<Record<string, boolean>>({});
+  const [modes, setModes] = useState<Record<string, ProgMode>>({});
 
   const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const pending = useRef<Record<string, Record<string, unknown>>>({});
@@ -240,9 +241,15 @@ export function PlanningView({ pdi, today }: { pdi: PdiDoc; today: string }) {
               {b.projection.estimatedHours > 0 ? (
                 <div className="rounded-lg border border-neutral-100 bg-neutral-50/60 p-3">
                   <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">
-                    Horas restantes — previsto × real
+                    Horas restantes — {series.planned.length ? "previsto × real" : "real"}
                   </p>
                   <Burndown series={series} todayT={todayT} />
+                  {series.planned.length === 0 && (
+                    <p className="mt-1 text-[11px] text-neutral-400">
+                      Preencha as horas por semana acima para ver a linha do previsto e a
+                      data de conclusão.
+                    </p>
+                  )}
                 </div>
               ) : (
                 <div className="grid h-[130px] place-items-center rounded-lg border border-dashed border-neutral-200 text-center text-xs text-neutral-400">
@@ -266,33 +273,34 @@ export function PlanningView({ pdi, today }: { pdi: PdiDoc; today: string }) {
                 <div className="space-y-2">
                   {b.actions.map((a) => {
                     const act = actionsById.get(a.id) ?? a;
-                    const mode: ProgMode = act.unitsTotal
-                      ? "units"
-                      : act.hoursDone != null
-                        ? "hours"
-                        : "status";
+                    const derived: ProgMode =
+                      act.unitsTotal != null || act.unitsLabel
+                        ? "units"
+                        : act.hoursDone != null
+                          ? "hours"
+                          : "status";
+                    const mode = modes[a.id] ?? derived;
                     const setMode = (m: ProgMode) => {
-                      if (m === "units")
+                      setModes((x) => ({ ...x, [a.id]: m }));
+                      if (m === "units") {
                         patchAction(a.id, {
                           hoursDone: null,
-                          unitsTotal: act.unitsTotal ?? null,
-                          unitsDone: act.unitsDone ?? 0,
                           unitsLabel: act.unitsLabel ?? "módulos",
                         });
-                      else if (m === "hours")
+                      } else if (m === "hours") {
                         patchAction(a.id, {
                           unitsTotal: null,
                           unitsDone: null,
                           unitsLabel: null,
-                          hoursDone: act.hoursDone ?? 0,
                         });
-                      else
+                      } else {
                         patchAction(a.id, {
                           unitsTotal: null,
                           unitsDone: null,
                           unitsLabel: null,
                           hoursDone: null,
                         });
+                      }
                     };
 
                     return (
