@@ -165,7 +165,9 @@ export function PlanningView({ pdi, today }: { pdi: PdiDoc; today: string }) {
         const start = done[0] ?? addDays(today, -21);
         const series = burndownSeries(b.actions, weeklyHours(cap), start, today);
         const todayT = Math.max(0, daysBetween(start, today));
-        const isOpen = open[b.groupId ?? "loose"];
+        const key = b.groupId ?? "loose";
+        // aberto por padrão enquanto não tem carga horária (é o que falta preencher)
+        const isOpen = open[key] ?? b.projection.estimatedHours === 0;
 
         return (
           <section
@@ -190,38 +192,48 @@ export function PlanningView({ pdi, today }: { pdi: PdiDoc; today: string }) {
               </span>
             </header>
 
-            <div className="grid gap-5 p-5 lg:grid-cols-[1fr_auto]">
-              <div className="space-y-3">
-                <div>
-                  <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">
-                    Horas disponíveis por semana
-                  </p>
-                  <WeekGrid
-                    value={cap}
-                    onChange={(v) =>
-                      b.groupId === null ? setLoose(v) : setGroupCapacity(b.groupId, v)
-                    }
-                  />
-                </div>
-                <p className="text-xs text-neutral-500">
-                  {Math.round(b.projection.estimatedHours)}h estimadas ·{" "}
-                  {formatPercent(b.projection.completion)} feito ·{" "}
-                  {Math.round(b.projection.remainingHours)}h restantes
+            <div className="space-y-4 p-5">
+              <div>
+                <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">
+                  Horas disponíveis por semana
                 </p>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setOpen((o) => ({ ...o, [b.groupId ?? "loose"]: !isOpen }))
+                <WeekGrid
+                  value={cap}
+                  onChange={(v) =>
+                    b.groupId === null ? setLoose(v) : setGroupCapacity(b.groupId, v)
                   }
-                  className="text-xs font-semibold text-neutral-600 hover:text-neutral-900"
-                >
-                  {isOpen ? "▾" : "▸"} {b.actions.length} ações — carga horária e progresso
-                </button>
+                />
               </div>
 
-              {b.projection.estimatedHours > 0 && (
-                <Burndown series={series} todayT={todayT} />
+              <p className="text-xs text-neutral-500">
+                {Math.round(b.projection.estimatedHours)}h estimadas ·{" "}
+                {formatPercent(b.projection.completion)} feito ·{" "}
+                {Math.round(b.projection.remainingHours)}h restantes
+              </p>
+
+              {/* gráfico previsto × real */}
+              {b.projection.estimatedHours > 0 ? (
+                <div className="rounded-lg border border-neutral-100 bg-neutral-50/60 p-3">
+                  <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">
+                    Horas restantes — previsto × real
+                  </p>
+                  <Burndown series={series} todayT={todayT} />
+                </div>
+              ) : (
+                <div className="grid h-[130px] place-items-center rounded-lg border border-dashed border-neutral-200 text-center text-xs text-neutral-400">
+                  Preencha a <b className="mx-1 font-semibold">Carga (h)</b> das ações
+                  abaixo para ver o gráfico previsto × real
+                </div>
               )}
+
+              <button
+                type="button"
+                onClick={() => setOpen((o) => ({ ...o, [key]: !isOpen }))}
+                className="text-xs font-semibold text-neutral-600 hover:text-neutral-900"
+              >
+                {isOpen ? "▾ ocultar" : "▸ editar"} · {b.actions.length} ações — carga
+                horária e progresso
+              </button>
             </div>
 
             {isOpen && (
