@@ -158,10 +158,13 @@ export async function updateAction(
   return { ok: true };
 }
 
-/** Edita campos do nó raiz (title / track). `track: null` remove a trilha. */
+/**
+ * Edita campos do nó raiz (title / track / note). `track`/`note: null` remove
+ * o campo — `note` é o objetivo geral ("pra onde estou indo").
+ */
 export async function updateRoot(
   userId: string,
-  patch: { title?: string; track?: string | null },
+  patch: { title?: string; track?: string | null; note?: string | null },
 ): Promise<void> {
   const col = await collection();
   const $set: Record<string, unknown> = { updatedAt: new Date() };
@@ -169,6 +172,8 @@ export async function updateRoot(
   if (patch.title !== undefined) $set["root.title"] = patch.title;
   if (patch.track === null) $unset["root.track"] = "";
   else if (patch.track !== undefined) $set["root.track"] = patch.track;
+  if (patch.note === null) $unset["root.note"] = "";
+  else if (patch.note !== undefined) $set["root.note"] = patch.note;
 
   const update: Record<string, unknown> = { $set };
   if (Object.keys($unset).length > 0) update.$unset = $unset;

@@ -213,6 +213,22 @@ Página **`/planejamento`**. Responde a “quando eu termino isso, no meu ritmo?
 - Textarea da anotação agora é `resize-y` (arrasta pra crescer) em vez de
   altura fixa.
 
+## ✅ Rodada 7.9 — bug do raiz "pulando" + objetivo geral
+
+- **Bug corrigido:** arrastar um bloco chamava `recapture()`, que muda
+  `groups` quando a participação de alguma área mudou; isso recalculava o
+  layout inteiro, e como a posição do raiz nunca tinha sido "ancorada"
+  (só área/ação eram salvas em `positions` ao arrastar), o card do PDI
+  recalculava do zero a cada vez — na prática, parecia "pular" pro meio do
+  bloco que acabou de ser arrastado. Agora a posição do raiz é ancorada
+  assim que calculada (mesmo esquema de área/ação); some ao trocar de
+  direção da árvore (→/↓) ou em "Reorganizar". Arrastar o raiz manualmente
+  também persiste, como já acontecia com área/ação.
+- **Objetivo geral** ("pra onde estou indo") — mesmo padrão do card
+  amarelo do bloco: anotação em popover acima do card do PDI, só existe
+  selecionado ou editando, clicar fora fecha. `PdiRoot.note`, `PATCH
+  /api/pdi/root` aceita `note` (null remove).
+
 ## ⏭️ Próximas rodadas
 
 | Rodada | Escopo |

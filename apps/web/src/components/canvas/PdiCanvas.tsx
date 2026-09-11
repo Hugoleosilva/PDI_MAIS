@@ -422,7 +422,7 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
   );
 
   // ---- injeta handlers nos nós raiz / bloco ----
-  const patchRoot = useCallback(async (patch: { title?: string; track?: string }) => {
+  const patchRoot = useCallback(async (patch: { title?: string; track?: string; note?: string }) => {
     setNodes((ns) =>
       ns.map((n) => (n.id === "root" ? ({ ...n, data: { ...n.data, ...patch } } as PdiNode) : n)),
     );
@@ -447,6 +447,7 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
               ...n.data,
               onEditTitle: (v: string) => patchRoot({ title: v }),
               onEditTrack: (v: string) => patchRoot({ track: v }),
+              onEditNote: (v: string) => patchRoot({ note: v }),
               onResize: (size: { w: number; h: number }) => {
                 setRootSize(size);
                 scheduleSave();
@@ -495,10 +496,29 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
       prevLayoutKind.current = layoutKind;
       undoStack.current = [];
       setCanUndo(false);
+      // o raiz é ancorado abaixo (ver efeito seguinte) — ao trocar de direção
+      // (árvore →/↓) a posição antiga não faz mais sentido, solta a âncora.
+      setPositions((p) => {
+        if (!("root" in p)) return p;
+        const { root: _drop, ...rest } = p;
+        return rest;
+      });
       const id = requestAnimationFrame(() => fitView({ padding: 0.14, duration: 250 }));
       return () => cancelAnimationFrame(id);
     }
   }, [layout.nodes, withHandlers, setNodes, fitView, layoutKind]);
+
+  // Ancora a posição do raiz assim que calculada. Sem isso, qualquer mudança
+  // de bloco (arrastar um frame recalcula `groups` via recapture) recalcula
+  // o layout inteiro e o card do PDI "pula" pra onde o Dagre decidir agora —
+  // igual às áreas/ações, ele só deve se mover se o usuário arrastar ou
+  // clicar em Reorganizar.
+  useEffect(() => {
+    if (positions.root) return;
+    const rootNode = layout.nodes.find((n) => n.id === "root");
+    if (!rootNode) return;
+    setPositions((p) => ({ ...p, root: { ...rootNode.position } }));
+  }, [layout.nodes, positions]);
 
   useEffect(() => {
     setEdges([...layout.edges, ...linkEdgesMemo]);
@@ -636,7 +656,9 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
       }
 
       // 3. persiste posição de todo card que se moveu (multi-arraste inclusive)
-      const cards = list.filter((d) => d.type === "area" || d.type === "action");
+      const cards = list.filter(
+        (d) => d.type === "area" || d.type === "action" || d.type === "root",
+      );
       if (cards.length) {
         if (Object.keys(dragSnapshot.current).length) {
           pushUndo({ kind: "positions", data: { ...dragSnapshot.current } });

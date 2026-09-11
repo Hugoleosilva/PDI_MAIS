@@ -45,8 +45,11 @@ export interface RootNodeData extends Record<string, unknown> {
   /** Tamanho redimensionado pelo usuário (sobrepõe NODE_SIZE.root). */
   width?: number;
   height?: number;
+  /** Objetivo geral ("pra onde estou indo") — igual à anotação do bloco. */
+  note?: string;
   onEditTitle?: (v: string) => void;
   onEditTrack?: (v: string) => void;
+  onEditNote?: (v: string) => void;
   onResize?: (size: { w: number; h: number }) => void;
 }
 
@@ -132,6 +135,7 @@ function baseNodes(pdi: PdiDoc, dir: Direction, rootSize?: { w: number; h: numbe
       dir,
       width: rootSize?.w,
       height: rootSize?.h,
+      note: pdi.root.note,
     },
   };
 

@@ -85,6 +85,8 @@ export interface PdiRoot {
   title: string;
   /** Trilha / tema do PDI, ex.: "Desenvolvimento Fullstack". Subtítulo do nó raiz. */
   track?: string;
+  /** Objetivo geral ("pra onde estou indo") — anotação do card raiz, igual à do bloco. */
+  note?: string;
 }
 
 /**

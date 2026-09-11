@@ -8,9 +8,10 @@ export const runtime = "nodejs";
 const patchSchema = z.object({
   title: z.string().trim().min(1).max(120).optional(),
   track: z.string().trim().max(120).nullable().optional(),
+  note: z.string().trim().max(2000).nullable().optional(),
 });
 
-/** PATCH /api/pdi/root — edita título do ciclo e trilha. */
+/** PATCH /api/pdi/root — edita título do ciclo, trilha e o objetivo geral. */
 export async function PATCH(req: Request) {
   const session = await auth();
   if (!session?.user?.id) {

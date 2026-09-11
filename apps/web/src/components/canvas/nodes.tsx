@@ -246,7 +246,84 @@ export function RootNode({ data, selected }: NodeProps & { data: RootNodeData })
         <Handle type="target" position={targetPos(data.dir)} style={handleStyle} />
         <Handle type="source" position={sourcePos(data.dir)} style={handleStyle} />
       </div>
+      <RootNote note={data.note} onCommit={data.onEditNote} show={Boolean(selected)} />
     </>
+  );
+}
+
+/**
+ * Objetivo geral do PDI ("pra onde estou indo"), acima do card raiz — mesmo
+ * padrão do bloco: popover, só existe selecionado (ou editando); clicar fora
+ * desseleciona e ele some.
+ */
+function RootNote({
+  note,
+  onCommit,
+  show,
+}: {
+  note?: string;
+  onCommit?: (v: string) => void;
+  show: boolean;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(note ?? "");
+  const ref = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => setDraft(note ?? ""), [note]);
+  useEffect(() => {
+    if (editing) ref.current?.focus();
+  }, [editing]);
+
+  if (!show && !editing) return null;
+  const hasNote = Boolean(note && note.trim());
+  const placeholder = 'Descrição do objetivo ("Para onde estou indo")';
+
+  return (
+    <div
+      className="nodrag nopan absolute w-[260px]"
+      style={{ bottom: "calc(100% + 12px)", left: 0, pointerEvents: "auto" }}
+    >
+      <div
+        className="rounded-lg p-2 text-[11px] leading-snug shadow-sm"
+        style={{ background: "#FEF3C7", borderLeft: `3px solid ${brand.blue}` }}
+      >
+        <div className="mb-1 font-semibold" style={{ color: brand.muted }}>
+          Objetivo
+        </div>
+        {editing ? (
+          <textarea
+            ref={ref}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={() => {
+              setEditing(false);
+              const v = draft.trim();
+              if (v !== (note ?? "").trim()) onCommit?.(v);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                setDraft(note ?? "");
+                setEditing(false);
+              }
+            }}
+            onClick={(e) => e.stopPropagation()}
+            className="min-h-[64px] w-full resize-y rounded border-none bg-white/70 p-1 text-[11px] outline-none"
+            placeholder={placeholder}
+          />
+        ) : (
+          <p
+            className="min-h-[16px] cursor-text whitespace-pre-wrap"
+            style={{ color: brand.ink }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setEditing(true);
+            }}
+            title="Clique para editar"
+          >
+            {hasNote ? note : <span style={{ color: brand.muted }}>{placeholder}</span>}
+          </p>
+        )}
+      </div>
+    </div>
   );
 }
 
