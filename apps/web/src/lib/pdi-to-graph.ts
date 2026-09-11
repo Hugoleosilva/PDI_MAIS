@@ -91,6 +91,8 @@ export interface GroupNodeData extends Record<string, unknown> {
   isSelected: boolean;
   /** Andamento médio das áreas que estão dentro (mesma conta do card da área); ausente = bloco vazio. */
   progress?: number;
+  /** Quantitativo de ações das áreas de dentro, por status. */
+  actionStats?: { total: number; todo: number; doing: number; done: number };
   note?: string;
   noteColor?: string;
   onRename?: (v: string) => void;
@@ -378,6 +380,21 @@ export function computeFrames(
     return vals.length ? vals.reduce((s, v) => s + v, 0) / vals.length : undefined;
   };
 
+  // Quantitativo de ações do bloco — quantas faltam iniciar, em andamento, finalizadas.
+  const actionNodesAll = nodes.filter(
+    (n): n is Node<ActionNodeData, "action"> => n.type === "action",
+  );
+  const groupActionStats = (areaIds: string[]) => {
+    const set = new Set(areaIds);
+    const acts = actionNodesAll.filter((n) => set.has(n.data.areaId));
+    return {
+      total: acts.length,
+      todo: acts.filter((n) => n.data.status === "todo").length,
+      doing: acts.filter((n) => n.data.status === "doing").length,
+      done: acts.filter((n) => n.data.status === "done").length,
+    };
+  };
+
   return [...groups]
     .sort((a, b) => a.order - b.order)
     .map((grp) => {
@@ -411,6 +428,7 @@ export function computeFrames(
           empty: grp.areaIds.length === 0,
           isSelected: false,
           progress: groupProgress(grp.areaIds),
+          actionStats: groupActionStats(grp.areaIds),
           note: grp.note,
           noteColor: grp.noteColor,
         },

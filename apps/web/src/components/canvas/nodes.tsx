@@ -461,19 +461,37 @@ export function GroupNode({ data }: NodeProps & { data: GroupNodeData }) {
         noteColor={data.noteColor}
         onCommit={data.onEditNote}
         onNoteColor={data.onNoteColor}
+        actionStats={data.actionStats}
         show={selected}
       />
     </>
   );
 }
 
-/** Nota ao lado do bloco (canto superior esquerdo, fora do frame). Cor própria, independente do bloco. */
+function StatPill({ label, n, accent }: { label: string; n: number; accent: string }) {
+  return (
+    <span
+      className="rounded-full px-1.5 py-0.5 text-[10px] font-semibold"
+      style={{ background: `${accent}22`, color: accent }}
+    >
+      {n} {label}
+    </span>
+  );
+}
+
+/**
+ * Cartãozinho ao lado do bloco (canto superior esquerdo, fora do frame):
+ * quantitativo de ações + anotação. É um popover — só existe enquanto o
+ * bloco está selecionado (ou você está editando a anotação); clicar fora
+ * desseleciona o bloco e ele some.
+ */
 function StickyNote({
   note,
   color,
   noteColor,
   onCommit,
   onNoteColor,
+  actionStats,
   show,
 }: {
   note?: string;
@@ -481,6 +499,7 @@ function StickyNote({
   noteColor?: string;
   onCommit?: (v: string) => void;
   onNoteColor?: (c: string) => void;
+  actionStats?: { total: number; todo: number; doing: number; done: number };
   show: boolean;
 }) {
   const [editing, setEditing] = useState(false);
@@ -492,13 +511,13 @@ function StickyNote({
     if (editing) ref.current?.focus();
   }, [editing]);
 
+  if (!show && !editing) return null;
   const hasNote = Boolean(note && note.trim());
-  if (!hasNote && !show && !editing) return null;
   const bg = noteColor ?? NOTE_COLORS[0];
 
   return (
     <div
-      className="nodrag nopan absolute w-[210px]"
+      className="nodrag nopan absolute w-[240px]"
       style={{ right: "calc(100% + 12px)", top: 0, pointerEvents: "auto" }}
     >
       <div
@@ -530,6 +549,15 @@ function StickyNote({
             )}
           </div>
         </div>
+
+        {actionStats && actionStats.total > 0 && (
+          <div className="mb-2 flex flex-wrap gap-1">
+            <StatPill label="a iniciar" n={actionStats.todo} accent={statusStyle("todo", "action").accent} />
+            <StatPill label="em andamento" n={actionStats.doing} accent={statusStyle("doing", "action").accent} />
+            <StatPill label="finalizadas" n={actionStats.done} accent={statusStyle("done", "action").accent} />
+          </div>
+        )}
+
         {editing ? (
           <textarea
             ref={ref}
@@ -547,7 +575,7 @@ function StickyNote({
               }
             }}
             onClick={(e) => e.stopPropagation()}
-            className="h-24 w-full resize-none rounded border-none bg-white/70 p-1 text-[11px] outline-none"
+            className="min-h-[64px] w-full resize-y rounded border-none bg-white/70 p-1 text-[11px] outline-none"
             placeholder="Resumo das ações, lembrete…"
           />
         ) : (

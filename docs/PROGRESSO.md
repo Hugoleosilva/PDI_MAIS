@@ -201,6 +201,18 @@ Página **`/planejamento`**. Responde a “quando eu termino isso, no meu ritmo?
    como…" (nome via prompt) no mesmo painel dos botões de layout. Puramente
    opt-in — carregar uma versão só troca o arranjo se o usuário escolher.
 
+## ✅ Rodada 7.8 — quantitativo de ações no cartão do bloco
+
+- `GroupNodeData.actionStats` — total/a iniciar/em andamento/finalizadas das
+  ações do bloco, calculado em `computeFrames` a partir dos `ActionNode` já
+  montados (mesmo padrão do `progress`).
+- O cartãozinho ao lado do bloco (nota/anotação) virou popover de verdade:
+  só existe enquanto o bloco está selecionado ou você está editando a nota
+  — clicar fora desseleciona e ele some (antes, uma nota com texto ficava
+  sempre visível). Mostra os 3 pills de quantitativo + a anotação.
+- Textarea da anotação agora é `resize-y` (arrasta pra crescer) em vez de
+  altura fixa.
+
 ## ⏭️ Próximas rodadas
 
 | Rodada | Escopo |
