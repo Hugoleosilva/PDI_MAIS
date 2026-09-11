@@ -111,6 +111,8 @@ export interface PdiGroup {
   areaIds: string[];
   /** Anotação livre do usuário — aparece numa nota ao lado do bloco. */
   note?: string;
+  /** Cor de fundo da nota (hex). Independente da cor do bloco. */
+  noteColor?: string;
   /** Horas semanais que o usuário dedica a este bloco. */
   capacity?: WeekCapacity;
 }

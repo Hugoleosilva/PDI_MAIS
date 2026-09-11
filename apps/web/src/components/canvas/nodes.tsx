@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Handle, NodeResizer, Position, type NodeProps } from "@xyflow/react";
-import { formatPercent } from "@pdi-mais/core";
+import { formatPercent, GROUP_COLORS, NOTE_COLORS } from "@pdi-mais/core";
 import type {
   ActionNodeData,
   AreaNodeData,
@@ -117,6 +117,70 @@ function EditableText({
     >
       {value || placeholder}
     </span>
+  );
+}
+
+/** Popover de swatches + cor personalizada. Fecha ao escolher ou clicar fora. */
+function ColorPicker({
+  value,
+  options,
+  onPick,
+  onClose,
+}: {
+  value: string;
+  options: readonly string[];
+  onPick: (c: string) => void;
+  onClose: () => void;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const onDown = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [onClose]);
+
+  return (
+    <div
+      ref={ref}
+      className="nodrag nopan absolute z-10 flex flex-wrap gap-1.5 rounded-lg border bg-white p-2 shadow-md"
+      style={{ borderColor: brand.border, top: "calc(100% + 6px)", left: 0, width: 128 }}
+      onClick={(e) => e.stopPropagation()}
+      onDoubleClick={(e) => e.stopPropagation()}
+    >
+      {options.map((c) => (
+        <button
+          key={c}
+          type="button"
+          title={c}
+          onClick={() => {
+            onPick(c);
+            onClose();
+          }}
+          className="h-5 w-5 shrink-0 rounded-full"
+          style={{
+            background: c,
+            borderWidth: c.toLowerCase() === value.toLowerCase() ? 2 : 1,
+            borderStyle: "solid",
+            borderColor: c.toLowerCase() === value.toLowerCase() ? brand.ink : "rgba(0,0,0,.15)",
+          }}
+        />
+      ))}
+      <label
+        className="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full text-[11px] leading-none"
+        style={{ borderWidth: 1, borderStyle: "dashed", borderColor: brand.border, color: brand.muted }}
+        title="Cor personalizada"
+      >
+        +
+        <input
+          type="color"
+          value={/^#[0-9a-f]{6}$/i.test(value) ? value : "#888888"}
+          onChange={(e) => onPick(e.target.value)}
+          className="sr-only"
+        />
+      </label>
+    </div>
   );
 }
 
@@ -273,6 +337,7 @@ export function BandNode({ data }: NodeProps & { data: BandNodeData }) {
  */
 export function GroupNode({ data }: NodeProps & { data: GroupNodeData }) {
   const selected = data.isSelected;
+  const [colorOpen, setColorOpen] = useState(false);
   return (
     <>
       <NodeResizer
@@ -306,15 +371,25 @@ export function GroupNode({ data }: NodeProps & { data: GroupNodeData }) {
           className="flex w-full items-center gap-2 px-3 py-2"
           style={{ background: data.color }}
         >
-          <button
-            type="button"
-            title="Trocar a cor do bloco"
-            onClick={(e) => {
-              e.stopPropagation();
-              data.onRecolor?.();
-            }}
-            className="nodrag nopan h-3.5 w-3.5 shrink-0 rounded-full border border-white/70 bg-white/30"
-          />
+          <div className="relative shrink-0">
+            <button
+              type="button"
+              title="Trocar a cor do bloco"
+              onClick={(e) => {
+                e.stopPropagation();
+                setColorOpen((v) => !v);
+              }}
+              className="nodrag nopan h-3.5 w-3.5 rounded-full border border-white/70 bg-white/30"
+            />
+            {colorOpen && (
+              <ColorPicker
+                value={data.color}
+                options={GROUP_COLORS}
+                onPick={(c) => data.onRecolor?.(c)}
+                onClose={() => setColorOpen(false)}
+              />
+            )}
+          </div>
           <EditableText
             value={data.title}
             placeholder="Bloco"
@@ -334,25 +409,37 @@ export function GroupNode({ data }: NodeProps & { data: GroupNodeData }) {
         </div>
       </div>
 
-      <StickyNote note={data.note} color={data.color} onCommit={data.onEditNote} show={selected} />
+      <StickyNote
+        note={data.note}
+        color={data.color}
+        noteColor={data.noteColor}
+        onCommit={data.onEditNote}
+        onNoteColor={data.onNoteColor}
+        show={selected}
+      />
     </>
   );
 }
 
-/** Nota amarela ao lado do bloco (canto superior esquerdo, fora do frame). */
+/** Nota ao lado do bloco (canto superior esquerdo, fora do frame). Cor própria, independente do bloco. */
 function StickyNote({
   note,
   color,
+  noteColor,
   onCommit,
+  onNoteColor,
   show,
 }: {
   note?: string;
   color: string;
+  noteColor?: string;
   onCommit?: (v: string) => void;
+  onNoteColor?: (c: string) => void;
   show: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(note ?? "");
+  const [colorOpen, setColorOpen] = useState(false);
   const ref = useRef<HTMLTextAreaElement>(null);
   useEffect(() => setDraft(note ?? ""), [note]);
   useEffect(() => {
@@ -361,6 +448,7 @@ function StickyNote({
 
   const hasNote = Boolean(note && note.trim());
   if (!hasNote && !show && !editing) return null;
+  const bg = noteColor ?? NOTE_COLORS[0];
 
   return (
     <div
@@ -369,10 +457,32 @@ function StickyNote({
     >
       <div
         className="rounded-lg p-2 text-[11px] leading-snug shadow-sm"
-        style={{ background: "#FEF3C7", borderLeft: `3px solid ${color}` }}
+        style={{ background: bg, borderLeft: `3px solid ${color}` }}
       >
-        <div className="mb-1 font-semibold" style={{ color: brand.muted }}>
-          Anotação
+        <div className="mb-1 flex items-center justify-between gap-2">
+          <span className="font-semibold" style={{ color: brand.muted }}>
+            Anotação
+          </span>
+          <div className="relative shrink-0">
+            <button
+              type="button"
+              title="Trocar a cor da nota"
+              onClick={(e) => {
+                e.stopPropagation();
+                setColorOpen((v) => !v);
+              }}
+              className="h-3 w-3 rounded-full border"
+              style={{ background: bg, borderColor: "rgba(0,0,0,.25)" }}
+            />
+            {colorOpen && (
+              <ColorPicker
+                value={bg}
+                options={NOTE_COLORS}
+                onPick={(c) => onNoteColor?.(c)}
+                onClose={() => setColorOpen(false)}
+              />
+            )}
+          </div>
         </div>
         {editing ? (
           <textarea

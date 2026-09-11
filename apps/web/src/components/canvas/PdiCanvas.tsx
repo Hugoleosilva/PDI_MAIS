@@ -263,21 +263,13 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
     [groups, commitGroups],
   );
   const recolorGroup = useCallback(
-    (id: string) =>
-      commitGroups(
-        groups.map((g) =>
-          g.id === id
-            ? {
-                ...g,
-                color:
-                  GROUP_COLORS[
-                    (GROUP_COLORS.indexOf(g.color as (typeof GROUP_COLORS)[number]) + 1) %
-                      GROUP_COLORS.length
-                  ],
-              }
-            : g,
-        ),
-      ),
+    (id: string, color: string) =>
+      commitGroups(groups.map((g) => (g.id === id ? { ...g, color } : g))),
+    [groups, commitGroups],
+  );
+  const setNoteColor = useCallback(
+    (id: string, noteColor: string) =>
+      commitGroups(groups.map((g) => (g.id === id ? { ...g, noteColor } : g))),
     [groups, commitGroups],
   );
   const addGroup = useCallback(() => {
@@ -401,8 +393,9 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
             data: {
               ...n.data,
               onRename: (v: string) => renameGroup(gid, v),
-              onRecolor: () => recolorGroup(gid),
+              onRecolor: (color: string) => recolorGroup(gid, color),
               onEditNote: (v: string) => setGroupNote(gid, v),
+              onNoteColor: (color: string) => setNoteColor(gid, color),
               onResize: (box: FrameBox) => {
                 setFrameBox(gid, box);
                 scheduleSave();
@@ -413,7 +406,16 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
         }
         return n;
       }),
-    [patchRoot, renameGroup, recolorGroup, setGroupNote, setFrameBox, scheduleSave, recapture],
+    [
+      patchRoot,
+      renameGroup,
+      recolorGroup,
+      setGroupNote,
+      setNoteColor,
+      setFrameBox,
+      scheduleSave,
+      recapture,
+    ],
   );
 
   // ---- sincroniza estrutura; fitView só quando muda o formato ----

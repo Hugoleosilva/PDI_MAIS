@@ -163,6 +163,23 @@ Página **`/planejamento`**. Responde a “quando eu termino isso, no meu ritmo?
 
 ---
 
+## 🚧 Rodada 7 — em andamento
+
+1. ✅ **Cor customizável nos blocos e nas notas** — o ponto de cor no cabeçalho
+   do bloco e o pontinho na nota abrem um seletor (paleta + cor personalizada
+   via `<input type="color">`) em vez do antigo "cicla pra próxima cor".
+   Paleta dos blocos (`GROUP_COLORS`) e paleta de papel das notas
+   (`NOTE_COLORS`) em `packages/core/src/groups.ts`; `PdiGroup.noteColor?`
+   é independente da cor do bloco.
+2. ⬜ Menu de opções no botão da IA (Insights / Andamento geral / Onde focar /
+   Sugestão de tecnologia ou curso) em vez de um prompt fixo.
+3. ⬜ % de andamento dentro do bloco, agregando as áreas de dentro.
+4. ⬜ Botão "Consultar Relatório" — snapshot do andamento com data, pra
+   comparar evolução.
+5. ⬜ Nó raiz do PDI expansível/recolhível.
+6. ⬜ Imagens (certificados) anexadas numa área.
+7. ⬜ Salvar o layout do canvas com nome e trocar entre versões salvas.
+
 ## ⏭️ Próximas rodadas
 
 | Rodada | Escopo |

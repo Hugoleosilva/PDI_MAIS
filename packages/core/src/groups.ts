@@ -7,7 +7,20 @@ export const GROUP_COLORS = [
   "#0D9488", // verde-azulado
   "#D97706", // âmbar
   "#DC2626", // vermelho
+  "#059669", // verde
+  "#DB2777", // rosa
   "#6B7280", // cinza
+] as const;
+
+/** Paleta de papel para as notas (independente da cor do bloco). */
+export const NOTE_COLORS = [
+  "#FEF3C7", // amarelo (padrão)
+  "#FCE7F3", // rosa
+  "#DBEAFE", // azul
+  "#D1FAE5", // verde
+  "#EDE9FE", // roxo
+  "#FFE4E6", // vermelho claro
+  "#E5E7EB", // cinza
 ] as const;
 
 /**

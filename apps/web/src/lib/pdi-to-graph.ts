@@ -85,10 +85,12 @@ export interface GroupNodeData extends Record<string, unknown> {
   empty: boolean;
   isSelected: boolean;
   note?: string;
+  noteColor?: string;
   onRename?: (v: string) => void;
-  onRecolor?: () => void;
+  onRecolor?: (color: string) => void;
   onResize?: (box: FrameBox) => void;
   onEditNote?: (v: string) => void;
+  onNoteColor?: (color: string) => void;
 }
 
 export type PdiNode =
@@ -386,6 +388,7 @@ export function computeFrames(
           empty: grp.areaIds.length === 0,
           isSelected: false,
           note: grp.note,
+          noteColor: grp.noteColor,
         },
       };
     });
