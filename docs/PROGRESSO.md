@@ -257,6 +257,17 @@ Depois de lançar dados reais (7 blocos, 37 ações), veio uma lista de problema
    prever a data)" ao lado do campo; não é mais pré-requisito pra ver
    andamento, só pra ver a data prevista.
 
+## ✅ Rodada 7.11 — pausar bloco
+
+Pra quando o foco é só um bloco até 100% e o resto fica de propósito
+parado (não "esquecido"): botão "⏸ Pausar" / "▶ Retomar" no cabeçalho de
+cada bloco no Planejamento. Bloco pausado sai da conta do resumo geral
+(não iniciado/andamento/finalizado), fica com opacidade reduzida e o
+badge vira "⏸ Pausado" cinza. No canvas, o bloco só ganha um badge
+"⏸ Pausado" — indicador passivo, a ação de pausar mora no Planejamento.
+`PdiGroup.paused?`; "Fora de bloco" nunca pausa (não há `PdiGroup` pra
+guardar o estado).
+
 ## ⏭️ Próximas rodadas
 
 | Rodada | Escopo |
