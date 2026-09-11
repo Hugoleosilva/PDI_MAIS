@@ -42,10 +42,12 @@ export interface RootNodeData extends Record<string, unknown> {
   progress: number;
   areaCount: number;
   dir: Direction;
-  collapsed?: boolean;
+  /** Tamanho redimensionado pelo usuário (sobrepõe NODE_SIZE.root). */
+  width?: number;
+  height?: number;
   onEditTitle?: (v: string) => void;
   onEditTrack?: (v: string) => void;
-  onToggleCollapse?: () => void;
+  onResize?: (size: { w: number; h: number }) => void;
 }
 
 export interface AreaNodeData extends Record<string, unknown> {
@@ -115,7 +117,7 @@ function dirFor(layout: Layout): Direction {
 // Construção dos nós/arestas base (sem posição)
 // ---------------------------------------------------------------------------
 
-function baseNodes(pdi: PdiDoc, dir: Direction) {
+function baseNodes(pdi: PdiDoc, dir: Direction, rootSize?: { w: number; h: number }) {
   const root: Node<RootNodeData, "root"> = {
     id: ROOT_ID,
     type: "root",
@@ -126,6 +128,8 @@ function baseNodes(pdi: PdiDoc, dir: Direction) {
       progress: overallProgress(pdi.areas),
       areaCount: pdi.areas.length,
       dir,
+      width: rootSize?.w,
+      height: rootSize?.h,
     },
   };
 
@@ -246,8 +250,9 @@ function treeLayout(
   groups: PdiGroup[],
   positions: Record<string, { x: number; y: number }>,
   framesBoxes: Record<string, FrameBox>,
+  rootSize?: { w: number; h: number },
 ) {
-  const { root, areaNodes, actionNodes } = baseNodes(pdi, dir);
+  const { root, areaNodes, actionNodes } = baseNodes(pdi, dir, rootSize);
   const nodes = [root, ...areaNodes, ...actionNodes];
 
   const areaToGroup = groupOfArea(groups);
@@ -413,12 +418,12 @@ export function computeFrames(
     });
 }
 
-function kanbanLayout(pdi: PdiDoc) {
+function kanbanLayout(pdi: PdiDoc, rootSize?: { w: number; h: number }) {
   const colW = 360;
   const gapX = 40;
   const cardGap = 14;
   const headerH = 44;
-  const { root, actionNodes } = baseNodes(pdi, "TB");
+  const { root, actionNodes } = baseNodes(pdi, "TB", rootSize);
 
   const areaOrder = new Map(pdi.areas.map((a, i) => [a.title, i]));
   const byStatus = (s: Status) =>
@@ -465,12 +470,12 @@ function kanbanLayout(pdi: PdiDoc) {
   return { nodes, edges: [] as Edge[] };
 }
 
-function swimlaneLayout(pdi: PdiDoc) {
+function swimlaneLayout(pdi: PdiDoc, rootSize?: { w: number; h: number }) {
   const labelW = 200;
   const gap = 20;
   const padY = 14;
   const laneH = NODE_SIZE.action.height + padY * 2 + 8;
-  const { root, actionNodes } = baseNodes(pdi, "LR");
+  const { root, actionNodes } = baseNodes(pdi, "LR", rootSize);
   const actById = new Map(actionNodes.map((n) => [n.id, n]));
 
   const nodes: PdiNode[] = [
@@ -512,8 +517,8 @@ function swimlaneLayout(pdi: PdiDoc) {
   return { nodes, edges };
 }
 
-function radialLayout(pdi: PdiDoc) {
-  const { root, areaNodes, actionNodes } = baseNodes(pdi, "LR");
+function radialLayout(pdi: PdiDoc, rootSize?: { w: number; h: number }) {
+  const { root, areaNodes, actionNodes } = baseNodes(pdi, "LR", rootSize);
   const actById = new Map(actionNodes.map((n) => [n.id, n]));
   const n = Math.max(pdi.areas.length, 1);
   const R1 = Math.max(360, n * 70);
@@ -564,18 +569,21 @@ export function layoutGraph(
     groups?: PdiGroup[];
     positions?: Record<string, { x: number; y: number }>;
     frameBoxes?: Record<string, FrameBox>;
+    /** Tamanho do card raiz redimensionado pelo usuário (arraste no canto, como o bloco). */
+    rootSize?: { w: number; h: number };
   } = {},
 ): { nodes: PdiNode[]; edges: Edge[] } {
   const layout = opts.layout ?? "tree-lr";
   const groups = opts.groups ?? [];
   const positions = opts.positions ?? {};
   const frameBoxes = opts.frameBoxes ?? {};
+  const rootSize = opts.rootSize;
 
   let result: { nodes: PdiNode[]; edges: Edge[] };
-  if (layout === "kanban") result = kanbanLayout(pdi);
-  else if (layout === "swimlane") result = swimlaneLayout(pdi);
-  else if (layout === "radial") result = radialLayout(pdi);
-  else result = treeLayout(pdi, dirFor(layout), groups, positions, frameBoxes);
+  if (layout === "kanban") result = kanbanLayout(pdi, rootSize);
+  else if (layout === "swimlane") result = swimlaneLayout(pdi, rootSize);
+  else if (layout === "radial") result = radialLayout(pdi, rootSize);
+  else result = treeLayout(pdi, dirFor(layout), groups, positions, frameBoxes, rootSize);
 
   const linkEdges = (opts.links ?? pdi.links ?? []).map(linkEdge);
   return { nodes: result.nodes, edges: [...result.edges, ...linkEdges] };

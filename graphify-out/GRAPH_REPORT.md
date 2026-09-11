@@ -1,7 +1,7 @@
 # Graph Report - desafioPdi  (2026-09-11)
 
 ## Corpus Check
-- 81 files · ~36,218 words
+- 81 files · ~36,399 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `a8dff9dd`
+- Built from commit: `0ef0c0bf`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 

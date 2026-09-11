@@ -184,10 +184,13 @@ Página **`/planejamento`**. Responde a “quando eu termino isso, no meu ritmo?
    (`packages/core/src/reports.ts`, máx. 60, preservado no merge). O painel
    lista o histórico mais recente primeiro, com a diferença em p.p. desde o
    relatório anterior e o detalhe por área ao expandir.
-5. ✅ Nó raiz do PDI expansível/recolhível — botão ▾/▸ no card raiz esconde
-   tudo abaixo (áreas, ações, blocos, conexões). Só um filtro na hora de
-   renderizar (`visibleNodes`/`visibleEdges`); nada é apagado, não muda
-   `nodes`/`edges` nem persiste — não toca no drag/seleção/pan do bloco.
+5. ✅ Nó raiz redimensionável — revisado após feedback (o "recolher tudo"
+   inicial não fazia sentido pro usuário). Agora é igual ao bloco: seleciona
+   o card do PDI, aparecem alças nos cantos, arrasta e o card fica maior
+   (mais espaço pro título/trilha). Tamanho persiste em
+   `PdiCanvasState.rootSize`. `NODE_SIZE.root` continua sendo o que o Dagre
+   usa pra espaçar os vizinhos — o resize é só o card em si (min 220×150,
+   max 420×300, pra não colidir com os cards ao lado).
 6. ✅ Registro de certificado — `Action.certificateUrl` (link; o arquivo em
    si fica no PDI estático, por decisão do usuário — sem upload/storage
    novo). Campo aparece no formulário manual só quando a ação está

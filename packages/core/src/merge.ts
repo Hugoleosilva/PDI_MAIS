@@ -125,6 +125,7 @@ export function mergePdi(
         frames: Object.fromEntries(
           Object.entries(prevCanvas.frames ?? {}).filter(([id]) => groupIds.has(id)),
         ),
+        ...(prevCanvas.rootSize ? { rootSize: prevCanvas.rootSize } : {}),
       }
     : undefined;
 

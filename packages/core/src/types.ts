@@ -170,6 +170,8 @@ export interface PdiCanvasState {
   positions?: Record<string, { x: number; y: number }>;
   /** groupId -> caixa manual do frame (usado para blocos vazios/movidos). */
   frames?: Record<string, { x: number; y: number; w: number; h: number }>;
+  /** Tamanho do card raiz, se o usuário redimensionou (arraste no canto). */
+  rootSize?: { w: number; h: number };
 }
 
 /**

@@ -184,62 +184,69 @@ function ColorPicker({
   );
 }
 
-export function RootNode({ data }: NodeProps & { data: RootNodeData }) {
+export function RootNode({ data, selected }: NodeProps & { data: RootNodeData }) {
+  const width = data.width ?? NODE_SIZE.root.width;
+  const height = data.height ?? NODE_SIZE.root.height;
   return (
-    <div
-      className="flex flex-col justify-center gap-2 rounded-xl bg-white p-4 shadow-md"
-      style={{
-        width: NODE_SIZE.root.width,
-        height: NODE_SIZE.root.height,
-        background: "#F6F9FF",
-        ...borderStyle(brand.blue),
-        borderLeftWidth: 6,
-      }}
-    >
-      <div className="flex items-center justify-between gap-2">
+    <>
+      {/* Redimensionável como o bloco — arraste um canto pra dar mais espaço ao PDI. */}
+      <NodeResizer
+        color={brand.blue}
+        isVisible={selected}
+        minWidth={220}
+        minHeight={150}
+        maxWidth={420}
+        maxHeight={300}
+        handleStyle={{
+          pointerEvents: "all",
+          width: 14,
+          height: 14,
+          borderRadius: 4,
+          border: "2px solid white",
+          background: brand.blue,
+        }}
+        lineStyle={{ pointerEvents: "all", borderWidth: 10, opacity: 0 }}
+        onResizeEnd={(_, p) => data.onResize?.({ w: p.width, h: p.height })}
+      />
+      <div
+        className="flex h-full w-full flex-col justify-center gap-2 rounded-xl bg-white p-4 shadow-md"
+        style={{
+          width,
+          height,
+          background: "#F6F9FF",
+          ...borderStyle(brand.blue, selected),
+          borderLeftWidth: 6,
+        }}
+      >
         <span
           className="w-fit rounded px-1.5 py-0.5 text-[10px] font-semibold"
           style={{ background: brand.blueSoft, color: brand.blue }}
         >
           PDI
         </span>
-        {data.onToggleCollapse && (
-          <button
-            type="button"
-            title={data.collapsed ? "Expandir o PDI" : "Recolher o PDI"}
-            onClick={(e) => {
-              e.stopPropagation();
-              data.onToggleCollapse?.();
-            }}
-            className="nodrag nopan rounded px-1.5 py-0.5 text-[11px] font-bold hover:bg-black/5"
-            style={{ color: brand.blue }}
-          >
-            {data.collapsed ? `▸ ${data.areaCount}` : "▾"}
-          </button>
-        )}
+        <EditableText
+          value={data.title}
+          placeholder="PDI"
+          onCommit={data.onEditTitle}
+          className="text-base font-bold leading-tight"
+          style={{ color: brand.ink }}
+        />
+        <EditableText
+          value={data.track ?? ""}
+          placeholder="+ trilha / tema"
+          onCommit={data.onEditTrack}
+          className="text-xs font-medium"
+          style={{ color: brand.muted }}
+        />
+        <div className="flex items-center gap-2">
+          <Bar value={data.progress} color={brand.blue} />
+          <span className="shrink-0 text-xs font-bold" style={{ color: brand.ink }}>{formatPercent(data.progress)}</span>
+        </div>
+        <div className="text-[11px]" style={{ color: brand.muted }}>{data.areaCount} áreas de desenvolvimento</div>
+        <Handle type="target" position={targetPos(data.dir)} style={handleStyle} />
+        <Handle type="source" position={sourcePos(data.dir)} style={handleStyle} />
       </div>
-      <EditableText
-        value={data.title}
-        placeholder="PDI"
-        onCommit={data.onEditTitle}
-        className="text-base font-bold leading-tight"
-        style={{ color: brand.ink }}
-      />
-      <EditableText
-        value={data.track ?? ""}
-        placeholder="+ trilha / tema"
-        onCommit={data.onEditTrack}
-        className="text-xs font-medium"
-        style={{ color: brand.muted }}
-      />
-      <div className="flex items-center gap-2">
-        <Bar value={data.progress} color={brand.blue} />
-        <span className="shrink-0 text-xs font-bold" style={{ color: brand.ink }}>{formatPercent(data.progress)}</span>
-      </div>
-      <div className="text-[11px]" style={{ color: brand.muted }}>{data.areaCount} áreas de desenvolvimento</div>
-      <Handle type="target" position={targetPos(data.dir)} style={handleStyle} />
-      <Handle type="source" position={sourcePos(data.dir)} style={handleStyle} />
-    </div>
+    </>
   );
 }
 

@@ -12,6 +12,7 @@ const box = z.object({ x: num, y: num, w: num.positive(), h: num.positive() });
 const bodySchema = z.object({
   positions: z.record(z.string().max(64), pos).optional(),
   frames: z.record(z.string().max(64), box).optional(),
+  rootSize: z.object({ w: num.positive(), h: num.positive() }).optional(),
 });
 
 /** PUT /api/pdi/canvas — salva posições arrastadas e frames manuais. */
