@@ -246,7 +246,7 @@ export function RootNode({ data, selected }: NodeProps & { data: RootNodeData })
         <Handle type="target" position={targetPos(data.dir)} style={handleStyle} />
         <Handle type="source" position={sourcePos(data.dir)} style={handleStyle} />
       </div>
-      <RootNote note={data.note} onCommit={data.onEditNote} show={Boolean(selected)} />
+      <RootNote note={data.note} onCommit={data.onEditNote} show={Boolean(selected)} width={width} />
     </>
   );
 }
@@ -260,10 +260,12 @@ function RootNote({
   note,
   onCommit,
   show,
+  width,
 }: {
   note?: string;
   onCommit?: (v: string) => void;
   show: boolean;
+  width: number;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(note ?? "");
@@ -279,8 +281,8 @@ function RootNote({
 
   return (
     <div
-      className="nodrag nopan absolute w-[260px]"
-      style={{ top: "calc(100% + 12px)", left: 0, pointerEvents: "auto" }}
+      className="nodrag nopan absolute"
+      style={{ top: "calc(100% + 12px)", left: 0, width, pointerEvents: "auto" }}
     >
       <div
         className="rounded-lg p-2 text-[11px] leading-snug shadow-sm"
