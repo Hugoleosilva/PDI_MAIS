@@ -229,6 +229,34 @@ Página **`/planejamento`**. Responde a “quando eu termino isso, no meu ritmo?
   selecionado ou editando, clicar fora fecha. `PdiRoot.note`, `PATCH
   /api/pdi/root` aceita `note` (null remove).
 
+## ✅ Rodada 7.10 — Planejamento revisado (feedback de uso real)
+
+Depois de lançar dados reais (7 blocos, 37 ações), veio uma lista de problemas:
+
+1. **% ponderado por horas era enganoso.** Um curso de 90h parado "abafava" o
+   progresso de outra ação de 10h finalizada. Fixo: `areaRealProgress` e
+   `projectFromActions.completion` agora são **média simples** do
+   `actionCompletion` de cada ação — módulos, horas e status contam igual.
+   % é % sempre, seja qual for a régua usada pra chegar lá.
+2. **Badge "Adiantado" contradizia o gráfico ("atrasado").** Eram dois
+   cálculos diferentes (o `planStatus()` do bloco vs um `behind` calculado
+   dentro do gráfico). Agora só existe UM cálculo (`b.status`) e tanto o
+   badge quanto a cor da barra vêm dele.
+3. **Gráfico de linha trocado por barras** (`PctBar.tsx`) — "Real" (sempre,
+   vem do % acima) e "Previsto no seu ritmo" (só quando há carga horária +
+   capacidade preenchidas). `Burndown.tsx` removido.
+4. **Consolidado geral trocado.** Não soma mais a capacidade dos blocos
+   (ninguém trabalha em todos ao mesmo tempo — 83h/semana não existe) nem
+   projeta uma data única. Vira uma distribuição simples: X% não iniciado,
+   Y% em andamento, Z% finalizado, com uma barra segmentada.
+5. **Bug do "fecha sozinho" corrigido.** O bloco abria automaticamente
+   enquanto não tinha carga horária; ao digitar a primeira hora, a condição
+   ficava falsa e a seção recolhia sozinha, perdendo o lugar. Agora a
+   decisão de abrir é tomada UMA vez (estado inicial), não a cada tecla.
+6. **"Carga horária" marcada como opcional** — hint "(opcional — só p/
+   prever a data)" ao lado do campo; não é mais pré-requisito pra ver
+   andamento, só pra ver a data prevista.
+
 ## ⏭️ Próximas rodadas
 
 | Rodada | Escopo |

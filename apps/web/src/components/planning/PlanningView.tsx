@@ -7,6 +7,7 @@ import {
   EMPTY_CAPACITY,
   formatPercent,
   planForDoc,
+  plannedRemainingAt,
   weeklyHours,
   type Action,
   type PdiDoc,
@@ -16,7 +17,7 @@ import {
 import { brand } from "@/lib/theme";
 import { formatDate } from "@/lib/format";
 import { WeekGrid } from "./WeekGrid";
-import { Burndown } from "./Burndown";
+import { PctBar } from "./PctBar";
 
 const STATUS_LABEL: Record<Status, string> = {
   todo: "Não iniciado",
@@ -24,6 +25,12 @@ const STATUS_LABEL: Record<Status, string> = {
   done: "Finalizado",
 };
 type Status = "todo" | "doing" | "done";
+
+const STATUS_COLOR: Record<Status, string> = {
+  todo: brand.gray,
+  doing: brand.orange,
+  done: brand.teal,
+};
 
 const PLAN_BADGE: Record<PlanStatus, { label: string; bg: string; fg: string }> = {
   "no-ritmo": { label: "No ritmo", bg: "#DCFCE7", fg: "#15803d" },
@@ -47,7 +54,15 @@ const daysBetween = (a: string, b: string) =>
 
 export function PlanningView({ pdi, today }: { pdi: PdiDoc; today: string }) {
   const [doc, setDoc] = useState<PdiDoc>(pdi);
-  const [open, setOpen] = useState<Record<string, boolean>>({});
+  // aberto por padrão só nos blocos que começaram sem carga horária nenhuma —
+  // decidido UMA vez a partir do estado inicial, pra não fechar sozinho
+  // no meio da digitação (a projeção muda a cada tecla).
+  const [open, setOpen] = useState<Record<string, boolean>>(() => {
+    const initial = planForDoc(pdi, new Date(today));
+    return Object.fromEntries(
+      initial.blocks.map((b) => [b.groupId ?? "loose", b.projection.estimatedHours === 0]),
+    );
+  });
   const [modes, setModes] = useState<Record<string, ProgMode>>({});
 
   const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
@@ -120,60 +135,67 @@ export function PlanningView({ pdi, today }: { pdi: PdiDoc; today: string }) {
     });
   };
 
-  const totals = plan.blocks.reduce(
-    (t, b) => ({
-      est: t.est + b.projection.estimatedHours,
-      done: t.done + b.projection.doneHours,
-      rem: t.rem + b.projection.remainingHours,
-    }),
-    { est: 0, done: 0, rem: 0 },
-  );
-
-  // gráfico geral consolidado
+  // resumo geral: distribuição por status — nada de somar capacidade de
+  // blocos diferentes (ninguém trabalha em todos ao mesmo tempo).
   const allActions = doc.areas.flatMap((ar) => ar.actions);
-  const totalWeekly =
-    (doc.groups ?? []).reduce((s, g) => s + weeklyHours(g.capacity), 0) +
-    weeklyHours(doc.looseCapacity);
-  const allDone = allActions
-    .map((a) => a.completedAt)
-    .filter((x): x is string => Boolean(x) && x! < today)
-    .sort();
-  const gStart = allDone[0] ?? addDays(today, -21);
-  const gSeries = burndownSeries(allActions, totalWeekly, gStart, today);
-  const gTodayT = Math.max(0, daysBetween(gStart, today));
+  const totalActions = allActions.length;
+  const countOf = (s: Status) => allActions.filter((a) => a.status === s).length;
+  const statusCounts: Record<Status, number> = {
+    todo: countOf("todo"),
+    doing: countOf("doing"),
+    done: countOf("done"),
+  };
+  const overallPct = totalActions ? statusCounts.done / totalActions : 0;
 
   const actionsById = new Map(doc.areas.flatMap((ar) => ar.actions.map((a) => [a.id, a])));
-  const areaTitleOf = new Map(
-    doc.areas.flatMap((ar) => ar.actions.map((a) => [a.id, ar.title])),
-  );
 
   return (
     <div className="space-y-8">
-      {/* resumo geral consolidado */}
+      {/* resumo geral — distribuição por status, não soma de horas de blocos diferentes */}
       <section className="rounded-xl border border-neutral-200 bg-white p-5">
         <div className="flex flex-wrap items-baseline justify-between gap-3">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
-            Conclusão prevista do PDI
+            Andamento geral do PDI
           </h2>
           <span className="text-lg font-bold" style={{ color: brand.ink }}>
-            {plan.overallProjectedDate ? formatDate(plan.overallProjectedDate) : "—"}
+            {formatPercent(overallPct)} finalizado
           </span>
         </div>
         <p className="mt-1 text-xs text-neutral-500">
-          {Math.round(totals.est)}h estimadas · {Math.round(totals.done)}h feitas ·{" "}
-          {Math.round(totals.rem)}h restantes
-          {totalWeekly > 0 && ` · ${totalWeekly}h por semana no total`}
-          {plan.overallProjectedDate
-            ? " · a data é a do bloco que termina por último"
-            : " · defina a carga horária das ações e a capacidade dos blocos"}
+          {totalActions} ações no total · não somamos a carga horária dos blocos porque
+          ninguém trabalha em todos ao mesmo tempo — cada bloco tem seu ritmo abaixo.
         </p>
 
-        {totals.est > 0 && (
-          <div className="mt-4 rounded-lg border border-neutral-100 bg-neutral-50/60 p-3">
-            <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">
-              Consolidado — horas restantes de todo o PDI (previsto × real)
-            </p>
-            <Burndown series={gSeries} todayT={gTodayT} width={620} height={170} />
+        {totalActions > 0 && (
+          <div className="mt-4">
+            <div className="flex h-3 w-full overflow-hidden rounded-full">
+              {(["done", "doing", "todo"] as Status[]).map((s) =>
+                statusCounts[s] > 0 ? (
+                  <div
+                    key={s}
+                    style={{
+                      width: `${(statusCounts[s] / totalActions) * 100}%`,
+                      background: STATUS_COLOR[s],
+                    }}
+                  />
+                ) : null,
+              )}
+            </div>
+            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px]">
+              {(["todo", "doing", "done"] as Status[]).map((s) => (
+                <span key={s} className="flex items-center gap-1.5">
+                  <span
+                    className="h-2 w-2 rounded-full"
+                    style={{ background: STATUS_COLOR[s] }}
+                  />
+                  <b style={{ color: brand.ink }}>{statusCounts[s]}</b>
+                  <span style={{ color: brand.muted }}>
+                    {STATUS_LABEL[s].toLowerCase()} (
+                    {formatPercent(totalActions ? statusCounts[s] / totalActions : 0)})
+                  </span>
+                </span>
+              ))}
+            </div>
           </div>
         )}
       </section>
@@ -191,9 +213,12 @@ export function PlanningView({ pdi, today }: { pdi: PdiDoc; today: string }) {
         const start = done[0] ?? addDays(today, -21);
         const series = burndownSeries(b.actions, weeklyHours(cap), start, today);
         const todayT = Math.max(0, daysBetween(start, today));
+        const expectedPct =
+          series.planned.length && series.total > 0
+            ? 1 - plannedRemainingAt(series, todayT) / series.total
+            : null;
         const key = b.groupId ?? "loose";
-        // aberto por padrão enquanto não tem carga horária (é o que falta preencher)
-        const isOpen = open[key] ?? b.projection.estimatedHours === 0;
+        const isOpen = open[key] ?? false;
 
         return (
           <section
@@ -231,30 +256,22 @@ export function PlanningView({ pdi, today }: { pdi: PdiDoc; today: string }) {
                 />
               </div>
 
-              <p className="text-xs text-neutral-500">
-                {Math.round(b.projection.estimatedHours)}h estimadas ·{" "}
-                {formatPercent(b.projection.completion)} feito ·{" "}
-                {Math.round(b.projection.remainingHours)}h restantes
-              </p>
-
-              {/* gráfico previsto × real */}
-              {b.projection.estimatedHours > 0 ? (
+              {b.actions.length > 0 && (
                 <div className="rounded-lg border border-neutral-100 bg-neutral-50/60 p-3">
-                  <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">
-                    Horas restantes — {series.planned.length ? "previsto × real" : "real"}
+                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">
+                    Andamento — real × previsto
                   </p>
-                  <Burndown series={series} todayT={todayT} />
-                  {series.planned.length === 0 && (
-                    <p className="mt-1 text-[11px] text-neutral-400">
-                      Preencha as horas por semana acima para ver a linha do previsto e a
-                      data de conclusão.
+                  <PctBar
+                    realPct={b.projection.completion}
+                    expectedPct={expectedPct}
+                    color={badge.fg}
+                  />
+                  {expectedPct == null && (
+                    <p className="mt-2 text-[11px] text-neutral-400">
+                      Preencha a carga horária de ao menos uma ação e as horas por semana
+                      acima pra ver a comparação com o previsto.
                     </p>
                   )}
-                </div>
-              ) : (
-                <div className="grid h-[130px] place-items-center rounded-lg border border-dashed border-neutral-200 text-center text-xs text-neutral-400">
-                  Preencha a <b className="mx-1 font-semibold">Carga (h)</b> das ações
-                  abaixo para ver o gráfico previsto × real
                 </div>
               )}
 
@@ -313,7 +330,7 @@ export function PlanningView({ pdi, today }: { pdi: PdiDoc; today: string }) {
                         </div>
 
                         <div className="flex flex-wrap items-end gap-x-3 gap-y-2 text-xs">
-                          <Field label="Carga horária">
+                          <Field label="Carga horária" hint="opcional — só p/ prever a data">
                             <div className="flex items-center gap-1">
                               <input
                                 type="number"
@@ -428,11 +445,20 @@ export function PlanningView({ pdi, today }: { pdi: PdiDoc; today: string }) {
 const inp =
   "w-16 rounded border border-neutral-300 bg-white px-1.5 py-1 text-center text-sm text-neutral-900 outline-none focus:border-neutral-900";
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  hint,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
   return (
     <label className="flex flex-col items-center gap-1">
       <span className="text-[10px] font-semibold uppercase tracking-wide text-neutral-400">
         {label}
+        {hint && <span className="ml-1 font-normal normal-case text-neutral-400">({hint})</span>}
       </span>
       {children}
     </label>

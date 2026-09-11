@@ -56,12 +56,14 @@ export const actionDoneHours = (a: Action): number =>
 export const actionRemainingHours = (a: Action): number =>
   actionEstimatedHours(a) * (1 - actionCompletion(a));
 
-/** Progresso real da área: ponderado por horas se houver, senão média simples. */
+/**
+ * Progresso real da área: média simples do `actionCompletion` de cada ação —
+ * NUNCA ponderado por horas. Uma ação medida em módulos e outra em horas
+ * contam igual: 50% é 50%, seja qual for a régua usada para chegar lá.
+ */
 export function areaRealProgress(area: Area): number {
   const acts = area.actions;
   if (acts.length === 0) return 0;
-  const totalHours = sum(acts.map(actionEstimatedHours));
-  if (totalHours > 0) return sum(acts.map(actionDoneHours)) / totalHours;
   return avg(acts.map(actionCompletion));
 }
 
@@ -94,12 +96,8 @@ export function projectFromActions(
   const remainingHours = sum(actions.map(actionRemainingHours));
   const wh = weeklyHours(cap);
 
-  const completion =
-    estimatedHours > 0
-      ? doneHours / estimatedHours
-      : actions.length
-        ? avg(actions.map(actionCompletion))
-        : 0;
+  // % concluído: média simples por ação — nunca ponderada por horas (ver areaRealProgress).
+  const completion = actions.length ? avg(actions.map(actionCompletion)) : 0;
 
   let weeksLeft: number | null = null;
   let projectedDate: string | null = null;
@@ -256,4 +254,17 @@ export function burndownSeries(
   actual.push({ t: Math.max(days(today), 0), h: Math.max(0, total - doneNow) });
 
   return { total, spanDays, planned, actual };
+}
+
+/**
+ * Interpola a reta do "previsto" (2 pontos: início e fim no ritmo) num
+ * instante `t` — quantas horas se esperava ter restando nesse dia. Usado
+ * pra converter em "% esperado hoje" (ver `PctBar` em apps/web).
+ */
+export function plannedRemainingAt(series: BurndownSeries, t: number): number {
+  const [a, b] = series.planned;
+  if (!a || !b || b.t === a.t) return a?.h ?? 0;
+  if (t <= a.t) return a.h;
+  if (t >= b.t) return b.h;
+  return a.h + ((b.h - a.h) * (t - a.t)) / (b.t - a.t);
 }

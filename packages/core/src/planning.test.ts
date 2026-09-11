@@ -52,7 +52,9 @@ describe("projectFromActions", () => {
     expect(p.remainingHours).toBe(50);
     expect(p.weeksLeft).toBe(10);
     expect(p.projectedDate).toBe("2026-03-12"); // +70 dias
-    expect(p.completion).toBeCloseTo(10 / 60);
+    // completion = média simples por ação, não ponderada por horas:
+    // ação 1 = 10/40 = 0.25; ação 2 = 0 → média 0.125
+    expect(p.completion).toBeCloseTo(0.125);
   });
   it("sem capacidade → sem data projetada", () => {
     const p = projectFromActions([act({ estimatedHours: 10 })], undefined, new Date());
@@ -122,7 +124,9 @@ describe("burndownSeries", () => {
 });
 
 describe("areaRealProgress", () => {
-  it("pondera por horas", () => {
+  it("média simples por ação — NUNCA pondera por horas", () => {
+    // uma ação de 90h parada e outra de 10h finalizada: é 50%, não 10%.
+    // (uma formação grande em horas não pode "abafar" o progresso das outras.)
     const a: Area = {
       id: "a",
       title: "a",
@@ -131,9 +135,24 @@ describe("areaRealProgress", () => {
       order: 0,
       actions: [
         act({ estimatedHours: 90, status: "todo" }), // 0
-        act({ estimatedHours: 10, status: "done" }), // 10
+        act({ estimatedHours: 10, status: "done" }), // 1
       ],
     };
-    expect(areaRealProgress(a)).toBe(0.1); // 10/100, não 50%
+    expect(areaRealProgress(a)).toBe(0.5);
+  });
+
+  it("mistura módulos e horas em pé de igualdade", () => {
+    const a: Area = {
+      id: "a",
+      title: "a",
+      kind: "desenvolver",
+      status: "doing",
+      order: 0,
+      actions: [
+        act({ status: "doing", unitsTotal: 100, unitsDone: 50 }), // 0.5 (módulos)
+        act({ status: "doing", estimatedHours: 40, hoursDone: 20 }), // 0.5 (horas)
+      ],
+    };
+    expect(areaRealProgress(a)).toBe(0.5);
   });
 });
