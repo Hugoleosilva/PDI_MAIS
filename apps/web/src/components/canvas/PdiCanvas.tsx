@@ -499,16 +499,15 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
       // o raiz é ancorado abaixo (ver efeito seguinte) — ao trocar de direção
       // (árvore →/↓) a posição antiga não faz mais sentido, solta a âncora.
       if (positionsRef.current.root) {
-        setPositions((p) => {
-          const { root: _drop, ...rest } = p;
-          return rest;
-        });
-        scheduleSave();
+        const { root: _drop, ...rest } = positionsRef.current;
+        positionsRef.current = rest;
+        setPositions(rest);
+        saveCanvas();
       }
       const id = requestAnimationFrame(() => fitView({ padding: 0.14, duration: 250 }));
       return () => cancelAnimationFrame(id);
     }
-  }, [layout.nodes, withHandlers, setNodes, fitView, layoutKind, scheduleSave]);
+  }, [layout.nodes, withHandlers, setNodes, fitView, layoutKind, saveCanvas]);
 
   // Ancora a posição do raiz assim que calculada. Sem isso, qualquer mudança
   // de bloco (arrastar um frame recalcula `groups` via recapture) recalcula
@@ -519,11 +518,14 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
     if (positions.root) return;
     const rootNode = layout.nodes.find((n) => n.id === "root");
     if (!rootNode) return;
-    setPositions((p) => ({ ...p, root: { ...rootNode.position } }));
-    // sem isso a âncora só existia em memória: saía do Planejamento e voltava
-    // pro canvas, o componente remontava do banco (sem "root" salvo) e pulava de novo.
-    scheduleSave();
-  }, [layout.nodes, positions, scheduleSave]);
+    const next = { ...positions, root: { ...rootNode.position } };
+    // atualiza a ref NA HORA (não espera o próximo render) e salva sem
+    // debounce — se o usuário trocar de tela rápido, o timer de 700ms podia
+    // não disparar a tempo e a âncora nunca ia pro banco.
+    positionsRef.current = next;
+    setPositions(next);
+    saveCanvas();
+  }, [layout.nodes, positions, saveCanvas]);
 
   useEffect(() => {
     setEdges([...layout.edges, ...linkEdgesMemo]);
