@@ -31,6 +31,7 @@ export const incomingActionSchema = z.object({
   unitsLabel: z.string().trim().min(1).max(30).optional(),
   hoursDone: z.number().nonnegative().optional(),
   completedAt: isoDate.optional(),
+  certificateUrl: z.string().trim().min(1).max(500).optional(),
 });
 
 export const incomingAreaSchema = z.object({

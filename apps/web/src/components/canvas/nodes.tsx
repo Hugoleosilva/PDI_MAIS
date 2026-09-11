@@ -276,9 +276,24 @@ export function ActionNode({ data, selected }: NodeProps & { data: ActionNodeDat
         <span className="truncate text-[11px]" style={{ color: brand.muted }} title={data.areaTitle}>
           {data.areaTitle}
         </span>
-        {data.description && (
-          <span className="shrink-0 text-[11px] font-medium" style={{ color: brand.orange }}>descrição ↗</span>
-        )}
+        <div className="flex shrink-0 items-center gap-2">
+          {data.certificateUrl && (
+            <a
+              href={data.certificateUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              title="Abrir certificado / comprovante"
+              className="nodrag text-[11px] font-medium"
+              style={{ color: brand.teal }}
+            >
+              🎓 certificado ↗
+            </a>
+          )}
+          {data.description && (
+            <span className="text-[11px] font-medium" style={{ color: brand.orange }}>descrição ↗</span>
+          )}
+        </div>
       </div>
       <Handle type="target" position={targetPos(data.dir)} style={handleStyle} />
       <Handle type="source" position={sourcePos(data.dir)} style={handleStyle} />

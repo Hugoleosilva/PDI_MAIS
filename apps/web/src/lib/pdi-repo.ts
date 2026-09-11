@@ -3,6 +3,7 @@ import {
   buildSnapshot,
   deriveAreaStatus,
   mergePdi,
+  type CanvasPreset,
   type PdiCanvasState,
   type PdiDoc,
   type PdiGroup,
@@ -97,6 +98,12 @@ export async function setGroups(userId: string, groups: PdiGroup[]): Promise<voi
 export async function setCanvas(userId: string, canvas: PdiCanvasState): Promise<void> {
   const col = await collection();
   await col.updateOne({ userId }, { $set: { canvas, updatedAt: new Date() } });
+}
+
+/** Substitui a lista de versões salvas do canvas. */
+export async function setCanvasPresets(userId: string, presets: CanvasPreset[]): Promise<void> {
+  const col = await collection();
+  await col.updateOne({ userId }, { $set: { canvasPresets: presets, updatedAt: new Date() } });
 }
 
 /** Capacidade semanal para o que está fora de bloco. */

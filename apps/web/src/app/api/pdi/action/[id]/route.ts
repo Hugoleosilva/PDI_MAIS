@@ -16,6 +16,7 @@ const patchSchema = z.object({
   unitsDone: z.number().int().nonnegative().max(100000).nullable().optional(),
   unitsLabel: z.string().trim().min(1).max(30).nullable().optional(),
   hoursDone: z.number().nonnegative().max(100000).nullable().optional(),
+  certificateUrl: z.string().trim().max(500).nullable().optional(),
 });
 
 /** PATCH /api/pdi/action/[id] — edita uma ação. */

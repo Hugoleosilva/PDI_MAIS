@@ -16,6 +16,7 @@ export interface DraftAction {
   kind: ActionKind;
   dueDate: string;
   status: Status;
+  certificateUrl: string;
 }
 export interface DraftArea {
   title: string;
@@ -32,6 +33,7 @@ const emptyAction = (): DraftAction => ({
   kind: "treinamento_estudo",
   dueDate: "",
   status: "todo",
+  certificateUrl: "",
 });
 const emptyArea = (): DraftArea => ({ title: "", description: "", actions: [emptyAction()] });
 
@@ -97,6 +99,7 @@ export function ManualBuilder({
             description: x.description.trim() || undefined,
             dueDate: x.dueDate || undefined,
             status: x.status,
+            certificateUrl: x.certificateUrl.trim() || undefined,
           })),
       })),
     };
@@ -240,6 +243,18 @@ export function ManualBuilder({
                       </select>
                     </label>
                   </div>
+
+                  {ac.status === "done" && (
+                    <label className="mt-2 block">
+                      <span className={lbl}>Link do certificado / comprovante (opcional)</span>
+                      <input
+                        className={field}
+                        value={ac.certificateUrl}
+                        onChange={(e) => patchAction(ai, ci, { certificateUrl: e.target.value })}
+                        placeholder="Cole o link do PDI estático, Drive, etc. — o arquivo fica lá"
+                      />
+                    </label>
+                  )}
                 </div>
               ))}
               <button

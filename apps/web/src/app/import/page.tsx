@@ -20,6 +20,7 @@ export default async function ImportPage() {
       kind: ac.kind,
       dueDate: ac.dueDate ?? "",
       status: ac.status,
+      certificateUrl: ac.certificateUrl ?? "",
     })),
   }));
 

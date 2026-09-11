@@ -62,6 +62,7 @@ export interface ActionNodeData extends Record<string, unknown> {
   dueDate?: string;
   kind: ActionKind;
   description?: string;
+  certificateUrl?: string;
   areaId: string;
   areaTitle: string;
   dir: Direction;
@@ -152,6 +153,7 @@ function baseNodes(pdi: PdiDoc, dir: Direction) {
         dueDate: action.dueDate,
         kind: action.kind,
         description: action.description,
+        certificateUrl: action.certificateUrl,
         areaId: area.id,
         areaTitle: area.title,
         dir,

@@ -51,6 +51,8 @@ export interface Action {
   hoursDone?: number;
   /** Data (YYYY-MM-DD) em que a ação virou "Finalizado". */
   completedAt?: string;
+  /** Link do certificado/comprovante (o arquivo em si fica no PDI estático). */
+  certificateUrl?: string;
 }
 
 /** Horas disponíveis por dia da semana. */
@@ -159,6 +161,8 @@ export interface PdiDoc {
   looseCapacity?: WeekCapacity;
   /** Histórico de relatórios de andamento (mais recente por último). */
   reports?: ProgressSnapshot[];
+  /** Versões nomeadas do arranjo do canvas, salvas pelo usuário. */
+  canvasPresets?: CanvasPreset[];
 }
 
 export interface PdiCanvasState {
@@ -166,4 +170,21 @@ export interface PdiCanvasState {
   positions?: Record<string, { x: number; y: number }>;
   /** groupId -> caixa manual do frame (usado para blocos vazios/movidos). */
   frames?: Record<string, { x: number; y: number; w: number; h: number }>;
+}
+
+/**
+ * Versão nomeada do arranjo do canvas — "fotografia" de posições, frames,
+ * blocos e formato de layout, salva com um nome pra recuperar depois.
+ * Não interfere no arranjo "vivo" (`PdiDoc.canvas`/`groups`); é uma cópia.
+ */
+export interface CanvasPreset {
+  id: string;
+  name: string;
+  createdAt: string;
+  /** Formato de layout (árvore, kanban…) — valores definidos em apps/web. */
+  layout: string;
+  showGroups: boolean;
+  positions: Record<string, { x: number; y: number }>;
+  frames: Record<string, { x: number; y: number; w: number; h: number }>;
+  groups: PdiGroup[];
 }

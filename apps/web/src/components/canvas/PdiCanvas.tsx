@@ -21,6 +21,7 @@ import "@xyflow/react/dist/style.css";
 import {
   GROUP_COLORS,
   resolveSeedGroups,
+  type CanvasPreset,
   type PdiCanvasState,
   type PdiDoc,
   type PdiGroup,
@@ -97,6 +98,8 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [links, setLinks] = useState<PdiLink[]>(pdi.links ?? []);
   const [groups, setGroups] = useState<PdiGroup[]>(pdi.groups ?? []);
+  const [presets, setPresets] = useState<CanvasPreset[]>(pdi.canvasPresets ?? []);
+  const [presetSel, setPresetSel] = useState("");
   const [positions, setPositions] = useState<PosMap>(pdi.canvas?.positions ?? {});
   const [frameBoxes, setFrameBoxes] = useState<Record<string, FrameBox>>(
     Object.fromEntries(
@@ -305,6 +308,55 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
       setSelectedGroupId((cur) => (cur === id ? null : cur));
     },
     [groups, commitGroups],
+  );
+
+  // ---- versões salvas do canvas (Rodada 7.7) ----
+  const savePresets = useCallback((next: CanvasPreset[]) => {
+    setPresets(next);
+    void fetch("/api/pdi/canvas-presets", {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ presets: next }),
+    }).catch(() => {});
+  }, []);
+  const saveAsPreset = useCallback(() => {
+    const name = window.prompt("Nome desta versão do canvas:")?.trim();
+    if (!name) return;
+    const preset: CanvasPreset = {
+      id: uuid(),
+      name,
+      createdAt: new Date().toISOString(),
+      layout: layoutKind,
+      showGroups,
+      positions: positionsRef.current,
+      frames: frameBoxesRef.current,
+      groups: groupsRef.current,
+    };
+    savePresets([...presets, preset]);
+    setPresetSel(preset.id);
+  }, [presets, savePresets, layoutKind, showGroups]);
+  const loadPreset = useCallback(
+    (id: string) => {
+      const p = presets.find((x) => x.id === id);
+      if (!p) return;
+      setPositions(p.positions);
+      positionsRef.current = p.positions;
+      setFrameBoxes(p.frames);
+      frameBoxesRef.current = p.frames;
+      commitGroups(p.groups);
+      setShowGroups(p.showGroups);
+      setLayoutKind(p.layout as Layout);
+      requestAnimationFrame(() => fitView({ padding: 0.14, duration: 300 }));
+    },
+    [presets, commitGroups, fitView],
+  );
+  const deletePreset = useCallback(
+    (id: string) => {
+      const p = presets.find((x) => x.id === id);
+      if (!p || !window.confirm(`Excluir a versão "${p.name}"?`)) return;
+      savePresets(presets.filter((x) => x.id !== id));
+    },
+    [presets, savePresets],
   );
 
   // ---- conexões manuais ----
@@ -767,6 +819,36 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
                 <span style={{ opacity: canUndo ? 1 : 0.4 }}>↩ Desfazer</span>
               </TBtn>
               <TBtn onClick={reorganize}>⟳ Reorganizar</TBtn>
+            </Group>
+            <Group>
+              <select
+                value={presetSel}
+                onChange={(e) => {
+                  setPresetSel(e.target.value);
+                  if (e.target.value) loadPreset(e.target.value);
+                }}
+                title="Carregar uma versão salva do canvas"
+                className="max-w-[150px] truncate border-0 bg-white px-2 py-1 text-xs font-medium text-neutral-700 outline-none"
+                style={{ color: presetSel ? brand.ink : brand.muted }}
+              >
+                <option value="">Versões salvas…</option>
+                {presets.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+              <TBtn onClick={saveAsPreset}>💾 Salvar como…</TBtn>
+              {presetSel && (
+                <TBtn
+                  onClick={() => {
+                    deletePreset(presetSel);
+                    setPresetSel("");
+                  }}
+                >
+                  🗑
+                </TBtn>
+              )}
             </Group>
             <Group>
               <TBtn onClick={saveCanvas}>

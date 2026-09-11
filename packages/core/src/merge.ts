@@ -67,6 +67,7 @@ export function mergePdi(
         dueDate:
           isManual && prev ? prev.dueDate : (incoming.dueDate ?? prev?.dueDate),
         description: prev?.description ?? incoming.description,
+        certificateUrl: prev?.certificateUrl ?? incoming.certificateUrl,
         source: prev?.source ?? opts.source,
         layout: prev?.layout,
         // planejamento: sempre preserva o que o usuário definiu; o import pode trazer
@@ -142,5 +143,6 @@ export function mergePdi(
     ...(canvas ? { canvas } : {}),
     ...(existing?.looseCapacity ? { looseCapacity: existing.looseCapacity } : {}),
     ...(existing?.reports?.length ? { reports: existing.reports } : {}),
+    ...(existing?.canvasPresets?.length ? { canvasPresets: existing.canvasPresets } : {}),
   };
 }

@@ -185,8 +185,15 @@ Página **`/planejamento`**. Responde a “quando eu termino isso, no meu ritmo?
    lista o histórico mais recente primeiro, com a diferença em p.p. desde o
    relatório anterior e o detalhe por área ao expandir.
 5. ⬜ Nó raiz do PDI expansível/recolhível.
-6. ⬜ Imagens (certificados) anexadas numa área.
-7. ⬜ Salvar o layout do canvas com nome e trocar entre versões salvas.
+6. ✅ Registro de certificado — `Action.certificateUrl` (link; o arquivo em
+   si fica no PDI estático, por decisão do usuário — sem upload/storage
+   novo). Campo aparece no formulário manual só quando a ação está
+   "Finalizado"; no card da ação vira "🎓 certificado ↗" clicável.
+7. ✅ Versões salvas do canvas — `CanvasPreset` (layout + blocos + posições +
+   frames) em `PdiDoc.canvasPresets`, `PUT /api/pdi/canvas-presets`. UI mais
+   simples possível: um `<select>` com as versões salvas + "💾 Salvar
+   como…" (nome via prompt) no mesmo painel dos botões de layout. Puramente
+   opt-in — carregar uma versão só troca o arranjo se o usuário escolher.
 
 ## ⏭️ Próximas rodadas
 
