@@ -212,6 +212,19 @@
       "source_location": "L8"
     },
     {
+      "id": "packages_core_src_types_pdilink",
+      "label": "PdiLink",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "pdi-to-graph.ts",
+      "file_type": "code",
+      "norm_label": "pdilink",
+      "source_file": "packages/core/src/types.ts",
+      "source_location": "L93"
+    },
+    {
       "id": "packages_core_src_types_status",
       "label": "Status",
       "_callable": true,
@@ -249,19 +262,6 @@
       "norm_label": "status",
       "source_file": "apps/web/src/components/planning/PlanningView.tsx",
       "source_location": "L26"
-    },
-    {
-      "id": "packages_core_src_merge_mergeoptions",
-      "label": "MergeOptions",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "PlanningView.tsx",
-      "file_type": "code",
-      "norm_label": "mergeoptions",
-      "source_file": "packages/core/src/merge.ts",
-      "source_location": "L21"
     },
     {
       "id": "packages_core_src_planning_blockplan",
@@ -355,71 +355,6 @@
       "source_location": "L67"
     },
     {
-      "id": "packages_core_src_types_nodelayout",
-      "label": "NodeLayout",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "PlanningView.tsx",
-      "file_type": "code",
-      "norm_label": "nodelayout",
-      "source_file": "packages/core/src/types.ts",
-      "source_location": "L15"
-    },
-    {
-      "id": "packages_core_src_types_pdidoc",
-      "label": "PdiDoc",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "PlanningView.tsx",
-      "file_type": "code",
-      "norm_label": "pdidoc",
-      "source_file": "packages/core/src/types.ts",
-      "source_location": "L121"
-    },
-    {
-      "id": "packages_core_src_types_pdigroup",
-      "label": "PdiGroup",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "PlanningView.tsx",
-      "file_type": "code",
-      "norm_label": "pdigroup",
-      "source_file": "packages/core/src/types.ts",
-      "source_location": "L104"
-    },
-    {
-      "id": "packages_core_src_types_pdiroot",
-      "label": "PdiRoot",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "PlanningView.tsx",
-      "file_type": "code",
-      "norm_label": "pdiroot",
-      "source_file": "packages/core/src/types.ts",
-      "source_location": "L81"
-    },
-    {
-      "id": "packages_core_src_types_source",
-      "label": "Source",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "PlanningView.tsx",
-      "file_type": "code",
-      "norm_label": "source",
-      "source_file": "packages/core/src/types.ts",
-      "source_location": "L28"
-    },
-    {
       "id": "packages_core_src_types_weekcapacity",
       "label": "WeekCapacity",
       "_callable": true,
@@ -443,20 +378,7 @@
       "file_type": "code",
       "norm_label": "pdicanvasstate",
       "source_file": "packages/core/src/types.ts",
-      "source_location": "L141"
-    },
-    {
-      "id": "packages_core_src_types_pdilink",
-      "label": "PdiLink",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "pdi-repo.ts",
-      "file_type": "code",
-      "norm_label": "pdilink",
-      "source_file": "packages/core/src/types.ts",
-      "source_location": "L93"
+      "source_location": "L164"
     },
     {
       "id": "apps_web_src_types_next_auth_d_session",
@@ -478,7 +400,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "schema.ts",
+      "community_name": "ManualBuilder.tsx",
       "file_type": "code",
       "norm_label": "draftarea",
       "source_file": "apps/web/src/components/ManualBuilder.tsx",
@@ -491,24 +413,11 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "schema.ts",
+      "community_name": "ManualBuilder.tsx",
       "file_type": "code",
       "norm_label": "importresult",
       "source_file": "packages/core/src/import.ts",
       "source_location": "L4"
-    },
-    {
-      "id": "packages_core_src_schema_syncpayload",
-      "label": "SyncPayload",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 2,
-      "community_name": "schema.ts",
-      "file_type": "code",
-      "norm_label": "syncpayload",
-      "source_file": "packages/core/src/schema.ts",
-      "source_location": "L58"
     },
     {
       "id": "packages_core_src_schema_syncpayloadinput",
@@ -517,24 +426,11 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "schema.ts",
+      "community_name": "ManualBuilder.tsx",
       "file_type": "code",
       "norm_label": "syncpayloadinput",
       "source_file": "packages/core/src/schema.ts",
       "source_location": "L56"
-    },
-    {
-      "id": "packages_core_src_types_areakind",
-      "label": "AreaKind",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 2,
-      "community_name": "schema.ts",
-      "file_type": "code",
-      "norm_label": "areakind",
-      "source_file": "packages/core/src/types.ts",
-      "source_location": "L5"
     },
     {
       "id": "apps_web_src_lib_pdi_to_graph_layout",
@@ -555,12 +451,142 @@
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
-      "community": 8,
-      "community_name": "insight.ts",
+      "community": 6,
+      "community_name": "index.ts",
       "file_type": "code",
       "norm_label": "insightkind",
       "source_file": "packages/core/src/insight.ts",
       "source_location": "L11"
+    },
+    {
+      "id": "packages_core_src_merge_mergeoptions",
+      "label": "MergeOptions",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "mergeoptions",
+      "source_file": "packages/core/src/merge.ts",
+      "source_location": "L21"
+    },
+    {
+      "id": "packages_core_src_schema_syncpayload",
+      "label": "SyncPayload",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "syncpayload",
+      "source_file": "packages/core/src/schema.ts",
+      "source_location": "L58"
+    },
+    {
+      "id": "packages_core_src_types_areakind",
+      "label": "AreaKind",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "areakind",
+      "source_file": "packages/core/src/types.ts",
+      "source_location": "L5"
+    },
+    {
+      "id": "packages_core_src_types_areasnapshot",
+      "label": "AreaSnapshot",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "areasnapshot",
+      "source_file": "packages/core/src/types.ts",
+      "source_location": "L121"
+    },
+    {
+      "id": "packages_core_src_types_nodelayout",
+      "label": "NodeLayout",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "nodelayout",
+      "source_file": "packages/core/src/types.ts",
+      "source_location": "L15"
+    },
+    {
+      "id": "packages_core_src_types_pdidoc",
+      "label": "PdiDoc",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "pdidoc",
+      "source_file": "packages/core/src/types.ts",
+      "source_location": "L142"
+    },
+    {
+      "id": "packages_core_src_types_pdigroup",
+      "label": "PdiGroup",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "pdigroup",
+      "source_file": "packages/core/src/types.ts",
+      "source_location": "L104"
+    },
+    {
+      "id": "packages_core_src_types_pdiroot",
+      "label": "PdiRoot",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "pdiroot",
+      "source_file": "packages/core/src/types.ts",
+      "source_location": "L81"
+    },
+    {
+      "id": "packages_core_src_types_progresssnapshot",
+      "label": "ProgressSnapshot",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "progresssnapshot",
+      "source_file": "packages/core/src/types.ts",
+      "source_location": "L132"
+    },
+    {
+      "id": "packages_core_src_types_source",
+      "label": "Source",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "source",
+      "source_file": "packages/core/src/types.ts",
+      "source_location": "L28"
     },
     {
       "id": "apps_web_src_components_canvas_detailpanel_detailpanel",
@@ -839,6 +865,18 @@
       "source_location": "L328"
     },
     {
+      "id": "apps_web_src_lib_pdi_to_graph_basenodes",
+      "label": "baseNodes()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "pdi-to-graph.ts",
+      "file_type": "code",
+      "norm_label": "basenodes()",
+      "source_file": "apps/web/src/lib/pdi-to-graph.ts",
+      "source_location": "L115"
+    },
+    {
       "id": "apps_web_src_lib_pdi_to_graph_computeframes",
       "label": "computeFrames()",
       "_callable": true,
@@ -959,6 +997,18 @@
       "source_location": "L165"
     },
     {
+      "id": "apps_web_src_lib_pdi_to_graph_swimlanelayout",
+      "label": "swimlaneLayout()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "pdi-to-graph.ts",
+      "file_type": "code",
+      "norm_label": "swimlanelayout()",
+      "source_file": "apps/web/src/lib/pdi-to-graph.ts",
+      "source_location": "L464"
+    },
+    {
       "id": "apps_web_src_lib_pdi_to_graph_treelayout",
       "label": "treeLayout()",
       "_callable": true,
@@ -971,16 +1021,28 @@
       "source_location": "L239"
     },
     {
-      "id": "packages_core_src_groups_resolveseedgroups",
-      "label": "resolveSeedGroups()",
+      "id": "packages_core_src_groups_groupofarea",
+      "label": "groupOfArea()",
       "_callable": true,
       "_origin": "ast",
       "community": 0,
       "community_name": "pdi-to-graph.ts",
       "file_type": "code",
-      "norm_label": "resolveseedgroups()",
+      "norm_label": "groupofarea()",
       "source_file": "packages/core/src/groups.ts",
-      "source_location": "L66"
+      "source_location": "L80"
+    },
+    {
+      "id": "packages_core_src_progress_hasnotstarted",
+      "label": "hasNotStarted()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "pdi-to-graph.ts",
+      "file_type": "code",
+      "norm_label": "hasnotstarted()",
+      "source_file": "packages/core/src/progress.ts",
+      "source_location": "L20"
     },
     {
       "id": "apps_web_src_components_planning_burndown_burndown",
@@ -1077,18 +1139,6 @@
       "norm_label": "weekgrid()",
       "source_file": "apps/web/src/components/planning/WeekGrid.tsx",
       "source_location": "L5"
-    },
-    {
-      "id": "packages_core_src_groups_groupofarea",
-      "label": "groupOfArea()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "PlanningView.tsx",
-      "file_type": "code",
-      "norm_label": "groupofarea()",
-      "source_file": "packages/core/src/groups.ts",
-      "source_location": "L80"
     },
     {
       "id": "packages_core_src_planning_actioncompletion",
@@ -1259,6 +1309,30 @@
       "source_location": "L32"
     },
     {
+      "id": "apps_web_src_app_api_dev_seed_route_get",
+      "label": "GET()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "pdi-repo.ts",
+      "file_type": "code",
+      "norm_label": "get()",
+      "source_file": "apps/web/src/app/api/dev/seed/route.ts",
+      "source_location": "L14"
+    },
+    {
+      "id": "apps_web_src_app_api_import_route_post",
+      "label": "POST()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "pdi-repo.ts",
+      "file_type": "code",
+      "norm_label": "post()",
+      "source_file": "apps/web/src/app/api/import/route.ts",
+      "source_location": "L13"
+    },
+    {
       "id": "apps_web_src_app_api_pdi_action_id_route_patch",
       "label": "PATCH()",
       "_callable": true,
@@ -1331,6 +1405,18 @@
       "source_location": "L18"
     },
     {
+      "id": "apps_web_src_app_api_pdi_reports_route_post",
+      "label": "POST()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "pdi-repo.ts",
+      "file_type": "code",
+      "norm_label": "post()",
+      "source_file": "apps/web/src/app/api/pdi/reports/route.ts",
+      "source_location": "L8"
+    },
+    {
       "id": "apps_web_src_app_api_pdi_root_route_patch",
       "label": "PATCH()",
       "_callable": true,
@@ -1343,40 +1429,16 @@
       "source_location": "L14"
     },
     {
-      "id": "apps_web_src_app_api_pdi_route_get",
-      "label": "GET()",
+      "id": "apps_web_src_app_api_sync_route_post",
+      "label": "POST()",
       "_callable": true,
       "_origin": "ast",
       "community": 10,
       "community_name": "pdi-repo.ts",
       "file_type": "code",
-      "norm_label": "get()",
-      "source_file": "apps/web/src/app/api/pdi/route.ts",
-      "source_location": "L12"
-    },
-    {
-      "id": "apps_web_src_app_import_page_importpage",
-      "label": "ImportPage()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "pdi-repo.ts",
-      "file_type": "code",
-      "norm_label": "importpage()",
-      "source_file": "apps/web/src/app/import/page.tsx",
-      "source_location": "L8"
-    },
-    {
-      "id": "apps_web_src_app_planejamento_page_planningpage",
-      "label": "PlanningPage()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "pdi-repo.ts",
-      "file_type": "code",
-      "norm_label": "planningpage()",
-      "source_file": "apps/web/src/app/planejamento/page.tsx",
-      "source_location": "L7"
+      "norm_label": "post()",
+      "source_file": "apps/web/src/app/api/sync/route.ts",
+      "source_location": "L15"
     },
     {
       "id": "apps_web_src_lib_mongo_clientpromise",
@@ -1424,7 +1486,31 @@
       "file_type": "code",
       "norm_label": "addlink()",
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L52"
+      "source_location": "L55"
+    },
+    {
+      "id": "apps_web_src_lib_pdi_repo_addreportsnapshot",
+      "label": "addReportSnapshot()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "pdi-repo.ts",
+      "file_type": "code",
+      "norm_label": "addreportsnapshot()",
+      "source_file": "apps/web/src/lib/pdi-repo.ts",
+      "source_location": "L175"
+    },
+    {
+      "id": "apps_web_src_lib_pdi_repo_applysync",
+      "label": "applySync()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "pdi-repo.ts",
+      "file_type": "code",
+      "norm_label": "applysync()",
+      "source_file": "apps/web/src/lib/pdi-repo.ts",
+      "source_location": "L33"
     },
     {
       "id": "apps_web_src_lib_pdi_repo_collection",
@@ -1436,7 +1522,7 @@
       "file_type": "code",
       "norm_label": "collection()",
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L16"
+      "source_location": "L19"
     },
     {
       "id": "apps_web_src_lib_pdi_repo_ensureindexes",
@@ -1448,19 +1534,7 @@
       "file_type": "code",
       "norm_label": "ensureindexes()",
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L172"
-    },
-    {
-      "id": "apps_web_src_lib_pdi_repo_getpdibyuserid",
-      "label": "getPdiByUserId()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "pdi-repo.ts",
-      "file_type": "code",
-      "norm_label": "getpdibyuserid()",
-      "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L21"
+      "source_location": "L190"
     },
     {
       "id": "apps_web_src_lib_pdi_repo_nodeidset",
@@ -1472,7 +1546,7 @@
       "file_type": "code",
       "norm_label": "nodeidset()",
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L42"
+      "source_location": "L45"
     },
     {
       "id": "apps_web_src_lib_pdi_repo_removelink",
@@ -1484,7 +1558,7 @@
       "file_type": "code",
       "norm_label": "removelink()",
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L79"
+      "source_location": "L82"
     },
     {
       "id": "apps_web_src_lib_pdi_repo_setcanvas",
@@ -1496,7 +1570,7 @@
       "file_type": "code",
       "norm_label": "setcanvas()",
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L94"
+      "source_location": "L97"
     },
     {
       "id": "apps_web_src_lib_pdi_repo_setgroups",
@@ -1508,7 +1582,7 @@
       "file_type": "code",
       "norm_label": "setgroups()",
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L88"
+      "source_location": "L91"
     },
     {
       "id": "apps_web_src_lib_pdi_repo_setloosecapacity",
@@ -1520,7 +1594,7 @@
       "file_type": "code",
       "norm_label": "setloosecapacity()",
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L100"
+      "source_location": "L103"
     },
     {
       "id": "apps_web_src_lib_pdi_repo_updateaction",
@@ -1532,7 +1606,7 @@
       "file_type": "code",
       "norm_label": "updateaction()",
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L106"
+      "source_location": "L109"
     },
     {
       "id": "apps_web_src_lib_pdi_repo_updateroot",
@@ -1544,19 +1618,31 @@
       "file_type": "code",
       "norm_label": "updateroot()",
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L152"
+      "source_location": "L155"
     },
     {
-      "id": "packages_core_src_merge_deriveareastatus",
-      "label": "deriveAreaStatus()",
+      "id": "packages_core_src_groups_resolveseedgroups",
+      "label": "resolveSeedGroups()",
       "_callable": true,
       "_origin": "ast",
       "community": 10,
       "community_name": "pdi-repo.ts",
       "file_type": "code",
-      "norm_label": "deriveareastatus()",
-      "source_file": "packages/core/src/merge.ts",
-      "source_location": "L13"
+      "norm_label": "resolveseedgroups()",
+      "source_file": "packages/core/src/groups.ts",
+      "source_location": "L66"
+    },
+    {
+      "id": "packages_core_src_reports_appendsnapshot",
+      "label": "appendSnapshot()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "pdi-repo.ts",
+      "file_type": "code",
+      "norm_label": "appendsnapshot()",
+      "source_file": "packages/core/src/reports.ts",
+      "source_location": "L18"
     },
     {
       "id": "apps_web_src_app_layout_rootlayout",
@@ -1571,12 +1657,24 @@
       "source_location": "L9"
     },
     {
+      "id": "apps_web_src_app_import_page_importpage",
+      "label": "ImportPage()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "ManualBuilder.tsx",
+      "file_type": "code",
+      "norm_label": "importpage()",
+      "source_file": "apps/web/src/app/import/page.tsx",
+      "source_location": "L8"
+    },
+    {
       "id": "apps_web_src_components_importform_importform",
       "label": "ImportForm()",
       "_callable": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "schema.ts",
+      "community_name": "ManualBuilder.tsx",
       "file_type": "code",
       "norm_label": "importform()",
       "source_file": "apps/web/src/components/ImportForm.tsx",
@@ -1588,7 +1686,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "schema.ts",
+      "community_name": "ManualBuilder.tsx",
       "file_type": "code",
       "norm_label": "importtabs()",
       "source_file": "apps/web/src/components/ImportTabs.tsx",
@@ -1600,7 +1698,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "schema.ts",
+      "community_name": "ManualBuilder.tsx",
       "file_type": "code",
       "norm_label": "emptyaction()",
       "source_file": "apps/web/src/components/ManualBuilder.tsx",
@@ -1612,7 +1710,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "schema.ts",
+      "community_name": "ManualBuilder.tsx",
       "file_type": "code",
       "norm_label": "emptyarea()",
       "source_file": "apps/web/src/components/ManualBuilder.tsx",
@@ -1624,7 +1722,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "schema.ts",
+      "community_name": "ManualBuilder.tsx",
       "file_type": "code",
       "norm_label": "manualbuilder()",
       "source_file": "apps/web/src/components/ManualBuilder.tsx",
@@ -1636,7 +1734,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "schema.ts",
+      "community_name": "ManualBuilder.tsx",
       "file_type": "code",
       "norm_label": "clean()",
       "source_file": "packages/core/src/import.ts",
@@ -1648,7 +1746,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "schema.ts",
+      "community_name": "ManualBuilder.tsx",
       "file_type": "code",
       "norm_label": "detectsep()",
       "source_file": "packages/core/src/import.ts",
@@ -1660,7 +1758,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "schema.ts",
+      "community_name": "ManualBuilder.tsx",
       "file_type": "code",
       "norm_label": "parsedate()",
       "source_file": "packages/core/src/import.ts",
@@ -1672,7 +1770,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "schema.ts",
+      "community_name": "ManualBuilder.tsx",
       "file_type": "code",
       "norm_label": "parsedelimited()",
       "source_file": "packages/core/src/import.ts",
@@ -1684,35 +1782,11 @@
       "_callable": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "schema.ts",
+      "community_name": "ManualBuilder.tsx",
       "file_type": "code",
       "norm_label": "parseimporttable()",
       "source_file": "packages/core/src/import.ts",
       "source_location": "L118"
-    },
-    {
-      "id": "packages_core_src_labels_actionkindfromlabel",
-      "label": "actionKindFromLabel()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 2,
-      "community_name": "schema.ts",
-      "file_type": "code",
-      "norm_label": "actionkindfromlabel()",
-      "source_file": "packages/core/src/labels.ts",
-      "source_location": "L45"
-    },
-    {
-      "id": "packages_core_src_labels_areakindfromlabel",
-      "label": "areaKindFromLabel()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 2,
-      "community_name": "schema.ts",
-      "file_type": "code",
-      "norm_label": "areakindfromlabel()",
-      "source_file": "packages/core/src/labels.ts",
-      "source_location": "L39"
     },
     {
       "id": "packages_core_src_labels_statusfromlabel",
@@ -1720,59 +1794,23 @@
       "_callable": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "schema.ts",
+      "community_name": "ManualBuilder.tsx",
       "file_type": "code",
       "norm_label": "statusfromlabel()",
       "source_file": "packages/core/src/labels.ts",
       "source_location": "L30"
     },
     {
-      "id": "apps_web_src_app_api_dev_seed_route_get",
-      "label": "GET()",
+      "id": "apps_web_src_components_geminibutton_geminibutton",
+      "label": "GeminiButton()",
       "_callable": true,
       "_origin": "ast",
       "community": 6,
       "community_name": "index.ts",
       "file_type": "code",
-      "norm_label": "get()",
-      "source_file": "apps/web/src/app/api/dev/seed/route.ts",
+      "norm_label": "geminibutton()",
+      "source_file": "apps/web/src/components/GeminiButton.tsx",
       "source_location": "L14"
-    },
-    {
-      "id": "apps_web_src_app_api_import_route_post",
-      "label": "POST()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 6,
-      "community_name": "index.ts",
-      "file_type": "code",
-      "norm_label": "post()",
-      "source_file": "apps/web/src/app/api/import/route.ts",
-      "source_location": "L13"
-    },
-    {
-      "id": "apps_web_src_app_api_sync_route_post",
-      "label": "POST()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 6,
-      "community_name": "index.ts",
-      "file_type": "code",
-      "norm_label": "post()",
-      "source_file": "apps/web/src/app/api/sync/route.ts",
-      "source_location": "L15"
-    },
-    {
-      "id": "apps_web_src_lib_pdi_repo_applysync",
-      "label": "applySync()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 6,
-      "community_name": "index.ts",
-      "file_type": "code",
-      "norm_label": "applysync()",
-      "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L30"
     },
     {
       "id": "packages_core_src_ids_actionid",
@@ -1835,6 +1873,78 @@
       "source_location": "L41"
     },
     {
+      "id": "packages_core_src_insight_br",
+      "label": "br()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "br()",
+      "source_file": "packages/core/src/insight.ts",
+      "source_location": "L5"
+    },
+    {
+      "id": "packages_core_src_insight_buildcontextblock",
+      "label": "buildContextBlock()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "buildcontextblock()",
+      "source_file": "packages/core/src/insight.ts",
+      "source_location": "L70"
+    },
+    {
+      "id": "packages_core_src_insight_buildinsightprompt",
+      "label": "buildInsightPrompt()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "buildinsightprompt()",
+      "source_file": "packages/core/src/insight.ts",
+      "source_location": "L107"
+    },
+    {
+      "id": "packages_core_src_labels_actionkindfromlabel",
+      "label": "actionKindFromLabel()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "actionkindfromlabel()",
+      "source_file": "packages/core/src/labels.ts",
+      "source_location": "L45"
+    },
+    {
+      "id": "packages_core_src_labels_areakindfromlabel",
+      "label": "areaKindFromLabel()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "areakindfromlabel()",
+      "source_file": "packages/core/src/labels.ts",
+      "source_location": "L39"
+    },
+    {
+      "id": "packages_core_src_merge_deriveareastatus",
+      "label": "deriveAreaStatus()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "deriveareastatus()",
+      "source_file": "packages/core/src/merge.ts",
+      "source_location": "L13"
+    },
+    {
       "id": "packages_core_src_merge_mergepdi",
       "label": "mergePdi()",
       "_callable": true,
@@ -1847,16 +1957,76 @@
       "source_location": "L41"
     },
     {
+      "id": "packages_core_src_progress_areaprogress",
+      "label": "areaProgress()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "areaprogress()",
+      "source_file": "packages/core/src/progress.ts",
+      "source_location": "L4"
+    },
+    {
+      "id": "packages_core_src_progress_overallprogress",
+      "label": "overallProgress()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "overallprogress()",
+      "source_file": "packages/core/src/progress.ts",
+      "source_location": "L14"
+    },
+    {
+      "id": "packages_core_src_reports_buildsnapshot",
+      "label": "buildSnapshot()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "buildsnapshot()",
+      "source_file": "packages/core/src/reports.ts",
+      "source_location": "L8"
+    },
+    {
+      "id": "apps_web_src_app_api_pdi_route_get",
+      "label": "GET()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "app/page.tsx",
+      "file_type": "code",
+      "norm_label": "get()",
+      "source_file": "apps/web/src/app/api/pdi/route.ts",
+      "source_location": "L12"
+    },
+    {
       "id": "apps_web_src_app_page_home",
       "label": "Home()",
       "_callable": true,
       "_origin": "ast",
       "community": 8,
-      "community_name": "insight.ts",
+      "community_name": "app/page.tsx",
       "file_type": "code",
       "norm_label": "home()",
       "source_file": "apps/web/src/app/page.tsx",
-      "source_location": "L9"
+      "source_location": "L10"
+    },
+    {
+      "id": "apps_web_src_app_planejamento_page_planningpage",
+      "label": "PlanningPage()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "app/page.tsx",
+      "file_type": "code",
+      "norm_label": "planningpage()",
+      "source_file": "apps/web/src/app/planejamento/page.tsx",
+      "source_location": "L7"
     },
     {
       "id": "apps_web_src_components_canvas_nodes_groupnode",
@@ -1864,7 +2034,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 8,
-      "community_name": "insight.ts",
+      "community_name": "app/page.tsx",
       "file_type": "code",
       "norm_label": "groupnode()",
       "source_file": "apps/web/src/components/canvas/nodes.tsx",
@@ -1876,7 +2046,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 8,
-      "community_name": "insight.ts",
+      "community_name": "app/page.tsx",
       "file_type": "code",
       "norm_label": "pdicanvas()",
       "source_file": "apps/web/src/components/canvas/PdiCanvas.tsx",
@@ -1888,95 +2058,59 @@
       "_callable": true,
       "_origin": "ast",
       "community": 8,
-      "community_name": "insight.ts",
+      "community_name": "app/page.tsx",
       "file_type": "code",
       "norm_label": "emptystate()",
       "source_file": "apps/web/src/components/EmptyState.tsx",
       "source_location": "L3"
     },
     {
-      "id": "apps_web_src_components_geminibutton_geminibutton",
-      "label": "GeminiButton()",
+      "id": "apps_web_src_components_reportbutton_deltabadge",
+      "label": "DeltaBadge()",
       "_callable": true,
       "_origin": "ast",
       "community": 8,
-      "community_name": "insight.ts",
+      "community_name": "app/page.tsx",
       "file_type": "code",
-      "norm_label": "geminibutton()",
-      "source_file": "apps/web/src/components/GeminiButton.tsx",
-      "source_location": "L14"
+      "norm_label": "deltabadge()",
+      "source_file": "apps/web/src/components/ReportButton.tsx",
+      "source_location": "L16"
     },
     {
-      "id": "apps_web_src_lib_pdi_to_graph_basenodes",
-      "label": "baseNodes()",
+      "id": "apps_web_src_components_reportbutton_formatdatetime",
+      "label": "formatDateTime()",
       "_callable": true,
       "_origin": "ast",
       "community": 8,
-      "community_name": "insight.ts",
+      "community_name": "app/page.tsx",
       "file_type": "code",
-      "norm_label": "basenodes()",
-      "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L115"
+      "norm_label": "formatdatetime()",
+      "source_file": "apps/web/src/components/ReportButton.tsx",
+      "source_location": "L6"
     },
     {
-      "id": "apps_web_src_lib_pdi_to_graph_swimlanelayout",
-      "label": "swimlaneLayout()",
+      "id": "apps_web_src_components_reportbutton_reportbutton",
+      "label": "ReportButton()",
       "_callable": true,
       "_origin": "ast",
       "community": 8,
-      "community_name": "insight.ts",
+      "community_name": "app/page.tsx",
       "file_type": "code",
-      "norm_label": "swimlanelayout()",
-      "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L464"
+      "norm_label": "reportbutton()",
+      "source_file": "apps/web/src/components/ReportButton.tsx",
+      "source_location": "L32"
     },
     {
-      "id": "packages_core_src_insight_br",
-      "label": "br()",
+      "id": "apps_web_src_lib_pdi_repo_getpdibyuserid",
+      "label": "getPdiByUserId()",
       "_callable": true,
       "_origin": "ast",
       "community": 8,
-      "community_name": "insight.ts",
+      "community_name": "app/page.tsx",
       "file_type": "code",
-      "norm_label": "br()",
-      "source_file": "packages/core/src/insight.ts",
-      "source_location": "L5"
-    },
-    {
-      "id": "packages_core_src_insight_buildcontextblock",
-      "label": "buildContextBlock()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "insight.ts",
-      "file_type": "code",
-      "norm_label": "buildcontextblock()",
-      "source_file": "packages/core/src/insight.ts",
-      "source_location": "L70"
-    },
-    {
-      "id": "packages_core_src_insight_buildinsightprompt",
-      "label": "buildInsightPrompt()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "insight.ts",
-      "file_type": "code",
-      "norm_label": "buildinsightprompt()",
-      "source_file": "packages/core/src/insight.ts",
-      "source_location": "L107"
-    },
-    {
-      "id": "packages_core_src_progress_areaprogress",
-      "label": "areaProgress()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "insight.ts",
-      "file_type": "code",
-      "norm_label": "areaprogress()",
-      "source_file": "packages/core/src/progress.ts",
-      "source_location": "L4"
+      "norm_label": "getpdibyuserid()",
+      "source_file": "apps/web/src/lib/pdi-repo.ts",
+      "source_location": "L24"
     },
     {
       "id": "packages_core_src_progress_formatpercent",
@@ -1984,35 +2118,23 @@
       "_callable": true,
       "_origin": "ast",
       "community": 8,
-      "community_name": "insight.ts",
+      "community_name": "app/page.tsx",
       "file_type": "code",
       "norm_label": "formatpercent()",
       "source_file": "packages/core/src/progress.ts",
       "source_location": "L25"
     },
     {
-      "id": "packages_core_src_progress_hasnotstarted",
-      "label": "hasNotStarted()",
+      "id": "packages_core_src_reports_snapshotdelta",
+      "label": "snapshotDelta()",
       "_callable": true,
       "_origin": "ast",
       "community": 8,
-      "community_name": "insight.ts",
+      "community_name": "app/page.tsx",
       "file_type": "code",
-      "norm_label": "hasnotstarted()",
-      "source_file": "packages/core/src/progress.ts",
-      "source_location": "L20"
-    },
-    {
-      "id": "packages_core_src_progress_overallprogress",
-      "label": "overallProgress()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "insight.ts",
-      "file_type": "code",
-      "norm_label": "overallprogress()",
-      "source_file": "packages/core/src/progress.ts",
-      "source_location": "L14"
+      "norm_label": "snapshotdelta()",
+      "source_file": "packages/core/src/reports.ts",
+      "source_location": "L30"
     },
     {
       "id": "apps_web_src_components_canvas_detailpanel",
@@ -2112,17 +2234,6 @@
       "norm_label": "layouts",
       "source_file": "apps/web/src/components/canvas/PdiCanvas.tsx",
       "source_location": "L57"
-    },
-    {
-      "id": "apps_web_src_components_importform",
-      "label": "ImportForm.tsx",
-      "_origin": "ast",
-      "community": 0,
-      "community_name": "pdi-to-graph.ts",
-      "file_type": "code",
-      "norm_label": "importform.tsx",
-      "source_file": "apps/web/src/components/ImportForm.tsx",
-      "source_location": "L1"
     },
     {
       "id": "apps_web_src_lib_format",
@@ -2246,15 +2357,15 @@
       "source_location": "L10"
     },
     {
-      "id": "ref_react",
-      "label": "react",
+      "id": "packages_core_src_groups_group_colors",
+      "label": "GROUP_COLORS",
       "_origin": "ast",
       "community": 0,
       "community_name": "pdi-to-graph.ts",
-      "file_type": "concept",
-      "norm_label": "react",
-      "source_file": "apps/web/package.json",
-      "source_location": "L19"
+      "file_type": "code",
+      "norm_label": "group_colors",
+      "source_file": "packages/core/src/groups.ts",
+      "source_location": "L4"
     },
     {
       "id": "ref_xyflow_react",
@@ -2323,61 +2434,6 @@
       "source_location": "L1"
     },
     {
-      "id": "packages_core_src_groups",
-      "label": "groups.ts",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "PlanningView.tsx",
-      "file_type": "code",
-      "norm_label": "groups.ts",
-      "source_file": "packages/core/src/groups.ts",
-      "source_location": "L1"
-    },
-    {
-      "id": "packages_core_src_groups_group_colors",
-      "label": "GROUP_COLORS",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "PlanningView.tsx",
-      "file_type": "code",
-      "norm_label": "group_colors",
-      "source_file": "packages/core/src/groups.ts",
-      "source_location": "L4"
-    },
-    {
-      "id": "packages_core_src_groups_note_colors",
-      "label": "NOTE_COLORS",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "PlanningView.tsx",
-      "file_type": "code",
-      "norm_label": "note_colors",
-      "source_file": "packages/core/src/groups.ts",
-      "source_location": "L16"
-    },
-    {
-      "id": "packages_core_src_groups_seed_groups",
-      "label": "SEED_GROUPS",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "PlanningView.tsx",
-      "file_type": "code",
-      "norm_label": "seed_groups",
-      "source_file": "packages/core/src/groups.ts",
-      "source_location": "L30"
-    },
-    {
-      "id": "packages_core_src_merge",
-      "label": "merge.ts",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "PlanningView.tsx",
-      "file_type": "code",
-      "norm_label": "merge.ts",
-      "source_file": "packages/core/src/merge.ts",
-      "source_location": "L1"
-    },
-    {
       "id": "packages_core_src_planning",
       "label": "planning.ts",
       "_origin": "ast",
@@ -2433,17 +2489,6 @@
       "source_location": "L4"
     },
     {
-      "id": "packages_core_src_types",
-      "label": "types.ts",
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "PlanningView.tsx",
-      "file_type": "code",
-      "norm_label": "types.ts",
-      "source_file": "packages/core/src/types.ts",
-      "source_location": "L1"
-    },
-    {
       "id": "apps_web_src_app_api_auth_nextauth_route",
       "label": "[...nextauth]/route.ts",
       "_origin": "ast",
@@ -2453,6 +2498,50 @@
       "norm_label": "[...nextauth]/route.ts",
       "source_file": "apps/web/src/app/api/auth/[...nextauth]/route.ts",
       "source_location": "L1"
+    },
+    {
+      "id": "apps_web_src_app_api_dev_seed_route",
+      "label": "seed/route.ts",
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "pdi-repo.ts",
+      "file_type": "code",
+      "norm_label": "seed/route.ts",
+      "source_file": "apps/web/src/app/api/dev/seed/route.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_web_src_app_api_dev_seed_route_runtime",
+      "label": "runtime",
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "pdi-repo.ts",
+      "file_type": "code",
+      "norm_label": "runtime",
+      "source_file": "apps/web/src/app/api/dev/seed/route.ts",
+      "source_location": "L6"
+    },
+    {
+      "id": "apps_web_src_app_api_import_route",
+      "label": "import/route.ts",
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "pdi-repo.ts",
+      "file_type": "code",
+      "norm_label": "import/route.ts",
+      "source_file": "apps/web/src/app/api/import/route.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_web_src_app_api_import_route_runtime",
+      "label": "runtime",
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "pdi-repo.ts",
+      "file_type": "code",
+      "norm_label": "runtime",
+      "source_file": "apps/web/src/app/api/import/route.ts",
+      "source_location": "L6"
     },
     {
       "id": "apps_web_src_app_api_pdi_action_id_route",
@@ -2675,6 +2764,28 @@
       "source_location": "L6"
     },
     {
+      "id": "apps_web_src_app_api_pdi_reports_route",
+      "label": "reports/route.ts",
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "pdi-repo.ts",
+      "file_type": "code",
+      "norm_label": "reports/route.ts",
+      "source_file": "apps/web/src/app/api/pdi/reports/route.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_web_src_app_api_pdi_reports_route_runtime",
+      "label": "runtime",
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "pdi-repo.ts",
+      "file_type": "code",
+      "norm_label": "runtime",
+      "source_file": "apps/web/src/app/api/pdi/reports/route.ts",
+      "source_location": "L5"
+    },
+    {
       "id": "apps_web_src_app_api_pdi_root_route",
       "label": "root/route.ts",
       "_origin": "ast",
@@ -2708,37 +2819,26 @@
       "source_location": "L6"
     },
     {
-      "id": "apps_web_src_app_api_pdi_route",
-      "label": "pdi/route.ts",
+      "id": "apps_web_src_app_api_sync_route",
+      "label": "sync/route.ts",
       "_origin": "ast",
       "community": 10,
       "community_name": "pdi-repo.ts",
       "file_type": "code",
-      "norm_label": "pdi/route.ts",
-      "source_file": "apps/web/src/app/api/pdi/route.ts",
+      "norm_label": "sync/route.ts",
+      "source_file": "apps/web/src/app/api/sync/route.ts",
       "source_location": "L1"
     },
     {
-      "id": "apps_web_src_app_api_pdi_route_runtime",
+      "id": "apps_web_src_app_api_sync_route_runtime",
       "label": "runtime",
       "_origin": "ast",
       "community": 10,
       "community_name": "pdi-repo.ts",
       "file_type": "code",
       "norm_label": "runtime",
-      "source_file": "apps/web/src/app/api/pdi/route.ts",
-      "source_location": "L5"
-    },
-    {
-      "id": "apps_web_src_app_planejamento_page",
-      "label": "planejamento/page.tsx",
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "pdi-repo.ts",
-      "file_type": "code",
-      "norm_label": "planejamento/page.tsx",
-      "source_file": "apps/web/src/app/planejamento/page.tsx",
-      "source_location": "L1"
+      "source_file": "apps/web/src/app/api/sync/route.ts",
+      "source_location": "L6"
     },
     {
       "id": "apps_web_src_auth",
@@ -2958,7 +3058,7 @@
       "node_kind": "heading",
       "norm_label": "\u23ed\ufe0f proximas rodadas",
       "source_file": "docs/PROGRESSO.md",
-      "source_location": "L183"
+      "source_location": "L188"
     },
     {
       "id": "docs_progresso_rodada_1_funda\u00e7\u00e3o",
@@ -4098,10 +4198,21 @@
       "label": "import/page.tsx",
       "_origin": "ast",
       "community": 2,
-      "community_name": "schema.ts",
+      "community_name": "ManualBuilder.tsx",
       "file_type": "code",
       "norm_label": "import/page.tsx",
       "source_file": "apps/web/src/app/import/page.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_web_src_components_importform",
+      "label": "ImportForm.tsx",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "ManualBuilder.tsx",
+      "file_type": "code",
+      "norm_label": "importform.tsx",
+      "source_file": "apps/web/src/components/ImportForm.tsx",
       "source_location": "L1"
     },
     {
@@ -4109,7 +4220,7 @@
       "label": "ImportTabs.tsx",
       "_origin": "ast",
       "community": 2,
-      "community_name": "schema.ts",
+      "community_name": "ManualBuilder.tsx",
       "file_type": "code",
       "norm_label": "importtabs.tsx",
       "source_file": "apps/web/src/components/ImportTabs.tsx",
@@ -4120,7 +4231,7 @@
       "label": "ManualBuilder.tsx",
       "_origin": "ast",
       "community": 2,
-      "community_name": "schema.ts",
+      "community_name": "ManualBuilder.tsx",
       "file_type": "code",
       "norm_label": "manualbuilder.tsx",
       "source_file": "apps/web/src/components/ManualBuilder.tsx",
@@ -4131,7 +4242,7 @@
       "label": "KINDS",
       "_origin": "ast",
       "community": 2,
-      "community_name": "schema.ts",
+      "community_name": "ManualBuilder.tsx",
       "file_type": "code",
       "norm_label": "kinds",
       "source_file": "apps/web/src/components/ManualBuilder.tsx",
@@ -4142,7 +4253,7 @@
       "label": "STATUSES",
       "_origin": "ast",
       "community": 2,
-      "community_name": "schema.ts",
+      "community_name": "ManualBuilder.tsx",
       "file_type": "code",
       "norm_label": "statuses",
       "source_file": "apps/web/src/components/ManualBuilder.tsx",
@@ -4153,7 +4264,7 @@
       "label": "import.ts",
       "_origin": "ast",
       "community": 2,
-      "community_name": "schema.ts",
+      "community_name": "ManualBuilder.tsx",
       "file_type": "code",
       "norm_label": "import.ts",
       "source_file": "packages/core/src/import.ts",
@@ -4164,7 +4275,7 @@
       "label": "HEADER_HINTS",
       "_origin": "ast",
       "community": 2,
-      "community_name": "schema.ts",
+      "community_name": "ManualBuilder.tsx",
       "file_type": "code",
       "norm_label": "header_hints",
       "source_file": "packages/core/src/import.ts",
@@ -4175,7 +4286,7 @@
       "label": "import.test.ts",
       "_origin": "ast",
       "community": 2,
-      "community_name": "schema.ts",
+      "community_name": "ManualBuilder.tsx",
       "file_type": "code",
       "norm_label": "import.test.ts",
       "source_file": "packages/core/src/import.test.ts",
@@ -4186,132 +4297,44 @@
       "label": "root",
       "_origin": "ast",
       "community": 2,
-      "community_name": "schema.ts",
+      "community_name": "ManualBuilder.tsx",
       "file_type": "code",
       "norm_label": "root",
       "source_file": "packages/core/src/import.test.ts",
       "source_location": "L5"
     },
     {
-      "id": "packages_core_src_labels",
-      "label": "labels.ts",
-      "_origin": "ast",
-      "community": 2,
-      "community_name": "schema.ts",
-      "file_type": "code",
-      "norm_label": "labels.ts",
-      "source_file": "packages/core/src/labels.ts",
-      "source_location": "L1"
-    },
-    {
       "id": "packages_core_src_labels_action_kind_label",
       "label": "ACTION_KIND_LABEL",
       "_origin": "ast",
       "community": 2,
-      "community_name": "schema.ts",
+      "community_name": "ManualBuilder.tsx",
       "file_type": "code",
       "norm_label": "action_kind_label",
       "source_file": "packages/core/src/labels.ts",
       "source_location": "L22"
     },
     {
-      "id": "packages_core_src_labels_action_status_label",
-      "label": "ACTION_STATUS_LABEL",
-      "_origin": "ast",
-      "community": 2,
-      "community_name": "schema.ts",
-      "file_type": "code",
-      "norm_label": "action_status_label",
-      "source_file": "packages/core/src/labels.ts",
-      "source_location": "L4"
-    },
-    {
-      "id": "packages_core_src_labels_area_kind_label",
-      "label": "AREA_KIND_LABEL",
-      "_origin": "ast",
-      "community": 2,
-      "community_name": "schema.ts",
-      "file_type": "code",
-      "norm_label": "area_kind_label",
-      "source_file": "packages/core/src/labels.ts",
-      "source_location": "L17"
-    },
-    {
-      "id": "packages_core_src_labels_area_status_label",
-      "label": "AREA_STATUS_LABEL",
-      "_origin": "ast",
-      "community": 2,
-      "community_name": "schema.ts",
-      "file_type": "code",
-      "norm_label": "area_status_label",
-      "source_file": "packages/core/src/labels.ts",
-      "source_location": "L11"
-    },
-    {
-      "id": "packages_core_src_schema",
-      "label": "schema.ts",
-      "_origin": "ast",
-      "community": 2,
-      "community_name": "schema.ts",
-      "file_type": "code",
-      "norm_label": "schema.ts",
-      "source_file": "packages/core/src/schema.ts",
-      "source_location": "L1"
-    },
-    {
-      "id": "packages_core_src_schema_incomingactionschema",
-      "label": "incomingActionSchema",
-      "_origin": "ast",
-      "community": 2,
-      "community_name": "schema.ts",
-      "file_type": "code",
-      "norm_label": "incomingactionschema",
-      "source_file": "packages/core/src/schema.ts",
-      "source_location": "L19"
-    },
-    {
-      "id": "packages_core_src_schema_incomingareaschema",
-      "label": "incomingAreaSchema",
-      "_origin": "ast",
-      "community": 2,
-      "community_name": "schema.ts",
-      "file_type": "code",
-      "norm_label": "incomingareaschema",
-      "source_file": "packages/core/src/schema.ts",
-      "source_location": "L36"
-    },
-    {
-      "id": "packages_core_src_schema_isodate",
-      "label": "isoDate",
-      "_origin": "ast",
-      "community": 2,
-      "community_name": "schema.ts",
-      "file_type": "code",
-      "norm_label": "isodate",
-      "source_file": "packages/core/src/schema.ts",
-      "source_location": "L5"
-    },
-    {
-      "id": "packages_core_src_schema_statusinput",
-      "label": "statusInput",
-      "_origin": "ast",
-      "community": 2,
-      "community_name": "schema.ts",
-      "file_type": "code",
-      "norm_label": "statusinput",
-      "source_file": "packages/core/src/schema.ts",
-      "source_location": "L10"
-    },
-    {
       "id": "docref_rfc_4180",
       "label": "RFC-4180",
       "_origin": "ast",
       "community": 2,
-      "community_name": "schema.ts",
+      "community_name": "ManualBuilder.tsx",
       "file_type": "concept",
       "norm_label": "rfc-4180",
       "source_file": "packages/core/src/import.ts",
       "source_location": "L36"
+    },
+    {
+      "id": "ref_react",
+      "label": "react",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "ManualBuilder.tsx",
+      "file_type": "concept",
+      "norm_label": "react",
+      "source_file": "apps/web/package.json",
+      "source_location": "L19"
     },
     {
       "id": "next",
@@ -5074,70 +5097,26 @@
       "source_location": "L21"
     },
     {
-      "id": "apps_web_src_app_api_dev_seed_route",
-      "label": "seed/route.ts",
+      "id": "apps_web_src_components_geminibutton",
+      "label": "GeminiButton.tsx",
       "_origin": "ast",
       "community": 6,
       "community_name": "index.ts",
       "file_type": "code",
-      "norm_label": "seed/route.ts",
-      "source_file": "apps/web/src/app/api/dev/seed/route.ts",
+      "norm_label": "geminibutton.tsx",
+      "source_file": "apps/web/src/components/GeminiButton.tsx",
       "source_location": "L1"
     },
     {
-      "id": "apps_web_src_app_api_dev_seed_route_runtime",
-      "label": "runtime",
+      "id": "apps_web_src_components_geminibutton_kinds",
+      "label": "KINDS",
       "_origin": "ast",
       "community": 6,
       "community_name": "index.ts",
       "file_type": "code",
-      "norm_label": "runtime",
-      "source_file": "apps/web/src/app/api/dev/seed/route.ts",
-      "source_location": "L6"
-    },
-    {
-      "id": "apps_web_src_app_api_import_route",
-      "label": "import/route.ts",
-      "_origin": "ast",
-      "community": 6,
-      "community_name": "index.ts",
-      "file_type": "code",
-      "norm_label": "import/route.ts",
-      "source_file": "apps/web/src/app/api/import/route.ts",
-      "source_location": "L1"
-    },
-    {
-      "id": "apps_web_src_app_api_import_route_runtime",
-      "label": "runtime",
-      "_origin": "ast",
-      "community": 6,
-      "community_name": "index.ts",
-      "file_type": "code",
-      "norm_label": "runtime",
-      "source_file": "apps/web/src/app/api/import/route.ts",
-      "source_location": "L6"
-    },
-    {
-      "id": "apps_web_src_app_api_sync_route",
-      "label": "sync/route.ts",
-      "_origin": "ast",
-      "community": 6,
-      "community_name": "index.ts",
-      "file_type": "code",
-      "norm_label": "sync/route.ts",
-      "source_file": "apps/web/src/app/api/sync/route.ts",
-      "source_location": "L1"
-    },
-    {
-      "id": "apps_web_src_app_api_sync_route_runtime",
-      "label": "runtime",
-      "_origin": "ast",
-      "community": 6,
-      "community_name": "index.ts",
-      "file_type": "code",
-      "norm_label": "runtime",
-      "source_file": "apps/web/src/app/api/sync/route.ts",
-      "source_location": "L6"
+      "norm_label": "kinds",
+      "source_file": "apps/web/src/components/GeminiButton.tsx",
+      "source_location": "L12"
     },
     {
       "id": "apps_web_src_lib_pdi_to_graph_test",
@@ -5195,6 +5174,39 @@
       "source_location": "L8"
     },
     {
+      "id": "packages_core_src_groups",
+      "label": "groups.ts",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "groups.ts",
+      "source_file": "packages/core/src/groups.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "packages_core_src_groups_note_colors",
+      "label": "NOTE_COLORS",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "note_colors",
+      "source_file": "packages/core/src/groups.ts",
+      "source_location": "L16"
+    },
+    {
+      "id": "packages_core_src_groups_seed_groups",
+      "label": "SEED_GROUPS",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "seed_groups",
+      "source_file": "packages/core/src/groups.ts",
+      "source_location": "L30"
+    },
+    {
       "id": "packages_core_src_ids",
       "label": "ids.ts",
       "_origin": "ast",
@@ -5228,6 +5240,50 @@
       "source_location": "L1"
     },
     {
+      "id": "packages_core_src_insight",
+      "label": "insight.ts",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "insight.ts",
+      "source_file": "packages/core/src/insight.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "packages_core_src_insight_asks",
+      "label": "ASKS",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "asks",
+      "source_file": "packages/core/src/insight.ts",
+      "source_location": "L29"
+    },
+    {
+      "id": "packages_core_src_insight_insight_kind_hint",
+      "label": "INSIGHT_KIND_HINT",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "insight_kind_hint",
+      "source_file": "packages/core/src/insight.ts",
+      "source_location": "L21"
+    },
+    {
+      "id": "packages_core_src_insight_insight_kind_label",
+      "label": "INSIGHT_KIND_LABEL",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "insight_kind_label",
+      "source_file": "packages/core/src/insight.ts",
+      "source_location": "L13"
+    },
+    {
       "id": "packages_core_src_insight_test",
       "label": "insight.test.ts",
       "_origin": "ast",
@@ -5250,6 +5306,215 @@
       "source_location": "L7"
     },
     {
+      "id": "packages_core_src_labels",
+      "label": "labels.ts",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "labels.ts",
+      "source_file": "packages/core/src/labels.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "packages_core_src_labels_action_status_label",
+      "label": "ACTION_STATUS_LABEL",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "action_status_label",
+      "source_file": "packages/core/src/labels.ts",
+      "source_location": "L4"
+    },
+    {
+      "id": "packages_core_src_labels_area_kind_label",
+      "label": "AREA_KIND_LABEL",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "area_kind_label",
+      "source_file": "packages/core/src/labels.ts",
+      "source_location": "L17"
+    },
+    {
+      "id": "packages_core_src_labels_area_status_label",
+      "label": "AREA_STATUS_LABEL",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "area_status_label",
+      "source_file": "packages/core/src/labels.ts",
+      "source_location": "L11"
+    },
+    {
+      "id": "packages_core_src_merge",
+      "label": "merge.ts",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "merge.ts",
+      "source_file": "packages/core/src/merge.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "packages_core_src_merge_test",
+      "label": "merge.test.ts",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "merge.test.ts",
+      "source_file": "packages/core/src/merge.test.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "packages_core_src_merge_test_input",
+      "label": "input",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "input",
+      "source_file": "packages/core/src/merge.test.ts",
+      "source_location": "L7"
+    },
+    {
+      "id": "packages_core_src_merge_test_opts",
+      "label": "opts",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "opts",
+      "source_file": "packages/core/src/merge.test.ts",
+      "source_location": "L26"
+    },
+    {
+      "id": "packages_core_src_merge_test_payload",
+      "label": "payload",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "payload",
+      "source_file": "packages/core/src/merge.test.ts",
+      "source_location": "L25"
+    },
+    {
+      "id": "packages_core_src_progress",
+      "label": "progress.ts",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "progress.ts",
+      "source_file": "packages/core/src/progress.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "packages_core_src_reports",
+      "label": "reports.ts",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "reports.ts",
+      "source_file": "packages/core/src/reports.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "packages_core_src_reports_max_reports",
+      "label": "MAX_REPORTS",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "max_reports",
+      "source_file": "packages/core/src/reports.ts",
+      "source_location": "L5"
+    },
+    {
+      "id": "packages_core_src_reports_test",
+      "label": "reports.test.ts",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "reports.test.ts",
+      "source_file": "packages/core/src/reports.test.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "packages_core_src_reports_test_pdi",
+      "label": "pdi",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "pdi",
+      "source_file": "packages/core/src/reports.test.ts",
+      "source_location": "L8"
+    },
+    {
+      "id": "packages_core_src_schema",
+      "label": "schema.ts",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "schema.ts",
+      "source_file": "packages/core/src/schema.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "packages_core_src_schema_incomingactionschema",
+      "label": "incomingActionSchema",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "incomingactionschema",
+      "source_file": "packages/core/src/schema.ts",
+      "source_location": "L19"
+    },
+    {
+      "id": "packages_core_src_schema_incomingareaschema",
+      "label": "incomingAreaSchema",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "incomingareaschema",
+      "source_file": "packages/core/src/schema.ts",
+      "source_location": "L36"
+    },
+    {
+      "id": "packages_core_src_schema_isodate",
+      "label": "isoDate",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "isodate",
+      "source_file": "packages/core/src/schema.ts",
+      "source_location": "L5"
+    },
+    {
+      "id": "packages_core_src_schema_statusinput",
+      "label": "statusInput",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "statusinput",
+      "source_file": "packages/core/src/schema.ts",
+      "source_location": "L10"
+    },
+    {
       "id": "packages_core_src_schema_syncpayloadschema",
       "label": "syncPayloadSchema",
       "_origin": "ast",
@@ -5259,6 +5524,17 @@
       "norm_label": "syncpayloadschema",
       "source_file": "packages/core/src/schema.ts",
       "source_location": "L47"
+    },
+    {
+      "id": "packages_core_src_types",
+      "label": "types.ts",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "types.ts",
+      "source_file": "packages/core/src/types.ts",
+      "source_location": "L1"
     },
     {
       "id": "packages_core_tsconfig",
@@ -5415,14 +5691,47 @@
       "source_location": "L15"
     },
     {
+      "id": "apps_web_src_app_api_pdi_route",
+      "label": "pdi/route.ts",
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "app/page.tsx",
+      "file_type": "code",
+      "norm_label": "pdi/route.ts",
+      "source_file": "apps/web/src/app/api/pdi/route.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_web_src_app_api_pdi_route_runtime",
+      "label": "runtime",
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "app/page.tsx",
+      "file_type": "code",
+      "norm_label": "runtime",
+      "source_file": "apps/web/src/app/api/pdi/route.ts",
+      "source_location": "L5"
+    },
+    {
       "id": "apps_web_src_app_page",
       "label": "app/page.tsx",
       "_origin": "ast",
       "community": 8,
-      "community_name": "insight.ts",
+      "community_name": "app/page.tsx",
       "file_type": "code",
       "norm_label": "app/page.tsx",
       "source_file": "apps/web/src/app/page.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "apps_web_src_app_planejamento_page",
+      "label": "planejamento/page.tsx",
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "app/page.tsx",
+      "file_type": "code",
+      "norm_label": "planejamento/page.tsx",
+      "source_file": "apps/web/src/app/planejamento/page.tsx",
       "source_location": "L1"
     },
     {
@@ -5430,131 +5739,21 @@
       "label": "EmptyState.tsx",
       "_origin": "ast",
       "community": 8,
-      "community_name": "insight.ts",
+      "community_name": "app/page.tsx",
       "file_type": "code",
       "norm_label": "emptystate.tsx",
       "source_file": "apps/web/src/components/EmptyState.tsx",
       "source_location": "L1"
     },
     {
-      "id": "apps_web_src_components_geminibutton",
-      "label": "GeminiButton.tsx",
+      "id": "apps_web_src_components_reportbutton",
+      "label": "ReportButton.tsx",
       "_origin": "ast",
       "community": 8,
-      "community_name": "insight.ts",
+      "community_name": "app/page.tsx",
       "file_type": "code",
-      "norm_label": "geminibutton.tsx",
-      "source_file": "apps/web/src/components/GeminiButton.tsx",
-      "source_location": "L1"
-    },
-    {
-      "id": "apps_web_src_components_geminibutton_kinds",
-      "label": "KINDS",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "insight.ts",
-      "file_type": "code",
-      "norm_label": "kinds",
-      "source_file": "apps/web/src/components/GeminiButton.tsx",
-      "source_location": "L12"
-    },
-    {
-      "id": "packages_core_src_insight",
-      "label": "insight.ts",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "insight.ts",
-      "file_type": "code",
-      "norm_label": "insight.ts",
-      "source_file": "packages/core/src/insight.ts",
-      "source_location": "L1"
-    },
-    {
-      "id": "packages_core_src_insight_asks",
-      "label": "ASKS",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "insight.ts",
-      "file_type": "code",
-      "norm_label": "asks",
-      "source_file": "packages/core/src/insight.ts",
-      "source_location": "L29"
-    },
-    {
-      "id": "packages_core_src_insight_insight_kind_hint",
-      "label": "INSIGHT_KIND_HINT",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "insight.ts",
-      "file_type": "code",
-      "norm_label": "insight_kind_hint",
-      "source_file": "packages/core/src/insight.ts",
-      "source_location": "L21"
-    },
-    {
-      "id": "packages_core_src_insight_insight_kind_label",
-      "label": "INSIGHT_KIND_LABEL",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "insight.ts",
-      "file_type": "code",
-      "norm_label": "insight_kind_label",
-      "source_file": "packages/core/src/insight.ts",
-      "source_location": "L13"
-    },
-    {
-      "id": "packages_core_src_merge_test",
-      "label": "merge.test.ts",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "insight.ts",
-      "file_type": "code",
-      "norm_label": "merge.test.ts",
-      "source_file": "packages/core/src/merge.test.ts",
-      "source_location": "L1"
-    },
-    {
-      "id": "packages_core_src_merge_test_input",
-      "label": "input",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "insight.ts",
-      "file_type": "code",
-      "norm_label": "input",
-      "source_file": "packages/core/src/merge.test.ts",
-      "source_location": "L7"
-    },
-    {
-      "id": "packages_core_src_merge_test_opts",
-      "label": "opts",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "insight.ts",
-      "file_type": "code",
-      "norm_label": "opts",
-      "source_file": "packages/core/src/merge.test.ts",
-      "source_location": "L26"
-    },
-    {
-      "id": "packages_core_src_merge_test_payload",
-      "label": "payload",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "insight.ts",
-      "file_type": "code",
-      "norm_label": "payload",
-      "source_file": "packages/core/src/merge.test.ts",
-      "source_location": "L25"
-    },
-    {
-      "id": "packages_core_src_progress",
-      "label": "progress.ts",
-      "_origin": "ast",
-      "community": 8,
-      "community_name": "insight.ts",
-      "file_type": "code",
-      "norm_label": "progress.ts",
-      "source_file": "packages/core/src/progress.ts",
+      "norm_label": "reportbutton.tsx",
+      "source_file": "apps/web/src/components/ReportButton.tsx",
       "source_location": "L1"
     },
     {
@@ -5823,6 +6022,18 @@
       "weight": 1.0
     },
     {
+      "source": "apps_web_src_app_api_pdi_reports_route_post",
+      "target": "apps_web_src_lib_pdi_repo_addreportsnapshot",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "apps/web/src/app/api/pdi/reports/route.ts",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
       "source": "apps_web_src_app_api_pdi_root_route_patch",
       "target": "apps_web_src_lib_pdi_repo_updateroot",
       "relation": "calls",
@@ -5879,7 +6090,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/app/page.tsx",
-      "source_location": "L38",
+      "source_location": "L39",
       "weight": 1.0
     },
     {
@@ -5891,7 +6102,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/app/page.tsx",
-      "source_location": "L39",
+      "source_location": "L40",
       "weight": 1.0
     },
     {
@@ -5903,7 +6114,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/app/page.tsx",
-      "source_location": "L62",
+      "source_location": "L63",
       "weight": 1.0
     },
     {
@@ -6411,6 +6622,42 @@
       "weight": 1.0
     },
     {
+      "source": "apps_web_src_components_reportbutton_reportbutton",
+      "target": "apps_web_src_components_reportbutton_formatdatetime",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "apps/web/src/components/ReportButton.tsx",
+      "source_location": "L130",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_src_components_reportbutton_reportbutton",
+      "target": "packages_core_src_progress_formatpercent",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "apps/web/src/components/ReportButton.tsx",
+      "source_location": "L136",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_src_components_reportbutton_reportbutton",
+      "target": "packages_core_src_reports_snapshotdelta",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "apps/web/src/components/ReportButton.tsx",
+      "source_location": "L61",
+      "weight": 1.0
+    },
+    {
       "source": "apps_web_src_lib_helper_lines_gethelperlines",
       "target": "apps_web_src_lib_helper_lines_sizeof",
       "relation": "calls",
@@ -6455,7 +6702,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L56",
+      "source_location": "L59",
       "weight": 1.0
     },
     {
@@ -6467,7 +6714,43 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L60",
+      "source_location": "L63",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_src_lib_pdi_repo_addreportsnapshot",
+      "target": "apps_web_src_lib_pdi_repo_collection",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "apps/web/src/lib/pdi-repo.ts",
+      "source_location": "L176",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_src_lib_pdi_repo_addreportsnapshot",
+      "target": "packages_core_src_reports_buildsnapshot",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "apps/web/src/lib/pdi-repo.ts",
+      "source_location": "L180",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_src_lib_pdi_repo_addreportsnapshot",
+      "target": "packages_core_src_reports_appendsnapshot",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "apps/web/src/lib/pdi-repo.ts",
+      "source_location": "L181",
       "weight": 1.0
     },
     {
@@ -6479,7 +6762,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L35",
+      "source_location": "L38",
       "weight": 1.0
     },
     {
@@ -6491,7 +6774,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L37",
+      "source_location": "L40",
       "weight": 1.0
     },
     {
@@ -6503,7 +6786,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L17",
+      "source_location": "L20",
       "weight": 1.0
     },
     {
@@ -6515,7 +6798,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L173",
+      "source_location": "L191",
       "weight": 1.0
     },
     {
@@ -6527,7 +6810,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L22",
+      "source_location": "L25",
       "weight": 1.0
     },
     {
@@ -6539,7 +6822,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L80",
+      "source_location": "L83",
       "weight": 1.0
     },
     {
@@ -6551,7 +6834,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L95",
+      "source_location": "L98",
       "weight": 1.0
     },
     {
@@ -6563,7 +6846,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L89",
+      "source_location": "L92",
       "weight": 1.0
     },
     {
@@ -6575,7 +6858,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L101",
+      "source_location": "L104",
       "weight": 1.0
     },
     {
@@ -6587,7 +6870,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L111",
+      "source_location": "L114",
       "weight": 1.0
     },
     {
@@ -6599,7 +6882,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L142",
+      "source_location": "L145",
       "weight": 1.0
     },
     {
@@ -6611,7 +6894,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L156",
+      "source_location": "L159",
       "weight": 1.0
     },
     {
@@ -7263,6 +7546,30 @@
       "weight": 1.0
     },
     {
+      "source": "packages_core_src_reports_buildsnapshot",
+      "target": "packages_core_src_progress_overallprogress",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "packages/core/src/reports.ts",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_core_src_reports_buildsnapshot",
+      "target": "packages_core_src_progress_areaprogress",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "packages/core/src/reports.ts",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
       "source": "apps_web_src_app_api_auth_nextauth_route",
       "target": "apps_web_src_auth",
       "relation": "re_exports",
@@ -7300,7 +7607,7 @@
     },
     {
       "source": "packages_core_src_index",
-      "target": "packages_core_src_fixtures_seed_hugo",
+      "target": "packages_core_src_reports",
       "relation": "re_exports",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -7308,6 +7615,18 @@
       "context": "export",
       "source_file": "packages/core/src/index.ts",
       "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_core_src_index",
+      "target": "packages_core_src_fixtures_seed_hugo",
+      "relation": "re_exports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "export",
+      "source_file": "packages/core/src/index.ts",
+      "source_location": "L12",
       "weight": 1.0
     },
     {
@@ -7911,6 +8230,18 @@
       "weight": 1.0
     },
     {
+      "source": "apps_web_src_app_api_pdi_reports_route",
+      "target": "apps_web_src_lib_pdi_repo_addreportsnapshot",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "apps/web/src/app/api/pdi/reports/route.ts",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
       "source": "apps_web_src_app_api_pdi_root_route",
       "target": "apps_web_src_lib_pdi_repo_updateroot",
       "relation": "imports",
@@ -8064,6 +8395,18 @@
       "context": "import",
       "source_file": "apps/web/src/app/page.tsx",
       "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_src_app_page",
+      "target": "apps_web_src_components_reportbutton_reportbutton",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "apps/web/src/app/page.tsx",
+      "source_location": "L8",
       "weight": 1.0
     },
     {
@@ -9075,6 +9418,54 @@
       "weight": 1.0
     },
     {
+      "source": "apps_web_src_components_reportbutton",
+      "target": "packages_core_src_progress_formatpercent",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "apps/web/src/components/ReportButton.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_src_components_reportbutton",
+      "target": "packages_core_src_reports_snapshotdelta",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "apps/web/src/components/ReportButton.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_src_components_reportbutton",
+      "target": "packages_core_src_types_pdidoc",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "apps/web/src/components/ReportButton.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_src_components_reportbutton",
+      "target": "packages_core_src_types_progresssnapshot",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "apps/web/src/components/ReportButton.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
       "source": "apps_web_src_lib_pdi_repo",
       "target": "packages_core_src_merge_deriveareastatus",
       "relation": "imports",
@@ -9089,6 +9480,30 @@
     {
       "source": "apps_web_src_lib_pdi_repo",
       "target": "packages_core_src_merge_mergepdi",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "apps/web/src/lib/pdi-repo.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_src_lib_pdi_repo",
+      "target": "packages_core_src_reports_appendsnapshot",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "apps/web/src/lib/pdi-repo.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_src_lib_pdi_repo",
+      "target": "packages_core_src_reports_buildsnapshot",
       "relation": "imports",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -9160,6 +9575,18 @@
     },
     {
       "source": "apps_web_src_lib_pdi_repo",
+      "target": "packages_core_src_types_progresssnapshot",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "apps/web/src/lib/pdi-repo.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_src_lib_pdi_repo",
       "target": "packages_core_src_types_source",
       "relation": "imports",
       "_origin": "ast",
@@ -9191,7 +9618,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L12",
+      "source_location": "L15",
       "weight": 1.0
     },
     {
@@ -10059,6 +10486,150 @@
       "weight": 1.0
     },
     {
+      "source": "packages_core_src_reports",
+      "target": "packages_core_src_progress_areaprogress",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "packages/core/src/reports.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_core_src_reports",
+      "target": "packages_core_src_progress_overallprogress",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "packages/core/src/reports.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_core_src_reports",
+      "target": "packages_core_src_types_pdidoc",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "packages/core/src/reports.ts",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_core_src_reports",
+      "target": "packages_core_src_types_progresssnapshot",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "packages/core/src/reports.ts",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_core_src_reports_test",
+      "target": "packages_core_src_reports_appendsnapshot",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "packages/core/src/reports.test.ts",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_core_src_reports_test",
+      "target": "packages_core_src_reports_buildsnapshot",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "packages/core/src/reports.test.ts",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_core_src_reports_test",
+      "target": "packages_core_src_reports_max_reports",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "packages/core/src/reports.test.ts",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_core_src_reports_test",
+      "target": "packages_core_src_reports_snapshotdelta",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "packages/core/src/reports.test.ts",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_core_src_reports_test",
+      "target": "packages_core_src_merge_mergepdi",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "packages/core/src/reports.test.ts",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_core_src_reports_test",
+      "target": "packages_core_src_schema_syncpayloadschema",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "packages/core/src/reports.test.ts",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_core_src_reports_test",
+      "target": "packages_core_src_fixtures_seed_hugo_seedhugo",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "packages/core/src/reports.test.ts",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_core_src_reports_test",
+      "target": "packages_core_src_progress_overallprogress",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "packages/core/src/reports.test.ts",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
       "source": "apps_web_src_app_api_dev_seed_route",
       "target": "packages_core_src_index",
       "relation": "imports_from",
@@ -10272,6 +10843,30 @@
       "context": "import",
       "source_file": "apps/web/src/app/api/pdi/link/route.ts",
       "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_src_app_api_pdi_reports_route",
+      "target": "apps_web_src_auth",
+      "relation": "imports_from",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "apps/web/src/app/api/pdi/reports/route.ts",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_src_app_api_pdi_reports_route",
+      "target": "apps_web_src_lib_pdi_repo",
+      "relation": "imports_from",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "apps/web/src/app/api/pdi/reports/route.ts",
+      "source_location": "L3",
       "weight": 1.0
     },
     {
@@ -10490,6 +11085,18 @@
       "context": "import",
       "source_file": "apps/web/src/app/page.tsx",
       "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_src_app_page",
+      "target": "apps_web_src_components_reportbutton",
+      "relation": "imports_from",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "apps/web/src/app/page.tsx",
+      "source_location": "L8",
       "weight": 1.0
     },
     {
@@ -11072,6 +11679,30 @@
       "weight": 1.0
     },
     {
+      "source": "apps_web_src_components_reportbutton",
+      "target": "ref_react",
+      "relation": "imports_from",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "apps/web/src/components/ReportButton.tsx",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_src_components_reportbutton",
+      "target": "packages_core_src_index",
+      "relation": "imports_from",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "apps/web/src/components/ReportButton.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
       "source": "apps_web_src_lib_helper_lines",
       "target": "ref_xyflow_react",
       "relation": "imports_from",
@@ -11117,7 +11748,7 @@
       "confidence_score": 1.0,
       "context": "import",
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L12",
+      "source_location": "L15",
       "weight": 1.0
     },
     {
@@ -11555,6 +12186,91 @@
       "weight": 1.0
     },
     {
+      "source": "packages_core_src_reports",
+      "target": "packages_core_src_progress",
+      "relation": "imports_from",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "packages/core/src/reports.ts",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_core_src_reports",
+      "target": "packages_core_src_types",
+      "relation": "imports_from",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "packages/core/src/reports.ts",
+      "source_location": "L2",
+      "type_only": true,
+      "weight": 1.0
+    },
+    {
+      "source": "packages_core_src_reports_test",
+      "target": "packages_core_src_reports",
+      "relation": "imports_from",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "packages/core/src/reports.test.ts",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_core_src_reports_test",
+      "target": "packages_core_src_merge",
+      "relation": "imports_from",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "packages/core/src/reports.test.ts",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_core_src_reports_test",
+      "target": "packages_core_src_schema",
+      "relation": "imports_from",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "packages/core/src/reports.test.ts",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_core_src_reports_test",
+      "target": "packages_core_src_fixtures_seed_hugo",
+      "relation": "imports_from",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "packages/core/src/reports.test.ts",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_core_src_reports_test",
+      "target": "packages_core_src_progress",
+      "relation": "imports_from",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "packages/core/src/reports.test.ts",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
       "source": "packages_core_src_schema",
       "target": "packages_core_src_labels",
       "relation": "imports_from",
@@ -11575,7 +12291,7 @@
       "confidence_score": 1.0,
       "context": "re-export",
       "source_file": "packages/core/src/index.ts",
-      "source_location": "L11",
+      "source_location": "L12",
       "weight": 1.0
     },
     {
@@ -12195,6 +12911,28 @@
       "weight": 1.0
     },
     {
+      "source": "apps_web_src_app_api_pdi_reports_route",
+      "target": "apps_web_src_app_api_pdi_reports_route_runtime",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "apps/web/src/app/api/pdi/reports/route.ts",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_src_app_api_pdi_reports_route",
+      "target": "apps_web_src_app_api_pdi_reports_route_post",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "apps/web/src/app/api/pdi/reports/route.ts",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
       "source": "apps_web_src_app_api_pdi_root_route",
       "target": "apps_web_src_app_api_pdi_root_route_patch",
       "relation": "contains",
@@ -12312,7 +13050,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/web/src/app/page.tsx",
-      "source_location": "L9",
+      "source_location": "L10",
       "weight": 1.0
     },
     {
@@ -12855,6 +13593,39 @@
       "weight": 1.0
     },
     {
+      "source": "apps_web_src_components_reportbutton",
+      "target": "apps_web_src_components_reportbutton_deltabadge",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "apps/web/src/components/ReportButton.tsx",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_src_components_reportbutton",
+      "target": "apps_web_src_components_reportbutton_reportbutton",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "apps/web/src/components/ReportButton.tsx",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_src_components_reportbutton",
+      "target": "apps_web_src_components_reportbutton_formatdatetime",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "apps/web/src/components/ReportButton.tsx",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
       "source": "apps_web_src_lib_format",
       "target": "apps_web_src_lib_format_formatdate",
       "relation": "contains",
@@ -12939,7 +13710,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L100",
+      "source_location": "L103",
       "weight": 1.0
     },
     {
@@ -12950,7 +13721,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L106",
+      "source_location": "L109",
       "weight": 1.0
     },
     {
@@ -12961,7 +13732,18 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L152",
+      "source_location": "L155",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_src_lib_pdi_repo",
+      "target": "apps_web_src_lib_pdi_repo_addreportsnapshot",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "apps/web/src/lib/pdi-repo.ts",
+      "source_location": "L175",
       "weight": 1.0
     },
     {
@@ -12972,7 +13754,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L16",
+      "source_location": "L19",
       "weight": 1.0
     },
     {
@@ -12983,7 +13765,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L172",
+      "source_location": "L190",
       "weight": 1.0
     },
     {
@@ -12994,7 +13776,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L21",
+      "source_location": "L24",
       "weight": 1.0
     },
     {
@@ -13005,7 +13787,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L30",
+      "source_location": "L33",
       "weight": 1.0
     },
     {
@@ -13016,7 +13798,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L42",
+      "source_location": "L45",
       "weight": 1.0
     },
     {
@@ -13027,7 +13809,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L52",
+      "source_location": "L55",
       "weight": 1.0
     },
     {
@@ -13038,7 +13820,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L79",
+      "source_location": "L82",
       "weight": 1.0
     },
     {
@@ -13049,7 +13831,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L88",
+      "source_location": "L91",
       "weight": 1.0
     },
     {
@@ -13060,7 +13842,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L94",
+      "source_location": "L97",
       "weight": 1.0
     },
     {
@@ -14105,7 +14887,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/PROGRESSO.md",
-      "source_location": "L183",
+      "source_location": "L188",
       "weight": 1.0
     },
     {
@@ -15396,6 +16178,61 @@
       "weight": 1.0
     },
     {
+      "source": "packages_core_src_reports",
+      "target": "packages_core_src_reports_appendsnapshot",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/core/src/reports.ts",
+      "source_location": "L18",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_core_src_reports",
+      "target": "packages_core_src_reports_snapshotdelta",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/core/src/reports.ts",
+      "source_location": "L30",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_core_src_reports",
+      "target": "packages_core_src_reports_max_reports",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/core/src/reports.ts",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_core_src_reports",
+      "target": "packages_core_src_reports_buildsnapshot",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/core/src/reports.ts",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_core_src_reports_test",
+      "target": "packages_core_src_reports_test_pdi",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/core/src/reports.test.ts",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
       "source": "packages_core_src_schema",
       "target": "packages_core_src_schema_statusinput",
       "relation": "contains",
@@ -15485,7 +16322,7 @@
     },
     {
       "source": "packages_core_src_types",
-      "target": "packages_core_src_types_pdidoc",
+      "target": "packages_core_src_types_areasnapshot",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -15496,13 +16333,24 @@
     },
     {
       "source": "packages_core_src_types",
-      "target": "packages_core_src_types_pdicanvasstate",
+      "target": "packages_core_src_types_progresssnapshot",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "packages/core/src/types.ts",
-      "source_location": "L141",
+      "source_location": "L132",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_core_src_types",
+      "target": "packages_core_src_types_pdidoc",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/core/src/types.ts",
+      "source_location": "L142",
       "weight": 1.0
     },
     {
@@ -15514,6 +16362,17 @@
       "confidence_score": 1.0,
       "source_file": "packages/core/src/types.ts",
       "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_core_src_types",
+      "target": "packages_core_src_types_pdicanvasstate",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/core/src/types.ts",
+      "source_location": "L164",
       "weight": 1.0
     },
     {
@@ -15861,7 +16720,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/PROGRESSO.md",
-      "source_location": "L190",
+      "source_location": "L195",
       "weight": 1.0
     },
     {
@@ -16207,5 +17066,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "9ceaee486dbf0f1ed86b223fe1bc91235c7f306d"
+  "built_at_commit": "740f73e972071bc5dc0f879b99443e82d1f069cd"
 }

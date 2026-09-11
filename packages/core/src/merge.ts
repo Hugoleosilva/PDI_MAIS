@@ -141,5 +141,6 @@ export function mergePdi(
     groups,
     ...(canvas ? { canvas } : {}),
     ...(existing?.looseCapacity ? { looseCapacity: existing.looseCapacity } : {}),
+    ...(existing?.reports?.length ? { reports: existing.reports } : {}),
   };
 }

@@ -1,10 +1,13 @@
 import {
+  appendSnapshot,
+  buildSnapshot,
   deriveAreaStatus,
   mergePdi,
   type PdiCanvasState,
   type PdiDoc,
   type PdiGroup,
   type PdiLink,
+  type ProgressSnapshot,
   type Source,
   type SyncPayload,
   type WeekCapacity,
@@ -163,6 +166,21 @@ export async function updateRoot(
   const update: Record<string, unknown> = { $set };
   if (Object.keys($unset).length > 0) update.$unset = $unset;
   await col.updateOne({ userId }, update);
+}
+
+/**
+ * Gera um relatório (fotografia do andamento atual) e anexa ao histórico.
+ * Devolve o snapshot criado — o cliente só precisa acrescentar na lista local.
+ */
+export async function addReportSnapshot(userId: string): Promise<ProgressSnapshot | null> {
+  const col = await collection();
+  const doc = await col.findOne({ userId }, { projection: { _id: 0 } });
+  if (!doc) return null;
+
+  const snapshot = buildSnapshot(doc);
+  const reports = appendSnapshot(doc.reports, snapshot);
+  await col.updateOne({ userId }, { $set: { reports, updatedAt: new Date() } });
+  return snapshot;
 }
 
 /**

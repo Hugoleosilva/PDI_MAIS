@@ -8,4 +8,5 @@ export * from "./groups";
 export * from "./planning";
 export * from "./import";
 export * from "./insight";
+export * from "./reports";
 export { seedHugo } from "./fixtures/seed-hugo";

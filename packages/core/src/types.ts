@@ -117,6 +117,27 @@ export interface PdiGroup {
   capacity?: WeekCapacity;
 }
 
+/** Andamento de uma área num momento — o que fica gravado no relatório. */
+export interface AreaSnapshot {
+  id: string;
+  title: string;
+  /** 0..1 — mesma conta do card da área (areaProgress). */
+  progress: number;
+}
+
+/**
+ * "Fotografia" do andamento do PDI, gerada quando o usuário pede um
+ * relatório. Serve para comparar: evoluiu ou não desde a última vez?
+ */
+export interface ProgressSnapshot {
+  id: string;
+  /** ISO datetime — quando o relatório foi gerado. */
+  generatedAt: string;
+  /** 0..1 — mesma conta do nó raiz (overallProgress). */
+  overall: number;
+  areas: AreaSnapshot[];
+}
+
 /** Um documento por usuário na coleção `pdis`. */
 export interface PdiDoc {
   /** Google `sub` — índice único. */
@@ -136,6 +157,8 @@ export interface PdiDoc {
   canvas?: PdiCanvasState;
   /** Capacidade semanal para o que está fora de qualquer bloco. */
   looseCapacity?: WeekCapacity;
+  /** Histórico de relatórios de andamento (mais recente por último). */
+  reports?: ProgressSnapshot[];
 }
 
 export interface PdiCanvasState {

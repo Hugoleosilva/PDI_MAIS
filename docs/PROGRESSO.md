@@ -179,8 +179,11 @@ Página **`/planejamento`**. Responde a “quando eu termino isso, no meu ritmo?
    `progress` das áreas de dentro (mesma conta do card da área). Calculado
    em `computeFrames` lendo direto do `AreaNode` já montado, sem precisar
    passar `pdi.areas` de novo.
-4. ⬜ Botão "Consultar Relatório" — snapshot do andamento com data, pra
-   comparar evolução.
+4. ✅ Botão "Relatório" — `POST /api/pdi/reports` fotografa o andamento
+   (`ProgressSnapshot`: geral + por área) e anexa a `PdiDoc.reports`
+   (`packages/core/src/reports.ts`, máx. 60, preservado no merge). O painel
+   lista o histórico mais recente primeiro, com a diferença em p.p. desde o
+   relatório anterior e o detalhe por área ao expandir.
 5. ⬜ Nó raiz do PDI expansível/recolhível.
 6. ⬜ Imagens (certificados) anexadas numa área.
 7. ⬜ Salvar o layout do canvas com nome e trocar entre versões salvas.
