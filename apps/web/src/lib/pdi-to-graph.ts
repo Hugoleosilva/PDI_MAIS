@@ -42,8 +42,10 @@ export interface RootNodeData extends Record<string, unknown> {
   progress: number;
   areaCount: number;
   dir: Direction;
+  collapsed?: boolean;
   onEditTitle?: (v: string) => void;
   onEditTrack?: (v: string) => void;
+  onToggleCollapse?: () => void;
 }
 
 export interface AreaNodeData extends Record<string, unknown> {

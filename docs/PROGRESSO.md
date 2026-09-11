@@ -163,7 +163,7 @@ Página **`/planejamento`**. Responde a “quando eu termino isso, no meu ritmo?
 
 ---
 
-## 🚧 Rodada 7 — em andamento
+## ✅ Rodada 7 — cores, IA com opções, relatório, versões do canvas
 
 1. ✅ **Cor customizável nos blocos e nas notas** — o ponto de cor no cabeçalho
    do bloco e o pontinho na nota abrem um seletor (paleta + cor personalizada
@@ -184,7 +184,10 @@ Página **`/planejamento`**. Responde a “quando eu termino isso, no meu ritmo?
    (`packages/core/src/reports.ts`, máx. 60, preservado no merge). O painel
    lista o histórico mais recente primeiro, com a diferença em p.p. desde o
    relatório anterior e o detalhe por área ao expandir.
-5. ⬜ Nó raiz do PDI expansível/recolhível.
+5. ✅ Nó raiz do PDI expansível/recolhível — botão ▾/▸ no card raiz esconde
+   tudo abaixo (áreas, ações, blocos, conexões). Só um filtro na hora de
+   renderizar (`visibleNodes`/`visibleEdges`); nada é apagado, não muda
+   `nodes`/`edges` nem persiste — não toca no drag/seleção/pan do bloco.
 6. ✅ Registro de certificado — `Action.certificateUrl` (link; o arquivo em
    si fica no PDI estático, por decisão do usuário — sem upload/storage
    novo). Campo aparece no formulário manual só quando a ação está

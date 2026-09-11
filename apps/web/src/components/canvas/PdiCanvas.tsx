@@ -94,6 +94,8 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
   const [layoutKind, setLayoutKind] = useState<Layout>("tree-lr");
   const [showGroups, setShowGroups] = useState(true);
   const [selected, setSelected] = useState<PdiNode | null>(null);
+  // Recolher o nó raiz esconde tudo abaixo dele — só visual, não persiste.
+  const [rootCollapsed, setRootCollapsed] = useState(false);
   // Seleção do BLOCO — estado à parte, não mexe na seleção de cards do RF.
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [links, setLinks] = useState<PdiLink[]>(pdi.links ?? []);
@@ -433,8 +435,10 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
             ...n,
             data: {
               ...n.data,
+              collapsed: rootCollapsed,
               onEditTitle: (v: string) => patchRoot({ title: v }),
               onEditTrack: (v: string) => patchRoot({ track: v }),
+              onToggleCollapse: () => setRootCollapsed((v) => !v),
             },
           } as PdiNode;
         }
@@ -460,6 +464,7 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
       }),
     [
       patchRoot,
+      rootCollapsed,
       renameGroup,
       recolorGroup,
       setGroupNote,
@@ -765,11 +770,22 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
     [nodes, selectedGroupId],
   );
 
+  // Recolher o raiz esconde todo o resto — puramente visual (nada é apagado).
+  const visibleNodes = useMemo(
+    () => (rootCollapsed ? rfNodes.filter((n) => n.type === "root") : rfNodes),
+    [rfNodes, rootCollapsed],
+  );
+  const visibleEdges = useMemo(() => (rootCollapsed ? [] : edges), [edges, rootCollapsed]);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => fitView({ padding: 0.2, duration: 250 }));
+    return () => cancelAnimationFrame(id);
+  }, [rootCollapsed, fitView]);
+
   return (
     <div ref={wrapperRef} className="relative h-full w-full">
       <ReactFlow
-        nodes={rfNodes}
-        edges={edges}
+        nodes={visibleNodes}
+        edges={visibleEdges}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         onNodesChange={handleNodesChange}

@@ -196,12 +196,28 @@ export function RootNode({ data }: NodeProps & { data: RootNodeData }) {
         borderLeftWidth: 6,
       }}
     >
-      <span
-        className="w-fit rounded px-1.5 py-0.5 text-[10px] font-semibold"
-        style={{ background: brand.blueSoft, color: brand.blue }}
-      >
-        PDI
-      </span>
+      <div className="flex items-center justify-between gap-2">
+        <span
+          className="w-fit rounded px-1.5 py-0.5 text-[10px] font-semibold"
+          style={{ background: brand.blueSoft, color: brand.blue }}
+        >
+          PDI
+        </span>
+        {data.onToggleCollapse && (
+          <button
+            type="button"
+            title={data.collapsed ? "Expandir o PDI" : "Recolher o PDI"}
+            onClick={(e) => {
+              e.stopPropagation();
+              data.onToggleCollapse?.();
+            }}
+            className="nodrag nopan rounded px-1.5 py-0.5 text-[11px] font-bold hover:bg-black/5"
+            style={{ color: brand.blue }}
+          >
+            {data.collapsed ? `▸ ${data.areaCount}` : "▾"}
+          </button>
+        )}
+      </div>
       <EditableText
         value={data.title}
         placeholder="PDI"
