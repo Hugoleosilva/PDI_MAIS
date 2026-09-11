@@ -521,6 +521,14 @@ export function GroupNode({ data }: NodeProps & { data: GroupNodeData }) {
               {formatPercent(data.progress)}
             </span>
           )}
+          {data.paused && (
+            <span
+              title="Pausado no Planejamento — não conta no resumo geral"
+              className="shrink-0 rounded-full bg-white/25 px-2 py-0.5 text-[11px] font-bold text-white"
+            >
+              ⏸ Pausado
+            </span>
+          )}
           {data.empty && (
             <span className="shrink-0 text-[11px] font-normal text-white/80">
               solte cards aqui

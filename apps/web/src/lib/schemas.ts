@@ -22,4 +22,5 @@ export const groupSchema = z.object({
   note: z.string().max(2000).optional(),
   noteColor: z.string().trim().regex(/^#[0-9a-fA-F]{6}$/).optional(),
   capacity: weekCapacitySchema.optional(),
+  paused: z.boolean().optional(),
 });

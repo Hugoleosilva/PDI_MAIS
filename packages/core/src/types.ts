@@ -119,6 +119,8 @@ export interface PdiGroup {
   noteColor?: string;
   /** Horas semanais que o usuário dedica a este bloco. */
   capacity?: WeekCapacity;
+  /** Pausado = de propósito fora de foco agora; some do resumo geral do Planejamento. */
+  paused?: boolean;
 }
 
 /** Andamento de uma área num momento — o que fica gravado no relatório. */

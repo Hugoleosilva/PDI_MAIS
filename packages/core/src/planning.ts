@@ -150,6 +150,8 @@ export interface BlockPlan {
   projection: Projection;
   status: PlanStatus;
   weeksLate: number;
+  /** De propósito fora de foco agora — não conta no resumo geral. */
+  paused: boolean;
 }
 
 export function planForDoc(
@@ -175,6 +177,7 @@ export function planForDoc(
       projection,
       status: s.status,
       weeksLate: s.weeksLate,
+      paused: g.paused ?? false,
     });
   }
 
@@ -192,6 +195,7 @@ export function planForDoc(
       projection,
       status: s.status,
       weeksLate: s.weeksLate,
+      paused: false, // não há bloco pra guardar a pausa das áreas soltas
     });
   }
 

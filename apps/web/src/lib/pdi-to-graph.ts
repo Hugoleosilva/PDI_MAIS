@@ -96,6 +96,8 @@ export interface GroupNodeData extends Record<string, unknown> {
   progress?: number;
   /** Quantitativo de ações das áreas de dentro, por status. */
   actionStats?: { total: number; todo: number; doing: number; done: number };
+  /** Pausado no Planejamento — só indicador visual aqui, sem ação no canvas. */
+  paused?: boolean;
   note?: string;
   noteColor?: string;
   onRename?: (v: string) => void;
@@ -433,6 +435,7 @@ export function computeFrames(
           isSelected: false,
           progress: groupProgress(grp.areaIds),
           actionStats: groupActionStats(grp.areaIds),
+          paused: grp.paused,
           note: grp.note,
           noteColor: grp.noteColor,
         },

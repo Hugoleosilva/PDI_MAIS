@@ -105,6 +105,13 @@ describe("planForDoc", () => {
     const loose = blocks.find((x) => x.groupId === null)!;
     expect(loose.areaIds).toEqual(["a2"]);
   });
+
+  it("paused reflete PdiGroup.paused; 'Fora de bloco' nunca pausa", () => {
+    const paused: PdiDoc = { ...pdi, groups: [{ ...pdi.groups![0], paused: true }] };
+    const { blocks } = planForDoc(paused, new Date("2026-01-01"));
+    expect(blocks.find((x) => x.groupId === "g1")!.paused).toBe(true);
+    expect(blocks.find((x) => x.groupId === null)!.paused).toBe(false);
+  });
 });
 
 describe("burndownSeries", () => {

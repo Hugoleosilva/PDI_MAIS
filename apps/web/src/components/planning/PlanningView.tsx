@@ -124,6 +124,14 @@ export function PlanningView({ pdi, today }: { pdi: PdiDoc; today: string }) {
     saveGroups();
   };
 
+  const setGroupPaused = (gid: string, paused: boolean) => {
+    setDoc((d) => ({
+      ...d,
+      groups: (d.groups ?? []).map((g) => (g.id === gid ? { ...g, paused } : g)),
+    }));
+    saveGroups();
+  };
+
   const setLoose = (cap: WeekCapacity) => {
     setDoc((d) => ({ ...d, looseCapacity: cap }));
     debounce("loose", () => {
@@ -136,8 +144,12 @@ export function PlanningView({ pdi, today }: { pdi: PdiDoc; today: string }) {
   };
 
   // resumo geral: distribuição por status — nada de somar capacidade de
-  // blocos diferentes (ninguém trabalha em todos ao mesmo tempo).
-  const allActions = doc.areas.flatMap((ar) => ar.actions);
+  // blocos diferentes (ninguém trabalha em todos ao mesmo tempo). Blocos
+  // pausados (foco só em outro agora) ficam de fora da conta.
+  const pausedAreaIds = new Set(plan.blocks.filter((b) => b.paused).flatMap((b) => b.areaIds));
+  const allActions = doc.areas
+    .filter((ar) => !pausedAreaIds.has(ar.id))
+    .flatMap((ar) => ar.actions);
   const totalActions = allActions.length;
   const countOf = (s: Status) => allActions.filter((a) => a.status === s).length;
   const statusCounts: Record<Status, number> = {
@@ -164,6 +176,8 @@ export function PlanningView({ pdi, today }: { pdi: PdiDoc; today: string }) {
         <p className="mt-1 text-xs text-neutral-500">
           {totalActions} ações no total · não somamos a carga horária dos blocos porque
           ninguém trabalha em todos ao mesmo tempo — cada bloco tem seu ritmo abaixo.
+          {pausedAreaIds.size > 0 &&
+            ` · ${plan.blocks.filter((b) => b.paused).length} bloco(s) pausado(s) não entram nessa conta.`}
         </p>
 
         {totalActions > 0 && (
@@ -223,24 +237,44 @@ export function PlanningView({ pdi, today }: { pdi: PdiDoc; today: string }) {
         return (
           <section
             key={b.groupId ?? "loose"}
-            className="rounded-xl border border-neutral-200 bg-white"
+            className={`rounded-xl border border-neutral-200 bg-white ${b.paused ? "opacity-60" : ""}`}
           >
             <header className="flex flex-wrap items-center gap-3 border-b border-neutral-100 px-5 py-3.5">
               <span className="h-3 w-3 rounded-full" style={{ background: b.color }} />
               <h3 className="text-[15px] font-semibold">{b.title}</h3>
-              <span
-                className="rounded-full px-2 py-0.5 text-[11px] font-medium"
-                style={{ background: badge.bg, color: badge.fg }}
-              >
-                {badge.label}
-                {b.status === "atrasado" && ` · ${Math.ceil(b.weeksLate)} sem`}
-              </span>
-              <span className="ml-auto text-xs text-neutral-500">
+              {b.paused ? (
+                <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-500">
+                  ⏸ Pausado
+                </span>
+              ) : (
+                <span
+                  className="rounded-full px-2 py-0.5 text-[11px] font-medium"
+                  style={{ background: badge.bg, color: badge.fg }}
+                >
+                  {badge.label}
+                  {b.status === "atrasado" && ` · ${Math.ceil(b.weeksLate)} sem`}
+                </span>
+              )}
+              <span className="text-xs text-neutral-500">
                 {b.projection.projectedDate
                   ? `prev. ${formatDate(b.projection.projectedDate)}`
                   : "sem projeção"}
                 {b.projection.targetDate && ` · meta ${formatDate(b.projection.targetDate)}`}
               </span>
+              {b.groupId !== null && (
+                <button
+                  type="button"
+                  onClick={() => setGroupPaused(b.groupId!, !b.paused)}
+                  className="ml-auto rounded-full border border-neutral-200 px-2.5 py-1 text-[11px] font-medium text-neutral-600 hover:bg-neutral-50"
+                  title={
+                    b.paused
+                      ? "Retomar este bloco — volta a contar no resumo geral"
+                      : "Pausar este bloco — sai do resumo geral enquanto você foca em outro"
+                  }
+                >
+                  {b.paused ? "▶ Retomar" : "⏸ Pausar"}
+                </button>
+              )}
             </header>
 
             <div className="space-y-4 p-5">
