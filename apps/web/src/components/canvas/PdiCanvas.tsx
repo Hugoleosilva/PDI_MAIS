@@ -498,15 +498,17 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
       setCanUndo(false);
       // o raiz é ancorado abaixo (ver efeito seguinte) — ao trocar de direção
       // (árvore →/↓) a posição antiga não faz mais sentido, solta a âncora.
-      setPositions((p) => {
-        if (!("root" in p)) return p;
-        const { root: _drop, ...rest } = p;
-        return rest;
-      });
+      if (positionsRef.current.root) {
+        setPositions((p) => {
+          const { root: _drop, ...rest } = p;
+          return rest;
+        });
+        scheduleSave();
+      }
       const id = requestAnimationFrame(() => fitView({ padding: 0.14, duration: 250 }));
       return () => cancelAnimationFrame(id);
     }
-  }, [layout.nodes, withHandlers, setNodes, fitView, layoutKind]);
+  }, [layout.nodes, withHandlers, setNodes, fitView, layoutKind, scheduleSave]);
 
   // Ancora a posição do raiz assim que calculada. Sem isso, qualquer mudança
   // de bloco (arrastar um frame recalcula `groups` via recapture) recalcula
@@ -518,7 +520,10 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
     const rootNode = layout.nodes.find((n) => n.id === "root");
     if (!rootNode) return;
     setPositions((p) => ({ ...p, root: { ...rootNode.position } }));
-  }, [layout.nodes, positions]);
+    // sem isso a âncora só existia em memória: saía do Planejamento e voltava
+    // pro canvas, o componente remontava do banco (sem "root" salvo) e pulava de novo.
+    scheduleSave();
+  }, [layout.nodes, positions, scheduleSave]);
 
   useEffect(() => {
     setEdges([...layout.edges, ...linkEdgesMemo]);
