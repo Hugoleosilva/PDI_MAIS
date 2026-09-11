@@ -280,7 +280,7 @@ function RootNote({
   return (
     <div
       className="nodrag nopan absolute w-[260px]"
-      style={{ bottom: "calc(100% + 12px)", left: 0, pointerEvents: "auto" }}
+      style={{ top: "calc(100% + 12px)", left: 0, pointerEvents: "auto" }}
     >
       <div
         className="rounded-lg p-2 text-[11px] leading-snug shadow-sm"
