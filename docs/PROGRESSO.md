@@ -171,9 +171,14 @@ Página **`/planejamento`**. Responde a “quando eu termino isso, no meu ritmo?
    Paleta dos blocos (`GROUP_COLORS`) e paleta de papel das notas
    (`NOTE_COLORS`) em `packages/core/src/groups.ts`; `PdiGroup.noteColor?`
    é independente da cor do bloco.
-2. ⬜ Menu de opções no botão da IA (Insights / Andamento geral / Onde focar /
-   Sugestão de tecnologia ou curso) em vez de um prompt fixo.
-3. ⬜ % de andamento dentro do bloco, agregando as áreas de dentro.
+2. ✅ Menu de opções no botão da IA — 5 chips (Resumo p/ 1-on-1, Insights,
+   Andamento geral, Onde focar, Sugestão de tecnologia ou curso), cada um
+   com um "ask" próprio em `ASKS`; o contexto do PDI (`buildContextBlock`)
+   é sempre o mesmo. `InsightKind` em `packages/core/src/insight.ts`.
+3. ✅ % de andamento dentro do bloco — badge no cabeçalho do frame, média do
+   `progress` das áreas de dentro (mesma conta do card da área). Calculado
+   em `computeFrames` lendo direto do `AreaNode` já montado, sem precisar
+   passar `pdi.areas` de novo.
 4. ⬜ Botão "Consultar Relatório" — snapshot do andamento com data, pra
    comparar evolução.
 5. ⬜ Nó raiz do PDI expansível/recolhível.

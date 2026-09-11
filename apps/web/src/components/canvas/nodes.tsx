@@ -396,6 +396,14 @@ export function GroupNode({ data }: NodeProps & { data: GroupNodeData }) {
             onCommit={data.onRename}
             className="flex-1 text-[13px] font-bold text-white"
           />
+          {data.progress != null && (
+            <span
+              title="Andamento médio das áreas de dentro"
+              className="shrink-0 rounded-full bg-white/25 px-2 py-0.5 text-[11px] font-bold text-white"
+            >
+              {formatPercent(data.progress)}
+            </span>
+          )}
           {data.empty && (
             <span className="shrink-0 text-[11px] font-normal text-white/80">
               solte cards aqui

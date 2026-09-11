@@ -84,6 +84,8 @@ export interface GroupNodeData extends Record<string, unknown> {
   height: number;
   empty: boolean;
   isSelected: boolean;
+  /** Andamento médio das áreas que estão dentro (mesma conta do card da área); ausente = bloco vazio. */
+  progress?: number;
   note?: string;
   noteColor?: string;
   onRename?: (v: string) => void;
@@ -355,6 +357,18 @@ export function computeFrames(
     ),
   );
 
+  // Andamento do bloco = média do progresso das áreas de dentro — lê direto
+  // do AreaNode (já traz `progress` calculado por `areaProgress`).
+  const areaProgressById = new Map(
+    nodes.filter((n) => n.type === "area").map((n) => [n.id, (n.data as AreaNodeData).progress]),
+  );
+  const groupProgress = (areaIds: string[]): number | undefined => {
+    const vals = areaIds
+      .map((id) => areaProgressById.get(id))
+      .filter((v): v is number => v != null);
+    return vals.length ? vals.reduce((s, v) => s + v, 0) / vals.length : undefined;
+  };
+
   return [...groups]
     .sort((a, b) => a.order - b.order)
     .map((grp) => {
@@ -387,6 +401,7 @@ export function computeFrames(
           height: box.h,
           empty: grp.areaIds.length === 0,
           isSelected: false,
+          progress: groupProgress(grp.areaIds),
           note: grp.note,
           noteColor: grp.noteColor,
         },

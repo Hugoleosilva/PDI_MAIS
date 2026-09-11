@@ -144,7 +144,7 @@
       "file_type": "code",
       "norm_label": "framebox",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L296"
+      "source_location": "L298"
     },
     {
       "id": "apps_web_src_lib_pdi_to_graph_groupnodedata",
@@ -170,7 +170,7 @@
       "file_type": "code",
       "norm_label": "pdinode",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L96"
+      "source_location": "L98"
     },
     {
       "id": "apps_web_src_lib_pdi_to_graph_rootnodedata",
@@ -212,19 +212,6 @@
       "source_location": "L8"
     },
     {
-      "id": "packages_core_src_types_pdigroup",
-      "label": "PdiGroup",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 0,
-      "community_name": "pdi-to-graph.ts",
-      "file_type": "code",
-      "norm_label": "pdigroup",
-      "source_file": "packages/core/src/types.ts",
-      "source_location": "L104"
-    },
-    {
       "id": "packages_core_src_types_status",
       "label": "Status",
       "_callable": true,
@@ -262,6 +249,19 @@
       "norm_label": "status",
       "source_file": "apps/web/src/components/planning/PlanningView.tsx",
       "source_location": "L26"
+    },
+    {
+      "id": "packages_core_src_merge_mergeoptions",
+      "label": "MergeOptions",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "PlanningView.tsx",
+      "file_type": "code",
+      "norm_label": "mergeoptions",
+      "source_file": "packages/core/src/merge.ts",
+      "source_location": "L21"
     },
     {
       "id": "packages_core_src_planning_blockplan",
@@ -368,19 +368,6 @@
       "source_location": "L15"
     },
     {
-      "id": "packages_core_src_types_pdicanvasstate",
-      "label": "PdiCanvasState",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 1,
-      "community_name": "PlanningView.tsx",
-      "file_type": "code",
-      "norm_label": "pdicanvasstate",
-      "source_file": "packages/core/src/types.ts",
-      "source_location": "L141"
-    },
-    {
       "id": "packages_core_src_types_pdidoc",
       "label": "PdiDoc",
       "_callable": true,
@@ -394,17 +381,17 @@
       "source_location": "L121"
     },
     {
-      "id": "packages_core_src_types_pdilink",
-      "label": "PdiLink",
+      "id": "packages_core_src_types_pdigroup",
+      "label": "PdiGroup",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
       "community": 1,
       "community_name": "PlanningView.tsx",
       "file_type": "code",
-      "norm_label": "pdilink",
+      "norm_label": "pdigroup",
       "source_file": "packages/core/src/types.ts",
-      "source_location": "L93"
+      "source_location": "L104"
     },
     {
       "id": "packages_core_src_types_pdiroot",
@@ -420,6 +407,19 @@
       "source_location": "L81"
     },
     {
+      "id": "packages_core_src_types_source",
+      "label": "Source",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "PlanningView.tsx",
+      "file_type": "code",
+      "norm_label": "source",
+      "source_file": "packages/core/src/types.ts",
+      "source_location": "L28"
+    },
+    {
       "id": "packages_core_src_types_weekcapacity",
       "label": "WeekCapacity",
       "_callable": true,
@@ -431,6 +431,32 @@
       "norm_label": "weekcapacity",
       "source_file": "packages/core/src/types.ts",
       "source_location": "L57"
+    },
+    {
+      "id": "packages_core_src_types_pdicanvasstate",
+      "label": "PdiCanvasState",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "pdi-repo.ts",
+      "file_type": "code",
+      "norm_label": "pdicanvasstate",
+      "source_file": "packages/core/src/types.ts",
+      "source_location": "L141"
+    },
+    {
+      "id": "packages_core_src_types_pdilink",
+      "label": "PdiLink",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "pdi-repo.ts",
+      "file_type": "code",
+      "norm_label": "pdilink",
+      "source_file": "packages/core/src/types.ts",
+      "source_location": "L93"
     },
     {
       "id": "apps_web_src_types_next_auth_d_session",
@@ -446,16 +472,16 @@
       "source_location": "L4"
     },
     {
-      "id": "apps_web_src_lib_pdi_to_graph_layout",
-      "label": "Layout",
+      "id": "apps_web_src_components_manualbuilder_draftarea",
+      "label": "DraftArea",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "index.ts",
+      "community_name": "schema.ts",
       "file_type": "code",
-      "norm_label": "layout",
-      "source_file": "apps/web/src/lib/pdi-to-graph.ts",
+      "norm_label": "draftarea",
+      "source_file": "apps/web/src/components/ManualBuilder.tsx",
       "source_location": "L20"
     },
     {
@@ -465,24 +491,11 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "index.ts",
+      "community_name": "schema.ts",
       "file_type": "code",
       "norm_label": "importresult",
       "source_file": "packages/core/src/import.ts",
       "source_location": "L4"
-    },
-    {
-      "id": "packages_core_src_merge_mergeoptions",
-      "label": "MergeOptions",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 2,
-      "community_name": "index.ts",
-      "file_type": "code",
-      "norm_label": "mergeoptions",
-      "source_file": "packages/core/src/merge.ts",
-      "source_location": "L21"
     },
     {
       "id": "packages_core_src_schema_syncpayload",
@@ -491,7 +504,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "index.ts",
+      "community_name": "schema.ts",
       "file_type": "code",
       "norm_label": "syncpayload",
       "source_file": "packages/core/src/schema.ts",
@@ -504,7 +517,7 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "index.ts",
+      "community_name": "schema.ts",
       "file_type": "code",
       "norm_label": "syncpayloadinput",
       "source_file": "packages/core/src/schema.ts",
@@ -517,37 +530,37 @@
       "_callable_class": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "index.ts",
+      "community_name": "schema.ts",
       "file_type": "code",
       "norm_label": "areakind",
       "source_file": "packages/core/src/types.ts",
       "source_location": "L5"
     },
     {
-      "id": "packages_core_src_types_source",
-      "label": "Source",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "community": 2,
-      "community_name": "index.ts",
-      "file_type": "code",
-      "norm_label": "source",
-      "source_file": "packages/core/src/types.ts",
-      "source_location": "L28"
-    },
-    {
-      "id": "apps_web_src_components_manualbuilder_draftarea",
-      "label": "DraftArea",
+      "id": "apps_web_src_lib_pdi_to_graph_layout",
+      "label": "Layout",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
       "community": 6,
-      "community_name": "ManualBuilder.tsx",
+      "community_name": "index.ts",
       "file_type": "code",
-      "norm_label": "draftarea",
-      "source_file": "apps/web/src/components/ManualBuilder.tsx",
+      "norm_label": "layout",
+      "source_file": "apps/web/src/lib/pdi-to-graph.ts",
       "source_location": "L20"
+    },
+    {
+      "id": "packages_core_src_insight_insightkind",
+      "label": "InsightKind",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "insight.ts",
+      "file_type": "code",
+      "norm_label": "insightkind",
+      "source_file": "packages/core/src/insight.ts",
+      "source_location": "L11"
     },
     {
       "id": "apps_web_src_components_canvas_detailpanel_detailpanel",
@@ -682,18 +695,6 @@
       "source_location": "L56"
     },
     {
-      "id": "apps_web_src_components_canvas_nodes_groupnode",
-      "label": "GroupNode()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 0,
-      "community_name": "pdi-to-graph.ts",
-      "file_type": "code",
-      "norm_label": "groupnode()",
-      "source_file": "apps/web/src/components/canvas/nodes.tsx",
-      "source_location": "L338"
-    },
-    {
       "id": "apps_web_src_components_canvas_nodes_rootnode",
       "label": "RootNode()",
       "_callable": true,
@@ -727,7 +728,7 @@
       "file_type": "code",
       "norm_label": "stickynote()",
       "source_file": "apps/web/src/components/canvas/nodes.tsx",
-      "source_location": "L425"
+      "source_location": "L433"
     },
     {
       "id": "apps_web_src_components_canvas_nodes_targetpos",
@@ -835,7 +836,7 @@
       "file_type": "code",
       "norm_label": "areasinbox()",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L326"
+      "source_location": "L328"
     },
     {
       "id": "apps_web_src_lib_pdi_to_graph_computeframes",
@@ -847,7 +848,7 @@
       "file_type": "code",
       "norm_label": "computeframes()",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L344"
+      "source_location": "L346"
     },
     {
       "id": "apps_web_src_lib_pdi_to_graph_dagreedges",
@@ -859,7 +860,7 @@
       "file_type": "code",
       "norm_label": "dagreedges()",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L180"
+      "source_location": "L182"
     },
     {
       "id": "apps_web_src_lib_pdi_to_graph_dirfor",
@@ -871,7 +872,7 @@
       "file_type": "code",
       "norm_label": "dirfor()",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L105"
+      "source_location": "L107"
     },
     {
       "id": "apps_web_src_lib_pdi_to_graph_hugbox",
@@ -883,7 +884,7 @@
       "file_type": "code",
       "norm_label": "hugbox()",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L299"
+      "source_location": "L301"
     },
     {
       "id": "apps_web_src_lib_pdi_to_graph_kanbanlayout",
@@ -895,7 +896,7 @@
       "file_type": "code",
       "norm_label": "kanbanlayout()",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L397"
+      "source_location": "L412"
     },
     {
       "id": "apps_web_src_lib_pdi_to_graph_layoutgraph",
@@ -907,7 +908,7 @@
       "file_type": "code",
       "norm_label": "layoutgraph()",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L540"
+      "source_location": "L555"
     },
     {
       "id": "apps_web_src_lib_pdi_to_graph_linkedge",
@@ -919,7 +920,7 @@
       "file_type": "code",
       "norm_label": "linkedge()",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L218"
+      "source_location": "L220"
     },
     {
       "id": "apps_web_src_lib_pdi_to_graph_radiallayout",
@@ -931,7 +932,7 @@
       "file_type": "code",
       "norm_label": "radiallayout()",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L496"
+      "source_location": "L511"
     },
     {
       "id": "apps_web_src_lib_pdi_to_graph_renderedges",
@@ -943,7 +944,7 @@
       "file_type": "code",
       "norm_label": "renderedges()",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L195"
+      "source_location": "L197"
     },
     {
       "id": "apps_web_src_lib_pdi_to_graph_structuraledge",
@@ -955,7 +956,7 @@
       "file_type": "code",
       "norm_label": "structuraledge()",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L163"
+      "source_location": "L165"
     },
     {
       "id": "apps_web_src_lib_pdi_to_graph_treelayout",
@@ -967,19 +968,19 @@
       "file_type": "code",
       "norm_label": "treelayout()",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L237"
+      "source_location": "L239"
     },
     {
-      "id": "packages_core_src_groups_groupofarea",
-      "label": "groupOfArea()",
+      "id": "packages_core_src_groups_resolveseedgroups",
+      "label": "resolveSeedGroups()",
       "_callable": true,
       "_origin": "ast",
       "community": 0,
       "community_name": "pdi-to-graph.ts",
       "file_type": "code",
-      "norm_label": "groupofarea()",
+      "norm_label": "resolveseedgroups()",
       "source_file": "packages/core/src/groups.ts",
-      "source_location": "L80"
+      "source_location": "L66"
     },
     {
       "id": "apps_web_src_components_planning_burndown_burndown",
@@ -1076,6 +1077,18 @@
       "norm_label": "weekgrid()",
       "source_file": "apps/web/src/components/planning/WeekGrid.tsx",
       "source_location": "L5"
+    },
+    {
+      "id": "packages_core_src_groups_groupofarea",
+      "label": "groupOfArea()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "PlanningView.tsx",
+      "file_type": "code",
+      "norm_label": "groupofarea()",
+      "source_file": "packages/core/src/groups.ts",
+      "source_location": "L80"
     },
     {
       "id": "packages_core_src_planning_actioncompletion",
@@ -1246,18 +1259,6 @@
       "source_location": "L32"
     },
     {
-      "id": "apps_web_src_app_api_import_route_post",
-      "label": "POST()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "pdi-repo.ts",
-      "file_type": "code",
-      "norm_label": "post()",
-      "source_file": "apps/web/src/app/api/import/route.ts",
-      "source_location": "L13"
-    },
-    {
       "id": "apps_web_src_app_api_pdi_action_id_route_patch",
       "label": "PATCH()",
       "_callable": true,
@@ -1354,16 +1355,16 @@
       "source_location": "L12"
     },
     {
-      "id": "apps_web_src_app_api_sync_route_post",
-      "label": "POST()",
+      "id": "apps_web_src_app_import_page_importpage",
+      "label": "ImportPage()",
       "_callable": true,
       "_origin": "ast",
       "community": 10,
       "community_name": "pdi-repo.ts",
       "file_type": "code",
-      "norm_label": "post()",
-      "source_file": "apps/web/src/app/api/sync/route.ts",
-      "source_location": "L15"
+      "norm_label": "importpage()",
+      "source_file": "apps/web/src/app/import/page.tsx",
+      "source_location": "L8"
     },
     {
       "id": "apps_web_src_app_planejamento_page_planningpage",
@@ -1424,18 +1425,6 @@
       "norm_label": "addlink()",
       "source_file": "apps/web/src/lib/pdi-repo.ts",
       "source_location": "L52"
-    },
-    {
-      "id": "apps_web_src_lib_pdi_repo_applysync",
-      "label": "applySync()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "pdi-repo.ts",
-      "file_type": "code",
-      "norm_label": "applysync()",
-      "source_file": "apps/web/src/lib/pdi-repo.ts",
-      "source_location": "L30"
     },
     {
       "id": "apps_web_src_lib_pdi_repo_collection",
@@ -1558,6 +1547,18 @@
       "source_location": "L152"
     },
     {
+      "id": "packages_core_src_merge_deriveareastatus",
+      "label": "deriveAreaStatus()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "pdi-repo.ts",
+      "file_type": "code",
+      "norm_label": "deriveareastatus()",
+      "source_file": "packages/core/src/merge.ts",
+      "source_location": "L13"
+    },
+    {
       "id": "apps_web_src_app_layout_rootlayout",
       "label": "RootLayout()",
       "_callable": true,
@@ -1570,88 +1571,64 @@
       "source_location": "L9"
     },
     {
-      "id": "apps_web_src_app_api_dev_seed_route_get",
-      "label": "GET()",
+      "id": "apps_web_src_components_importform_importform",
+      "label": "ImportForm()",
       "_callable": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "index.ts",
+      "community_name": "schema.ts",
       "file_type": "code",
-      "norm_label": "get()",
-      "source_file": "apps/web/src/app/api/dev/seed/route.ts",
+      "norm_label": "importform()",
+      "source_file": "apps/web/src/components/ImportForm.tsx",
       "source_location": "L14"
     },
     {
-      "id": "packages_core_src_groups_resolveseedgroups",
-      "label": "resolveSeedGroups()",
+      "id": "apps_web_src_components_importtabs_importtabs",
+      "label": "ImportTabs()",
       "_callable": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "index.ts",
+      "community_name": "schema.ts",
       "file_type": "code",
-      "norm_label": "resolveseedgroups()",
-      "source_file": "packages/core/src/groups.ts",
-      "source_location": "L66"
+      "norm_label": "importtabs()",
+      "source_file": "apps/web/src/components/ImportTabs.tsx",
+      "source_location": "L7"
     },
     {
-      "id": "packages_core_src_ids_actionid",
-      "label": "actionId()",
+      "id": "apps_web_src_components_manualbuilder_emptyaction",
+      "label": "emptyAction()",
       "_callable": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "index.ts",
+      "community_name": "schema.ts",
       "file_type": "code",
-      "norm_label": "actionid()",
-      "source_file": "packages/core/src/ids.ts",
-      "source_location": "L47"
+      "norm_label": "emptyaction()",
+      "source_file": "apps/web/src/components/ManualBuilder.tsx",
+      "source_location": "L29"
     },
     {
-      "id": "packages_core_src_ids_areaid",
-      "label": "areaId()",
+      "id": "apps_web_src_components_manualbuilder_emptyarea",
+      "label": "emptyArea()",
       "_callable": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "index.ts",
+      "community_name": "schema.ts",
       "file_type": "code",
-      "norm_label": "areaid()",
-      "source_file": "packages/core/src/ids.ts",
-      "source_location": "L45"
+      "norm_label": "emptyarea()",
+      "source_file": "apps/web/src/components/ManualBuilder.tsx",
+      "source_location": "L36"
     },
     {
-      "id": "packages_core_src_ids_cyrb53",
-      "label": "cyrb53()",
+      "id": "apps_web_src_components_manualbuilder_manualbuilder",
+      "label": "ManualBuilder()",
       "_callable": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "index.ts",
+      "community_name": "schema.ts",
       "file_type": "code",
-      "norm_label": "cyrb53()",
-      "source_file": "packages/core/src/ids.ts",
-      "source_location": "L21"
-    },
-    {
-      "id": "packages_core_src_ids_normalizetitle",
-      "label": "normalizeTitle()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 2,
-      "community_name": "index.ts",
-      "file_type": "code",
-      "norm_label": "normalizetitle()",
-      "source_file": "packages/core/src/ids.ts",
-      "source_location": "L8"
-    },
-    {
-      "id": "packages_core_src_ids_stableid",
-      "label": "stableId()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 2,
-      "community_name": "index.ts",
-      "file_type": "code",
-      "norm_label": "stableid()",
-      "source_file": "packages/core/src/ids.ts",
-      "source_location": "L41"
+      "norm_label": "manualbuilder()",
+      "source_file": "apps/web/src/components/ManualBuilder.tsx",
+      "source_location": "L42"
     },
     {
       "id": "packages_core_src_import_clean",
@@ -1659,7 +1636,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "index.ts",
+      "community_name": "schema.ts",
       "file_type": "code",
       "norm_label": "clean()",
       "source_file": "packages/core/src/import.ts",
@@ -1671,7 +1648,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "index.ts",
+      "community_name": "schema.ts",
       "file_type": "code",
       "norm_label": "detectsep()",
       "source_file": "packages/core/src/import.ts",
@@ -1683,7 +1660,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "index.ts",
+      "community_name": "schema.ts",
       "file_type": "code",
       "norm_label": "parsedate()",
       "source_file": "packages/core/src/import.ts",
@@ -1695,7 +1672,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "index.ts",
+      "community_name": "schema.ts",
       "file_type": "code",
       "norm_label": "parsedelimited()",
       "source_file": "packages/core/src/import.ts",
@@ -1707,7 +1684,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "index.ts",
+      "community_name": "schema.ts",
       "file_type": "code",
       "norm_label": "parseimporttable()",
       "source_file": "packages/core/src/import.ts",
@@ -1719,7 +1696,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "index.ts",
+      "community_name": "schema.ts",
       "file_type": "code",
       "norm_label": "actionkindfromlabel()",
       "source_file": "packages/core/src/labels.ts",
@@ -1731,7 +1708,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "index.ts",
+      "community_name": "schema.ts",
       "file_type": "code",
       "norm_label": "areakindfromlabel()",
       "source_file": "packages/core/src/labels.ts",
@@ -1743,30 +1720,126 @@
       "_callable": true,
       "_origin": "ast",
       "community": 2,
-      "community_name": "index.ts",
+      "community_name": "schema.ts",
       "file_type": "code",
       "norm_label": "statusfromlabel()",
       "source_file": "packages/core/src/labels.ts",
       "source_location": "L30"
     },
     {
-      "id": "packages_core_src_merge_deriveareastatus",
-      "label": "deriveAreaStatus()",
+      "id": "apps_web_src_app_api_dev_seed_route_get",
+      "label": "GET()",
       "_callable": true,
       "_origin": "ast",
-      "community": 2,
+      "community": 6,
       "community_name": "index.ts",
       "file_type": "code",
-      "norm_label": "deriveareastatus()",
-      "source_file": "packages/core/src/merge.ts",
+      "norm_label": "get()",
+      "source_file": "apps/web/src/app/api/dev/seed/route.ts",
+      "source_location": "L14"
+    },
+    {
+      "id": "apps_web_src_app_api_import_route_post",
+      "label": "POST()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "post()",
+      "source_file": "apps/web/src/app/api/import/route.ts",
       "source_location": "L13"
+    },
+    {
+      "id": "apps_web_src_app_api_sync_route_post",
+      "label": "POST()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "post()",
+      "source_file": "apps/web/src/app/api/sync/route.ts",
+      "source_location": "L15"
+    },
+    {
+      "id": "apps_web_src_lib_pdi_repo_applysync",
+      "label": "applySync()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "applysync()",
+      "source_file": "apps/web/src/lib/pdi-repo.ts",
+      "source_location": "L30"
+    },
+    {
+      "id": "packages_core_src_ids_actionid",
+      "label": "actionId()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "actionid()",
+      "source_file": "packages/core/src/ids.ts",
+      "source_location": "L47"
+    },
+    {
+      "id": "packages_core_src_ids_areaid",
+      "label": "areaId()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "areaid()",
+      "source_file": "packages/core/src/ids.ts",
+      "source_location": "L45"
+    },
+    {
+      "id": "packages_core_src_ids_cyrb53",
+      "label": "cyrb53()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "cyrb53()",
+      "source_file": "packages/core/src/ids.ts",
+      "source_location": "L21"
+    },
+    {
+      "id": "packages_core_src_ids_normalizetitle",
+      "label": "normalizeTitle()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "normalizetitle()",
+      "source_file": "packages/core/src/ids.ts",
+      "source_location": "L8"
+    },
+    {
+      "id": "packages_core_src_ids_stableid",
+      "label": "stableId()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "stableid()",
+      "source_file": "packages/core/src/ids.ts",
+      "source_location": "L41"
     },
     {
       "id": "packages_core_src_merge_mergepdi",
       "label": "mergePdi()",
       "_callable": true,
       "_origin": "ast",
-      "community": 2,
+      "community": 6,
       "community_name": "index.ts",
       "file_type": "code",
       "norm_label": "mergepdi()",
@@ -1774,88 +1847,28 @@
       "source_location": "L41"
     },
     {
-      "id": "apps_web_src_app_import_page_importpage",
-      "label": "ImportPage()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 6,
-      "community_name": "ManualBuilder.tsx",
-      "file_type": "code",
-      "norm_label": "importpage()",
-      "source_file": "apps/web/src/app/import/page.tsx",
-      "source_location": "L8"
-    },
-    {
-      "id": "apps_web_src_components_importform_importform",
-      "label": "ImportForm()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 6,
-      "community_name": "ManualBuilder.tsx",
-      "file_type": "code",
-      "norm_label": "importform()",
-      "source_file": "apps/web/src/components/ImportForm.tsx",
-      "source_location": "L14"
-    },
-    {
-      "id": "apps_web_src_components_importtabs_importtabs",
-      "label": "ImportTabs()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 6,
-      "community_name": "ManualBuilder.tsx",
-      "file_type": "code",
-      "norm_label": "importtabs()",
-      "source_file": "apps/web/src/components/ImportTabs.tsx",
-      "source_location": "L7"
-    },
-    {
-      "id": "apps_web_src_components_manualbuilder_emptyaction",
-      "label": "emptyAction()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 6,
-      "community_name": "ManualBuilder.tsx",
-      "file_type": "code",
-      "norm_label": "emptyaction()",
-      "source_file": "apps/web/src/components/ManualBuilder.tsx",
-      "source_location": "L29"
-    },
-    {
-      "id": "apps_web_src_components_manualbuilder_emptyarea",
-      "label": "emptyArea()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 6,
-      "community_name": "ManualBuilder.tsx",
-      "file_type": "code",
-      "norm_label": "emptyarea()",
-      "source_file": "apps/web/src/components/ManualBuilder.tsx",
-      "source_location": "L36"
-    },
-    {
-      "id": "apps_web_src_components_manualbuilder_manualbuilder",
-      "label": "ManualBuilder()",
-      "_callable": true,
-      "_origin": "ast",
-      "community": 6,
-      "community_name": "ManualBuilder.tsx",
-      "file_type": "code",
-      "norm_label": "manualbuilder()",
-      "source_file": "apps/web/src/components/ManualBuilder.tsx",
-      "source_location": "L42"
-    },
-    {
       "id": "apps_web_src_app_page_home",
       "label": "Home()",
       "_callable": true,
       "_origin": "ast",
       "community": 8,
-      "community_name": "app/page.tsx",
+      "community_name": "insight.ts",
       "file_type": "code",
       "norm_label": "home()",
       "source_file": "apps/web/src/app/page.tsx",
       "source_location": "L9"
+    },
+    {
+      "id": "apps_web_src_components_canvas_nodes_groupnode",
+      "label": "GroupNode()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "insight.ts",
+      "file_type": "code",
+      "norm_label": "groupnode()",
+      "source_file": "apps/web/src/components/canvas/nodes.tsx",
+      "source_location": "L338"
     },
     {
       "id": "apps_web_src_components_canvas_pdicanvas_pdicanvas",
@@ -1863,7 +1876,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 8,
-      "community_name": "app/page.tsx",
+      "community_name": "insight.ts",
       "file_type": "code",
       "norm_label": "pdicanvas()",
       "source_file": "apps/web/src/components/canvas/PdiCanvas.tsx",
@@ -1875,7 +1888,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 8,
-      "community_name": "app/page.tsx",
+      "community_name": "insight.ts",
       "file_type": "code",
       "norm_label": "emptystate()",
       "source_file": "apps/web/src/components/EmptyState.tsx",
@@ -1887,11 +1900,11 @@
       "_callable": true,
       "_origin": "ast",
       "community": 8,
-      "community_name": "app/page.tsx",
+      "community_name": "insight.ts",
       "file_type": "code",
       "norm_label": "geminibutton()",
       "source_file": "apps/web/src/components/GeminiButton.tsx",
-      "source_location": "L6"
+      "source_location": "L14"
     },
     {
       "id": "apps_web_src_lib_pdi_to_graph_basenodes",
@@ -1899,11 +1912,11 @@
       "_callable": true,
       "_origin": "ast",
       "community": 8,
-      "community_name": "app/page.tsx",
+      "community_name": "insight.ts",
       "file_type": "code",
       "norm_label": "basenodes()",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L113"
+      "source_location": "L115"
     },
     {
       "id": "apps_web_src_lib_pdi_to_graph_swimlanelayout",
@@ -1911,11 +1924,11 @@
       "_callable": true,
       "_origin": "ast",
       "community": 8,
-      "community_name": "app/page.tsx",
+      "community_name": "insight.ts",
       "file_type": "code",
       "norm_label": "swimlanelayout()",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L449"
+      "source_location": "L464"
     },
     {
       "id": "packages_core_src_insight_br",
@@ -1923,11 +1936,23 @@
       "_callable": true,
       "_origin": "ast",
       "community": 8,
-      "community_name": "app/page.tsx",
+      "community_name": "insight.ts",
       "file_type": "code",
       "norm_label": "br()",
       "source_file": "packages/core/src/insight.ts",
       "source_location": "L5"
+    },
+    {
+      "id": "packages_core_src_insight_buildcontextblock",
+      "label": "buildContextBlock()",
+      "_callable": true,
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "insight.ts",
+      "file_type": "code",
+      "norm_label": "buildcontextblock()",
+      "source_file": "packages/core/src/insight.ts",
+      "source_location": "L70"
     },
     {
       "id": "packages_core_src_insight_buildinsightprompt",
@@ -1935,11 +1960,11 @@
       "_callable": true,
       "_origin": "ast",
       "community": 8,
-      "community_name": "app/page.tsx",
+      "community_name": "insight.ts",
       "file_type": "code",
       "norm_label": "buildinsightprompt()",
       "source_file": "packages/core/src/insight.ts",
-      "source_location": "L14"
+      "source_location": "L107"
     },
     {
       "id": "packages_core_src_progress_areaprogress",
@@ -1947,7 +1972,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 8,
-      "community_name": "app/page.tsx",
+      "community_name": "insight.ts",
       "file_type": "code",
       "norm_label": "areaprogress()",
       "source_file": "packages/core/src/progress.ts",
@@ -1959,7 +1984,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 8,
-      "community_name": "app/page.tsx",
+      "community_name": "insight.ts",
       "file_type": "code",
       "norm_label": "formatpercent()",
       "source_file": "packages/core/src/progress.ts",
@@ -1971,7 +1996,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 8,
-      "community_name": "app/page.tsx",
+      "community_name": "insight.ts",
       "file_type": "code",
       "norm_label": "hasnotstarted()",
       "source_file": "packages/core/src/progress.ts",
@@ -1983,7 +2008,7 @@
       "_callable": true,
       "_origin": "ast",
       "community": 8,
-      "community_name": "app/page.tsx",
+      "community_name": "insight.ts",
       "file_type": "code",
       "norm_label": "overallprogress()",
       "source_file": "packages/core/src/progress.ts",
@@ -2064,7 +2089,7 @@
       "file_type": "code",
       "norm_label": "nodetypes",
       "source_file": "apps/web/src/components/canvas/nodes.tsx",
-      "source_location": "L525"
+      "source_location": "L533"
     },
     {
       "id": "apps_web_src_components_canvas_pdicanvas",
@@ -2087,6 +2112,17 @@
       "norm_label": "layouts",
       "source_file": "apps/web/src/components/canvas/PdiCanvas.tsx",
       "source_location": "L57"
+    },
+    {
+      "id": "apps_web_src_components_importform",
+      "label": "ImportForm.tsx",
+      "_origin": "ast",
+      "community": 0,
+      "community_name": "pdi-to-graph.ts",
+      "file_type": "code",
+      "norm_label": "importform.tsx",
+      "source_file": "apps/web/src/components/ImportForm.tsx",
+      "source_location": "L1"
     },
     {
       "id": "apps_web_src_lib_format",
@@ -2130,7 +2166,7 @@
       "file_type": "code",
       "norm_label": "empty_frame",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L294"
+      "source_location": "L296"
     },
     {
       "id": "apps_web_src_lib_pdi_to_graph_layout_label",
@@ -2210,48 +2246,15 @@
       "source_location": "L10"
     },
     {
-      "id": "packages_core_src_groups",
-      "label": "groups.ts",
+      "id": "ref_react",
+      "label": "react",
       "_origin": "ast",
       "community": 0,
       "community_name": "pdi-to-graph.ts",
-      "file_type": "code",
-      "norm_label": "groups.ts",
-      "source_file": "packages/core/src/groups.ts",
-      "source_location": "L1"
-    },
-    {
-      "id": "packages_core_src_groups_group_colors",
-      "label": "GROUP_COLORS",
-      "_origin": "ast",
-      "community": 0,
-      "community_name": "pdi-to-graph.ts",
-      "file_type": "code",
-      "norm_label": "group_colors",
-      "source_file": "packages/core/src/groups.ts",
-      "source_location": "L4"
-    },
-    {
-      "id": "packages_core_src_groups_note_colors",
-      "label": "NOTE_COLORS",
-      "_origin": "ast",
-      "community": 0,
-      "community_name": "pdi-to-graph.ts",
-      "file_type": "code",
-      "norm_label": "note_colors",
-      "source_file": "packages/core/src/groups.ts",
-      "source_location": "L16"
-    },
-    {
-      "id": "packages_core_src_groups_seed_groups",
-      "label": "SEED_GROUPS",
-      "_origin": "ast",
-      "community": 0,
-      "community_name": "pdi-to-graph.ts",
-      "file_type": "code",
-      "norm_label": "seed_groups",
-      "source_file": "packages/core/src/groups.ts",
-      "source_location": "L30"
+      "file_type": "concept",
+      "norm_label": "react",
+      "source_file": "apps/web/package.json",
+      "source_location": "L19"
     },
     {
       "id": "ref_xyflow_react",
@@ -2317,6 +2320,61 @@
       "file_type": "code",
       "norm_label": "weekgrid.tsx",
       "source_file": "apps/web/src/components/planning/WeekGrid.tsx",
+      "source_location": "L1"
+    },
+    {
+      "id": "packages_core_src_groups",
+      "label": "groups.ts",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "PlanningView.tsx",
+      "file_type": "code",
+      "norm_label": "groups.ts",
+      "source_file": "packages/core/src/groups.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "packages_core_src_groups_group_colors",
+      "label": "GROUP_COLORS",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "PlanningView.tsx",
+      "file_type": "code",
+      "norm_label": "group_colors",
+      "source_file": "packages/core/src/groups.ts",
+      "source_location": "L4"
+    },
+    {
+      "id": "packages_core_src_groups_note_colors",
+      "label": "NOTE_COLORS",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "PlanningView.tsx",
+      "file_type": "code",
+      "norm_label": "note_colors",
+      "source_file": "packages/core/src/groups.ts",
+      "source_location": "L16"
+    },
+    {
+      "id": "packages_core_src_groups_seed_groups",
+      "label": "SEED_GROUPS",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "PlanningView.tsx",
+      "file_type": "code",
+      "norm_label": "seed_groups",
+      "source_file": "packages/core/src/groups.ts",
+      "source_location": "L30"
+    },
+    {
+      "id": "packages_core_src_merge",
+      "label": "merge.ts",
+      "_origin": "ast",
+      "community": 1,
+      "community_name": "PlanningView.tsx",
+      "file_type": "code",
+      "norm_label": "merge.ts",
+      "source_file": "packages/core/src/merge.ts",
       "source_location": "L1"
     },
     {
@@ -2395,28 +2453,6 @@
       "norm_label": "[...nextauth]/route.ts",
       "source_file": "apps/web/src/app/api/auth/[...nextauth]/route.ts",
       "source_location": "L1"
-    },
-    {
-      "id": "apps_web_src_app_api_import_route",
-      "label": "import/route.ts",
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "pdi-repo.ts",
-      "file_type": "code",
-      "norm_label": "import/route.ts",
-      "source_file": "apps/web/src/app/api/import/route.ts",
-      "source_location": "L1"
-    },
-    {
-      "id": "apps_web_src_app_api_import_route_runtime",
-      "label": "runtime",
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "pdi-repo.ts",
-      "file_type": "code",
-      "norm_label": "runtime",
-      "source_file": "apps/web/src/app/api/import/route.ts",
-      "source_location": "L6"
     },
     {
       "id": "apps_web_src_app_api_pdi_action_id_route",
@@ -2694,28 +2730,6 @@
       "source_location": "L5"
     },
     {
-      "id": "apps_web_src_app_api_sync_route",
-      "label": "sync/route.ts",
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "pdi-repo.ts",
-      "file_type": "code",
-      "norm_label": "sync/route.ts",
-      "source_file": "apps/web/src/app/api/sync/route.ts",
-      "source_location": "L1"
-    },
-    {
-      "id": "apps_web_src_app_api_sync_route_runtime",
-      "label": "runtime",
-      "_origin": "ast",
-      "community": 10,
-      "community_name": "pdi-repo.ts",
-      "file_type": "code",
-      "norm_label": "runtime",
-      "source_file": "apps/web/src/app/api/sync/route.ts",
-      "source_location": "L6"
-    },
-    {
       "id": "apps_web_src_app_planejamento_page",
       "label": "planejamento/page.tsx",
       "_origin": "ast",
@@ -2944,7 +2958,7 @@
       "node_kind": "heading",
       "norm_label": "\u23ed\ufe0f proximas rodadas",
       "source_file": "docs/PROGRESSO.md",
-      "source_location": "L166"
+      "source_location": "L183"
     },
     {
       "id": "docs_progresso_rodada_1_funda\u00e7\u00e3o",
@@ -3005,6 +3019,18 @@
       "norm_label": "\u2705 rodada 6 \u2014 planejamento de capacidade",
       "source_file": "docs/PROGRESSO.md",
       "source_location": "L145"
+    },
+    {
+      "id": "docs_progresso_rodada_7_em_andamento",
+      "label": "\ud83d\udea7 Rodada 7 \u2014 em andamento",
+      "_origin": "ast",
+      "community": 11,
+      "community_name": "Checklist de Testes Manuais \u2014 PDI+ MVP (Rodadas 1\u20135)",
+      "file_type": "document",
+      "node_kind": "heading",
+      "norm_label": "\ud83d\udea7 rodada 7 \u2014 em andamento",
+      "source_file": "docs/PROGRESSO.md",
+      "source_location": "L166"
     },
     {
       "id": "docs_project_instructions",
@@ -4068,110 +4094,66 @@
       "source_location": "L18"
     },
     {
-      "id": "apps_web_src_app_api_dev_seed_route",
-      "label": "seed/route.ts",
+      "id": "apps_web_src_app_import_page",
+      "label": "import/page.tsx",
       "_origin": "ast",
       "community": 2,
-      "community_name": "index.ts",
+      "community_name": "schema.ts",
       "file_type": "code",
-      "norm_label": "seed/route.ts",
-      "source_file": "apps/web/src/app/api/dev/seed/route.ts",
+      "norm_label": "import/page.tsx",
+      "source_file": "apps/web/src/app/import/page.tsx",
       "source_location": "L1"
     },
     {
-      "id": "apps_web_src_app_api_dev_seed_route_runtime",
-      "label": "runtime",
+      "id": "apps_web_src_components_importtabs",
+      "label": "ImportTabs.tsx",
       "_origin": "ast",
       "community": 2,
-      "community_name": "index.ts",
+      "community_name": "schema.ts",
       "file_type": "code",
-      "norm_label": "runtime",
-      "source_file": "apps/web/src/app/api/dev/seed/route.ts",
-      "source_location": "L6"
-    },
-    {
-      "id": "apps_web_src_lib_pdi_to_graph_test",
-      "label": "pdi-to-graph.test.ts",
-      "_origin": "ast",
-      "community": 2,
-      "community_name": "index.ts",
-      "file_type": "code",
-      "norm_label": "pdi-to-graph.test.ts",
-      "source_file": "apps/web/src/lib/pdi-to-graph.test.ts",
+      "norm_label": "importtabs.tsx",
+      "source_file": "apps/web/src/components/ImportTabs.tsx",
       "source_location": "L1"
     },
     {
-      "id": "apps_web_src_lib_pdi_to_graph_test_groups",
-      "label": "groups",
+      "id": "apps_web_src_components_manualbuilder",
+      "label": "ManualBuilder.tsx",
       "_origin": "ast",
       "community": 2,
-      "community_name": "index.ts",
+      "community_name": "schema.ts",
       "file_type": "code",
-      "norm_label": "groups",
-      "source_file": "apps/web/src/lib/pdi-to-graph.test.ts",
-      "source_location": "L14"
-    },
-    {
-      "id": "apps_web_src_lib_pdi_to_graph_test_pdi",
-      "label": "pdi",
-      "_origin": "ast",
-      "community": 2,
-      "community_name": "index.ts",
-      "file_type": "code",
-      "norm_label": "pdi",
-      "source_file": "apps/web/src/lib/pdi-to-graph.test.ts",
-      "source_location": "L10"
-    },
-    {
-      "id": "packages_core_src_fixtures_seed_hugo",
-      "label": "seed-hugo.ts",
-      "_origin": "ast",
-      "community": 2,
-      "community_name": "index.ts",
-      "file_type": "code",
-      "norm_label": "seed-hugo.ts",
-      "source_file": "packages/core/src/fixtures/seed-hugo.ts",
+      "norm_label": "manualbuilder.tsx",
+      "source_file": "apps/web/src/components/ManualBuilder.tsx",
       "source_location": "L1"
     },
     {
-      "id": "packages_core_src_fixtures_seed_hugo_seedhugo",
-      "label": "seedHugo",
+      "id": "apps_web_src_components_manualbuilder_kinds",
+      "label": "KINDS",
       "_origin": "ast",
       "community": 2,
-      "community_name": "index.ts",
+      "community_name": "schema.ts",
       "file_type": "code",
-      "norm_label": "seedhugo",
-      "source_file": "packages/core/src/fixtures/seed-hugo.ts",
-      "source_location": "L8"
+      "norm_label": "kinds",
+      "source_file": "apps/web/src/components/ManualBuilder.tsx",
+      "source_location": "L26"
     },
     {
-      "id": "packages_core_src_ids",
-      "label": "ids.ts",
+      "id": "apps_web_src_components_manualbuilder_statuses",
+      "label": "STATUSES",
       "_origin": "ast",
       "community": 2,
-      "community_name": "index.ts",
+      "community_name": "schema.ts",
       "file_type": "code",
-      "norm_label": "ids.ts",
-      "source_file": "packages/core/src/ids.ts",
-      "source_location": "L1"
-    },
-    {
-      "id": "packages_core_src_ids_combining_marks",
-      "label": "COMBINING_MARKS",
-      "_origin": "ast",
-      "community": 2,
-      "community_name": "index.ts",
-      "file_type": "code",
-      "norm_label": "combining_marks",
-      "source_file": "packages/core/src/ids.ts",
-      "source_location": "L2"
+      "norm_label": "statuses",
+      "source_file": "apps/web/src/components/ManualBuilder.tsx",
+      "source_location": "L27"
     },
     {
       "id": "packages_core_src_import",
       "label": "import.ts",
       "_origin": "ast",
       "community": 2,
-      "community_name": "index.ts",
+      "community_name": "schema.ts",
       "file_type": "code",
       "norm_label": "import.ts",
       "source_file": "packages/core/src/import.ts",
@@ -4182,7 +4164,7 @@
       "label": "HEADER_HINTS",
       "_origin": "ast",
       "community": 2,
-      "community_name": "index.ts",
+      "community_name": "schema.ts",
       "file_type": "code",
       "norm_label": "header_hints",
       "source_file": "packages/core/src/import.ts",
@@ -4193,7 +4175,7 @@
       "label": "import.test.ts",
       "_origin": "ast",
       "community": 2,
-      "community_name": "index.ts",
+      "community_name": "schema.ts",
       "file_type": "code",
       "norm_label": "import.test.ts",
       "source_file": "packages/core/src/import.test.ts",
@@ -4204,62 +4186,51 @@
       "label": "root",
       "_origin": "ast",
       "community": 2,
-      "community_name": "index.ts",
+      "community_name": "schema.ts",
       "file_type": "code",
       "norm_label": "root",
       "source_file": "packages/core/src/import.test.ts",
       "source_location": "L5"
     },
     {
-      "id": "packages_core_src_index",
-      "label": "index.ts",
-      "_origin": "ast",
-      "community": 2,
-      "community_name": "index.ts",
-      "file_type": "code",
-      "norm_label": "index.ts",
-      "source_file": "packages/core/src/index.ts",
-      "source_location": "L1"
-    },
-    {
-      "id": "packages_core_src_insight_test",
-      "label": "insight.test.ts",
-      "_origin": "ast",
-      "community": 2,
-      "community_name": "index.ts",
-      "file_type": "code",
-      "norm_label": "insight.test.ts",
-      "source_file": "packages/core/src/insight.test.ts",
-      "source_location": "L1"
-    },
-    {
-      "id": "packages_core_src_insight_test_pdi",
-      "label": "pdi",
-      "_origin": "ast",
-      "community": 2,
-      "community_name": "index.ts",
-      "file_type": "code",
-      "norm_label": "pdi",
-      "source_file": "packages/core/src/insight.test.ts",
-      "source_location": "L7"
-    },
-    {
       "id": "packages_core_src_labels",
       "label": "labels.ts",
       "_origin": "ast",
       "community": 2,
-      "community_name": "index.ts",
+      "community_name": "schema.ts",
       "file_type": "code",
       "norm_label": "labels.ts",
       "source_file": "packages/core/src/labels.ts",
       "source_location": "L1"
     },
     {
+      "id": "packages_core_src_labels_action_kind_label",
+      "label": "ACTION_KIND_LABEL",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "schema.ts",
+      "file_type": "code",
+      "norm_label": "action_kind_label",
+      "source_file": "packages/core/src/labels.ts",
+      "source_location": "L22"
+    },
+    {
+      "id": "packages_core_src_labels_action_status_label",
+      "label": "ACTION_STATUS_LABEL",
+      "_origin": "ast",
+      "community": 2,
+      "community_name": "schema.ts",
+      "file_type": "code",
+      "norm_label": "action_status_label",
+      "source_file": "packages/core/src/labels.ts",
+      "source_location": "L4"
+    },
+    {
       "id": "packages_core_src_labels_area_kind_label",
       "label": "AREA_KIND_LABEL",
       "_origin": "ast",
       "community": 2,
-      "community_name": "index.ts",
+      "community_name": "schema.ts",
       "file_type": "code",
       "norm_label": "area_kind_label",
       "source_file": "packages/core/src/labels.ts",
@@ -4270,29 +4241,18 @@
       "label": "AREA_STATUS_LABEL",
       "_origin": "ast",
       "community": 2,
-      "community_name": "index.ts",
+      "community_name": "schema.ts",
       "file_type": "code",
       "norm_label": "area_status_label",
       "source_file": "packages/core/src/labels.ts",
       "source_location": "L11"
     },
     {
-      "id": "packages_core_src_merge",
-      "label": "merge.ts",
-      "_origin": "ast",
-      "community": 2,
-      "community_name": "index.ts",
-      "file_type": "code",
-      "norm_label": "merge.ts",
-      "source_file": "packages/core/src/merge.ts",
-      "source_location": "L1"
-    },
-    {
       "id": "packages_core_src_schema",
       "label": "schema.ts",
       "_origin": "ast",
       "community": 2,
-      "community_name": "index.ts",
+      "community_name": "schema.ts",
       "file_type": "code",
       "norm_label": "schema.ts",
       "source_file": "packages/core/src/schema.ts",
@@ -4303,7 +4263,7 @@
       "label": "incomingActionSchema",
       "_origin": "ast",
       "community": 2,
-      "community_name": "index.ts",
+      "community_name": "schema.ts",
       "file_type": "code",
       "norm_label": "incomingactionschema",
       "source_file": "packages/core/src/schema.ts",
@@ -4314,7 +4274,7 @@
       "label": "incomingAreaSchema",
       "_origin": "ast",
       "community": 2,
-      "community_name": "index.ts",
+      "community_name": "schema.ts",
       "file_type": "code",
       "norm_label": "incomingareaschema",
       "source_file": "packages/core/src/schema.ts",
@@ -4325,7 +4285,7 @@
       "label": "isoDate",
       "_origin": "ast",
       "community": 2,
-      "community_name": "index.ts",
+      "community_name": "schema.ts",
       "file_type": "code",
       "norm_label": "isodate",
       "source_file": "packages/core/src/schema.ts",
@@ -4336,29 +4296,18 @@
       "label": "statusInput",
       "_origin": "ast",
       "community": 2,
-      "community_name": "index.ts",
+      "community_name": "schema.ts",
       "file_type": "code",
       "norm_label": "statusinput",
       "source_file": "packages/core/src/schema.ts",
       "source_location": "L10"
     },
     {
-      "id": "packages_core_src_schema_syncpayloadschema",
-      "label": "syncPayloadSchema",
-      "_origin": "ast",
-      "community": 2,
-      "community_name": "index.ts",
-      "file_type": "code",
-      "norm_label": "syncpayloadschema",
-      "source_file": "packages/core/src/schema.ts",
-      "source_location": "L47"
-    },
-    {
       "id": "docref_rfc_4180",
       "label": "RFC-4180",
       "_origin": "ast",
       "community": 2,
-      "community_name": "index.ts",
+      "community_name": "schema.ts",
       "file_type": "concept",
       "norm_label": "rfc-4180",
       "source_file": "packages/core/src/import.ts",
@@ -5125,103 +5074,191 @@
       "source_location": "L21"
     },
     {
-      "id": "apps_web_src_app_import_page",
-      "label": "import/page.tsx",
+      "id": "apps_web_src_app_api_dev_seed_route",
+      "label": "seed/route.ts",
       "_origin": "ast",
       "community": 6,
-      "community_name": "ManualBuilder.tsx",
+      "community_name": "index.ts",
       "file_type": "code",
-      "norm_label": "import/page.tsx",
-      "source_file": "apps/web/src/app/import/page.tsx",
+      "norm_label": "seed/route.ts",
+      "source_file": "apps/web/src/app/api/dev/seed/route.ts",
       "source_location": "L1"
     },
     {
-      "id": "apps_web_src_components_importform",
-      "label": "ImportForm.tsx",
+      "id": "apps_web_src_app_api_dev_seed_route_runtime",
+      "label": "runtime",
       "_origin": "ast",
       "community": 6,
-      "community_name": "ManualBuilder.tsx",
+      "community_name": "index.ts",
       "file_type": "code",
-      "norm_label": "importform.tsx",
-      "source_file": "apps/web/src/components/ImportForm.tsx",
+      "norm_label": "runtime",
+      "source_file": "apps/web/src/app/api/dev/seed/route.ts",
+      "source_location": "L6"
+    },
+    {
+      "id": "apps_web_src_app_api_import_route",
+      "label": "import/route.ts",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "import/route.ts",
+      "source_file": "apps/web/src/app/api/import/route.ts",
       "source_location": "L1"
     },
     {
-      "id": "apps_web_src_components_importtabs",
-      "label": "ImportTabs.tsx",
+      "id": "apps_web_src_app_api_import_route_runtime",
+      "label": "runtime",
       "_origin": "ast",
       "community": 6,
-      "community_name": "ManualBuilder.tsx",
+      "community_name": "index.ts",
       "file_type": "code",
-      "norm_label": "importtabs.tsx",
-      "source_file": "apps/web/src/components/ImportTabs.tsx",
+      "norm_label": "runtime",
+      "source_file": "apps/web/src/app/api/import/route.ts",
+      "source_location": "L6"
+    },
+    {
+      "id": "apps_web_src_app_api_sync_route",
+      "label": "sync/route.ts",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "sync/route.ts",
+      "source_file": "apps/web/src/app/api/sync/route.ts",
       "source_location": "L1"
     },
     {
-      "id": "apps_web_src_components_manualbuilder",
-      "label": "ManualBuilder.tsx",
+      "id": "apps_web_src_app_api_sync_route_runtime",
+      "label": "runtime",
       "_origin": "ast",
       "community": 6,
-      "community_name": "ManualBuilder.tsx",
+      "community_name": "index.ts",
       "file_type": "code",
-      "norm_label": "manualbuilder.tsx",
-      "source_file": "apps/web/src/components/ManualBuilder.tsx",
+      "norm_label": "runtime",
+      "source_file": "apps/web/src/app/api/sync/route.ts",
+      "source_location": "L6"
+    },
+    {
+      "id": "apps_web_src_lib_pdi_to_graph_test",
+      "label": "pdi-to-graph.test.ts",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "pdi-to-graph.test.ts",
+      "source_file": "apps/web/src/lib/pdi-to-graph.test.ts",
       "source_location": "L1"
     },
     {
-      "id": "apps_web_src_components_manualbuilder_kinds",
-      "label": "KINDS",
+      "id": "apps_web_src_lib_pdi_to_graph_test_groups",
+      "label": "groups",
       "_origin": "ast",
       "community": 6,
-      "community_name": "ManualBuilder.tsx",
+      "community_name": "index.ts",
       "file_type": "code",
-      "norm_label": "kinds",
-      "source_file": "apps/web/src/components/ManualBuilder.tsx",
-      "source_location": "L26"
+      "norm_label": "groups",
+      "source_file": "apps/web/src/lib/pdi-to-graph.test.ts",
+      "source_location": "L14"
     },
     {
-      "id": "apps_web_src_components_manualbuilder_statuses",
-      "label": "STATUSES",
+      "id": "apps_web_src_lib_pdi_to_graph_test_pdi",
+      "label": "pdi",
       "_origin": "ast",
       "community": 6,
-      "community_name": "ManualBuilder.tsx",
+      "community_name": "index.ts",
       "file_type": "code",
-      "norm_label": "statuses",
-      "source_file": "apps/web/src/components/ManualBuilder.tsx",
-      "source_location": "L27"
+      "norm_label": "pdi",
+      "source_file": "apps/web/src/lib/pdi-to-graph.test.ts",
+      "source_location": "L10"
     },
     {
-      "id": "packages_core_src_labels_action_kind_label",
-      "label": "ACTION_KIND_LABEL",
+      "id": "packages_core_src_fixtures_seed_hugo",
+      "label": "seed-hugo.ts",
       "_origin": "ast",
       "community": 6,
-      "community_name": "ManualBuilder.tsx",
+      "community_name": "index.ts",
       "file_type": "code",
-      "norm_label": "action_kind_label",
-      "source_file": "packages/core/src/labels.ts",
-      "source_location": "L22"
+      "norm_label": "seed-hugo.ts",
+      "source_file": "packages/core/src/fixtures/seed-hugo.ts",
+      "source_location": "L1"
     },
     {
-      "id": "packages_core_src_labels_action_status_label",
-      "label": "ACTION_STATUS_LABEL",
+      "id": "packages_core_src_fixtures_seed_hugo_seedhugo",
+      "label": "seedHugo",
       "_origin": "ast",
       "community": 6,
-      "community_name": "ManualBuilder.tsx",
+      "community_name": "index.ts",
       "file_type": "code",
-      "norm_label": "action_status_label",
-      "source_file": "packages/core/src/labels.ts",
-      "source_location": "L4"
+      "norm_label": "seedhugo",
+      "source_file": "packages/core/src/fixtures/seed-hugo.ts",
+      "source_location": "L8"
     },
     {
-      "id": "ref_react",
-      "label": "react",
+      "id": "packages_core_src_ids",
+      "label": "ids.ts",
       "_origin": "ast",
       "community": 6,
-      "community_name": "ManualBuilder.tsx",
-      "file_type": "concept",
-      "norm_label": "react",
-      "source_file": "apps/web/package.json",
-      "source_location": "L19"
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "ids.ts",
+      "source_file": "packages/core/src/ids.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "packages_core_src_ids_combining_marks",
+      "label": "COMBINING_MARKS",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "combining_marks",
+      "source_file": "packages/core/src/ids.ts",
+      "source_location": "L2"
+    },
+    {
+      "id": "packages_core_src_index",
+      "label": "index.ts",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "index.ts",
+      "source_file": "packages/core/src/index.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "packages_core_src_insight_test",
+      "label": "insight.test.ts",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "insight.test.ts",
+      "source_file": "packages/core/src/insight.test.ts",
+      "source_location": "L1"
+    },
+    {
+      "id": "packages_core_src_insight_test_pdi",
+      "label": "pdi",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "pdi",
+      "source_file": "packages/core/src/insight.test.ts",
+      "source_location": "L7"
+    },
+    {
+      "id": "packages_core_src_schema_syncpayloadschema",
+      "label": "syncPayloadSchema",
+      "_origin": "ast",
+      "community": 6,
+      "community_name": "index.ts",
+      "file_type": "code",
+      "norm_label": "syncpayloadschema",
+      "source_file": "packages/core/src/schema.ts",
+      "source_location": "L47"
     },
     {
       "id": "packages_core_tsconfig",
@@ -5382,7 +5419,7 @@
       "label": "app/page.tsx",
       "_origin": "ast",
       "community": 8,
-      "community_name": "app/page.tsx",
+      "community_name": "insight.ts",
       "file_type": "code",
       "norm_label": "app/page.tsx",
       "source_file": "apps/web/src/app/page.tsx",
@@ -5393,7 +5430,7 @@
       "label": "EmptyState.tsx",
       "_origin": "ast",
       "community": 8,
-      "community_name": "app/page.tsx",
+      "community_name": "insight.ts",
       "file_type": "code",
       "norm_label": "emptystate.tsx",
       "source_file": "apps/web/src/components/EmptyState.tsx",
@@ -5404,29 +5441,73 @@
       "label": "GeminiButton.tsx",
       "_origin": "ast",
       "community": 8,
-      "community_name": "app/page.tsx",
+      "community_name": "insight.ts",
       "file_type": "code",
       "norm_label": "geminibutton.tsx",
       "source_file": "apps/web/src/components/GeminiButton.tsx",
       "source_location": "L1"
     },
     {
+      "id": "apps_web_src_components_geminibutton_kinds",
+      "label": "KINDS",
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "insight.ts",
+      "file_type": "code",
+      "norm_label": "kinds",
+      "source_file": "apps/web/src/components/GeminiButton.tsx",
+      "source_location": "L12"
+    },
+    {
       "id": "packages_core_src_insight",
       "label": "insight.ts",
       "_origin": "ast",
       "community": 8,
-      "community_name": "app/page.tsx",
+      "community_name": "insight.ts",
       "file_type": "code",
       "norm_label": "insight.ts",
       "source_file": "packages/core/src/insight.ts",
       "source_location": "L1"
     },
     {
+      "id": "packages_core_src_insight_asks",
+      "label": "ASKS",
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "insight.ts",
+      "file_type": "code",
+      "norm_label": "asks",
+      "source_file": "packages/core/src/insight.ts",
+      "source_location": "L29"
+    },
+    {
+      "id": "packages_core_src_insight_insight_kind_hint",
+      "label": "INSIGHT_KIND_HINT",
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "insight.ts",
+      "file_type": "code",
+      "norm_label": "insight_kind_hint",
+      "source_file": "packages/core/src/insight.ts",
+      "source_location": "L21"
+    },
+    {
+      "id": "packages_core_src_insight_insight_kind_label",
+      "label": "INSIGHT_KIND_LABEL",
+      "_origin": "ast",
+      "community": 8,
+      "community_name": "insight.ts",
+      "file_type": "code",
+      "norm_label": "insight_kind_label",
+      "source_file": "packages/core/src/insight.ts",
+      "source_location": "L13"
+    },
+    {
       "id": "packages_core_src_merge_test",
       "label": "merge.test.ts",
       "_origin": "ast",
       "community": 8,
-      "community_name": "app/page.tsx",
+      "community_name": "insight.ts",
       "file_type": "code",
       "norm_label": "merge.test.ts",
       "source_file": "packages/core/src/merge.test.ts",
@@ -5437,7 +5518,7 @@
       "label": "input",
       "_origin": "ast",
       "community": 8,
-      "community_name": "app/page.tsx",
+      "community_name": "insight.ts",
       "file_type": "code",
       "norm_label": "input",
       "source_file": "packages/core/src/merge.test.ts",
@@ -5448,7 +5529,7 @@
       "label": "opts",
       "_origin": "ast",
       "community": 8,
-      "community_name": "app/page.tsx",
+      "community_name": "insight.ts",
       "file_type": "code",
       "norm_label": "opts",
       "source_file": "packages/core/src/merge.test.ts",
@@ -5459,7 +5540,7 @@
       "label": "payload",
       "_origin": "ast",
       "community": 8,
-      "community_name": "app/page.tsx",
+      "community_name": "insight.ts",
       "file_type": "code",
       "norm_label": "payload",
       "source_file": "packages/core/src/merge.test.ts",
@@ -5470,7 +5551,7 @@
       "label": "progress.ts",
       "_origin": "ast",
       "community": 8,
-      "community_name": "app/page.tsx",
+      "community_name": "insight.ts",
       "file_type": "code",
       "norm_label": "progress.ts",
       "source_file": "packages/core/src/progress.ts",
@@ -5994,6 +6075,18 @@
       "weight": 1.0
     },
     {
+      "source": "apps_web_src_components_canvas_nodes_groupnode",
+      "target": "packages_core_src_progress_formatpercent",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "apps/web/src/components/canvas/nodes.tsx",
+      "source_location": "L404",
+      "weight": 1.0
+    },
+    {
       "source": "apps_web_src_components_canvas_nodes_rootnode",
       "target": "apps_web_src_components_canvas_nodes_borderstyle",
       "relation": "calls",
@@ -6134,7 +6227,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/components/GeminiButton.tsx",
-      "source_location": "L9",
+      "source_location": "L18",
       "weight": 1.0
     },
     {
@@ -6530,7 +6623,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L121",
+      "source_location": "L123",
       "weight": 1.0
     },
     {
@@ -6542,7 +6635,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L134",
+      "source_location": "L136",
       "weight": 1.0
     },
     {
@@ -6554,7 +6647,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L136",
+      "source_location": "L138",
       "weight": 1.0
     },
     {
@@ -6566,7 +6659,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L363",
+      "source_location": "L377",
       "weight": 1.0
     },
     {
@@ -6578,7 +6671,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L183",
+      "source_location": "L185",
       "weight": 1.0
     },
     {
@@ -6590,7 +6683,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L402",
+      "source_location": "L417",
       "weight": 1.0
     },
     {
@@ -6602,7 +6695,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L420",
+      "source_location": "L435",
       "weight": 1.0
     },
     {
@@ -6614,7 +6707,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L556",
+      "source_location": "L571",
       "weight": 1.0
     },
     {
@@ -6626,7 +6719,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L557",
+      "source_location": "L572",
       "weight": 1.0
     },
     {
@@ -6638,7 +6731,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L558",
+      "source_location": "L573",
       "weight": 1.0
     },
     {
@@ -6650,7 +6743,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L559",
+      "source_location": "L574",
       "weight": 1.0
     },
     {
@@ -6662,7 +6755,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L559",
+      "source_location": "L574",
       "weight": 1.0
     },
     {
@@ -6674,7 +6767,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L497",
+      "source_location": "L512",
       "weight": 1.0
     },
     {
@@ -6686,7 +6779,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L504",
+      "source_location": "L519",
       "weight": 1.0
     },
     {
@@ -6698,7 +6791,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L196",
+      "source_location": "L198",
       "weight": 1.0
     },
     {
@@ -6710,7 +6803,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L204",
+      "source_location": "L206",
       "weight": 1.0
     },
     {
@@ -6722,7 +6815,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L454",
+      "source_location": "L469",
       "weight": 1.0
     },
     {
@@ -6734,7 +6827,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L464",
+      "source_location": "L479",
       "weight": 1.0
     },
     {
@@ -6746,7 +6839,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L475",
+      "source_location": "L490",
       "weight": 1.0
     },
     {
@@ -6758,7 +6851,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L489",
+      "source_location": "L504",
       "weight": 1.0
     },
     {
@@ -6770,7 +6863,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L244",
+      "source_location": "L246",
       "weight": 1.0
     },
     {
@@ -6782,7 +6875,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L247",
+      "source_location": "L249",
       "weight": 1.0
     },
     {
@@ -6794,7 +6887,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L274",
+      "source_location": "L276",
       "weight": 1.0
     },
     {
@@ -6806,7 +6899,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L285",
+      "source_location": "L287",
       "weight": 1.0
     },
     {
@@ -6818,7 +6911,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L288",
+      "source_location": "L290",
       "weight": 1.0
     },
     {
@@ -6918,7 +7011,7 @@
       "weight": 1.0
     },
     {
-      "source": "packages_core_src_insight_buildinsightprompt",
+      "source": "packages_core_src_insight_buildcontextblock",
       "target": "packages_core_src_progress_formatpercent",
       "relation": "calls",
       "_origin": "ast",
@@ -6926,11 +7019,11 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "packages/core/src/insight.ts",
-      "source_location": "L16",
+      "source_location": "L72",
       "weight": 1.0
     },
     {
-      "source": "packages_core_src_insight_buildinsightprompt",
+      "source": "packages_core_src_insight_buildcontextblock",
       "target": "packages_core_src_progress_overallprogress",
       "relation": "calls",
       "_origin": "ast",
@@ -6938,11 +7031,11 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "packages/core/src/insight.ts",
-      "source_location": "L16",
+      "source_location": "L72",
       "weight": 1.0
     },
     {
-      "source": "packages_core_src_insight_buildinsightprompt",
+      "source": "packages_core_src_insight_buildcontextblock",
       "target": "packages_core_src_progress_areaprogress",
       "relation": "calls",
       "_origin": "ast",
@@ -6950,11 +7043,11 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "packages/core/src/insight.ts",
-      "source_location": "L30",
+      "source_location": "L86",
       "weight": 1.0
     },
     {
-      "source": "packages_core_src_insight_buildinsightprompt",
+      "source": "packages_core_src_insight_buildcontextblock",
       "target": "packages_core_src_insight_br",
       "relation": "calls",
       "_origin": "ast",
@@ -6962,7 +7055,19 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "packages/core/src/insight.ts",
-      "source_location": "L35",
+      "source_location": "L91",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_core_src_insight_buildinsightprompt",
+      "target": "packages_core_src_insight_buildcontextblock",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "packages/core/src/insight.ts",
+      "source_location": "L110",
       "weight": 1.0
     },
     {
@@ -8540,6 +8645,42 @@
     {
       "source": "apps_web_src_components_geminibutton",
       "target": "packages_core_src_insight_buildinsightprompt",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "apps/web/src/components/GeminiButton.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_src_components_geminibutton",
+      "target": "packages_core_src_insight_insight_kind_hint",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "apps/web/src/components/GeminiButton.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_src_components_geminibutton",
+      "target": "packages_core_src_insight_insight_kind_label",
+      "relation": "imports",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "import",
+      "source_file": "apps/web/src/components/GeminiButton.tsx",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_src_components_geminibutton",
+      "target": "packages_core_src_insight_insightkind",
       "relation": "imports",
       "_origin": "ast",
       "confidence": "EXTRACTED",
@@ -12314,7 +12455,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/web/src/components/canvas/nodes.tsx",
-      "source_location": "L425",
+      "source_location": "L433",
       "weight": 1.0
     },
     {
@@ -12336,7 +12477,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/web/src/components/canvas/nodes.tsx",
-      "source_location": "L525",
+      "source_location": "L533",
       "weight": 1.0
     },
     {
@@ -12462,13 +12603,24 @@
     },
     {
       "source": "apps_web_src_components_geminibutton",
+      "target": "apps_web_src_components_geminibutton_kinds",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "apps/web/src/components/GeminiButton.tsx",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_src_components_geminibutton",
       "target": "apps_web_src_components_geminibutton_geminibutton",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/web/src/components/GeminiButton.tsx",
-      "source_location": "L6",
+      "source_location": "L14",
       "weight": 1.0
     },
     {
@@ -12919,7 +13071,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L105",
+      "source_location": "L107",
       "weight": 1.0
     },
     {
@@ -12930,7 +13082,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L113",
+      "source_location": "L115",
       "weight": 1.0
     },
     {
@@ -12941,7 +13093,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L163",
+      "source_location": "L165",
       "weight": 1.0
     },
     {
@@ -12963,7 +13115,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L180",
+      "source_location": "L182",
       "weight": 1.0
     },
     {
@@ -12974,7 +13126,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L195",
+      "source_location": "L197",
       "weight": 1.0
     },
     {
@@ -12990,17 +13142,6 @@
     },
     {
       "source": "apps_web_src_lib_pdi_to_graph",
-      "target": "apps_web_src_lib_pdi_to_graph_linkedge",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L218",
-      "weight": 1.0
-    },
-    {
-      "source": "apps_web_src_lib_pdi_to_graph",
       "target": "apps_web_src_lib_pdi_to_graph_layout_label",
       "relation": "contains",
       "_origin": "ast",
@@ -13012,13 +13153,24 @@
     },
     {
       "source": "apps_web_src_lib_pdi_to_graph",
+      "target": "apps_web_src_lib_pdi_to_graph_linkedge",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "apps/web/src/lib/pdi-to-graph.ts",
+      "source_location": "L220",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_src_lib_pdi_to_graph",
       "target": "apps_web_src_lib_pdi_to_graph_treelayout",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L237",
+      "source_location": "L239",
       "weight": 1.0
     },
     {
@@ -13029,7 +13181,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L294",
+      "source_location": "L296",
       "weight": 1.0
     },
     {
@@ -13040,18 +13192,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L296",
-      "weight": 1.0
-    },
-    {
-      "source": "apps_web_src_lib_pdi_to_graph",
-      "target": "apps_web_src_lib_pdi_to_graph_hugbox",
-      "relation": "contains",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L299",
+      "source_location": "L298",
       "weight": 1.0
     },
     {
@@ -13067,13 +13208,24 @@
     },
     {
       "source": "apps_web_src_lib_pdi_to_graph",
+      "target": "apps_web_src_lib_pdi_to_graph_hugbox",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "apps/web/src/lib/pdi-to-graph.ts",
+      "source_location": "L301",
+      "weight": 1.0
+    },
+    {
+      "source": "apps_web_src_lib_pdi_to_graph",
       "target": "apps_web_src_lib_pdi_to_graph_areasinbox",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L326",
+      "source_location": "L328",
       "weight": 1.0
     },
     {
@@ -13084,7 +13236,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L344",
+      "source_location": "L346",
       "weight": 1.0
     },
     {
@@ -13117,7 +13269,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L397",
+      "source_location": "L412",
       "weight": 1.0
     },
     {
@@ -13128,7 +13280,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L449",
+      "source_location": "L464",
       "weight": 1.0
     },
     {
@@ -13150,7 +13302,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L496",
+      "source_location": "L511",
       "weight": 1.0
     },
     {
@@ -13161,7 +13313,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L540",
+      "source_location": "L555",
       "weight": 1.0
     },
     {
@@ -13205,7 +13357,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L96",
+      "source_location": "L98",
       "weight": 1.0
     },
     {
@@ -13936,13 +14088,24 @@
     },
     {
       "source": "docs_progresso_progresso_do_pdi",
-      "target": "docs_progresso_pr\u00f3ximas_rodadas",
+      "target": "docs_progresso_rodada_7_em_andamento",
       "relation": "contains",
       "_origin": "ast",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/PROGRESSO.md",
       "source_location": "L166",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_progresso_progresso_do_pdi",
+      "target": "docs_progresso_pr\u00f3ximas_rodadas",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/PROGRESSO.md",
+      "source_location": "L183",
       "weight": 1.0
     },
     {
@@ -14723,7 +14886,51 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "packages/core/src/insight.ts",
-      "source_location": "L14",
+      "source_location": "L107",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_core_src_insight",
+      "target": "packages_core_src_insight_insightkind",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/core/src/insight.ts",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_core_src_insight",
+      "target": "packages_core_src_insight_insight_kind_label",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/core/src/insight.ts",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_core_src_insight",
+      "target": "packages_core_src_insight_insight_kind_hint",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/core/src/insight.ts",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_core_src_insight",
+      "target": "packages_core_src_insight_asks",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/core/src/insight.ts",
+      "source_location": "L29",
       "weight": 1.0
     },
     {
@@ -14735,6 +14942,17 @@
       "confidence_score": 1.0,
       "source_file": "packages/core/src/insight.ts",
       "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "packages_core_src_insight",
+      "target": "packages_core_src_insight_buildcontextblock",
+      "relation": "contains",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/core/src/insight.ts",
+      "source_location": "L70",
       "weight": 1.0
     },
     {
@@ -15643,7 +15861,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/PROGRESSO.md",
-      "source_location": "L173",
+      "source_location": "L190",
       "weight": 1.0
     },
     {
@@ -15744,7 +15962,7 @@
       "confidence_score": 0.85,
       "context": "argument",
       "source_file": "apps/web/src/lib/pdi-to-graph.ts",
-      "source_location": "L561",
+      "source_location": "L576",
       "weight": 1.0
     },
     {
@@ -15936,7 +16154,7 @@
       "confidence_score": 0.85,
       "context": "collection",
       "source_file": "apps/web/src/components/canvas/nodes.tsx",
-      "source_location": "L526",
+      "source_location": "L534",
       "weight": 1.0
     },
     {
@@ -15948,7 +16166,7 @@
       "confidence_score": 0.85,
       "context": "collection",
       "source_file": "apps/web/src/components/canvas/nodes.tsx",
-      "source_location": "L527",
+      "source_location": "L535",
       "weight": 1.0
     },
     {
@@ -15960,7 +16178,7 @@
       "confidence_score": 0.85,
       "context": "collection",
       "source_file": "apps/web/src/components/canvas/nodes.tsx",
-      "source_location": "L528",
+      "source_location": "L536",
       "weight": 1.0
     },
     {
@@ -15972,7 +16190,7 @@
       "confidence_score": 0.85,
       "context": "collection",
       "source_file": "apps/web/src/components/canvas/nodes.tsx",
-      "source_location": "L529",
+      "source_location": "L537",
       "weight": 1.0
     },
     {
@@ -15984,10 +16202,10 @@
       "confidence_score": 0.85,
       "context": "collection",
       "source_file": "apps/web/src/components/canvas/nodes.tsx",
-      "source_location": "L530",
+      "source_location": "L538",
       "weight": 1.0
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "1ea5b67283295c589016bea933a1aeed3cba4038"
+  "built_at_commit": "9ceaee486dbf0f1ed86b223fe1bc91235c7f306d"
 }
