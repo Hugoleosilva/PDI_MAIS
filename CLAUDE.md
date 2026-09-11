@@ -99,7 +99,10 @@ apps/extension/        placeholder — Rodada 3 (bloqueada por aval da TI)
 - **`pnpm build` falha com EPERM** se o `pnpm dev` estiver rodando (trava o `.next`) —
   parar o dev, `rm -rf apps/web/.next`, buildar.
 - Commits: mensagem multilinha via `git commit -m "$(printf '...')"` no Bash
-  (o here-string do PowerShell quebra com `/` e parênteses).
+  (o here-string do PowerShell quebra com `/` e parênteses). **Cuidado**: se a
+  mensagem tiver `%` (ex. "% simples"), o `printf` interpreta como especificador
+  de formato e corrompe o texto — nesse caso escreve a mensagem num arquivo
+  (`Write`) e usa `git commit -F arquivo.txt` em vez de `printf`.
 - O usuário tem **3 contas Google** com PDIs separados no banco; a de teste é
   `hugollsilva.dev@gmail.com`.
 - `.env.local` em `apps/web/` (Mongo + Google OAuth) — fora do git.
