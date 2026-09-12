@@ -242,11 +242,21 @@ export function RootNode({ data, selected }: NodeProps & { data: RootNodeData })
           <Bar value={data.progress} color={brand.blue} />
           <span className="shrink-0 text-xs font-bold" style={{ color: brand.ink }}>{formatPercent(data.progress)}</span>
         </div>
-        <div className="text-[11px]" style={{ color: brand.muted }}>{data.areaCount} áreas de desenvolvimento</div>
+        <div className="text-[11px]" style={{ color: brand.muted }}>
+          {data.areaCount} áreas de desenvolvimento
+          {data.groupCount > 0 && ` em ${data.groupCount} bloco${data.groupCount > 1 ? "s" : ""}`}
+        </div>
         <Handle type="target" position={targetPos(data.dir)} style={handleStyle} />
         <Handle type="source" position={sourcePos(data.dir)} style={handleStyle} />
       </div>
-      <RootNote note={data.note} onCommit={data.onEditNote} show={Boolean(selected)} width={width} />
+      <RootNote
+        note={data.note}
+        noteTitle={data.noteTitle}
+        onCommit={data.onEditNote}
+        onCommitTitle={data.onEditNoteTitle}
+        show={Boolean(selected)}
+        width={width}
+      />
     </>
   );
 }
@@ -258,12 +268,16 @@ export function RootNode({ data, selected }: NodeProps & { data: RootNodeData })
  */
 function RootNote({
   note,
+  noteTitle,
   onCommit,
+  onCommitTitle,
   show,
   width,
 }: {
   note?: string;
+  noteTitle?: string;
   onCommit?: (v: string) => void;
+  onCommitTitle?: (v: string) => void;
   show: boolean;
   width: number;
 }) {
@@ -288,9 +302,13 @@ function RootNote({
         className="rounded-lg p-2 text-[11px] leading-snug shadow-sm"
         style={{ background: "#FEF3C7", borderLeft: `3px solid ${brand.blue}` }}
       >
-        <div className="mb-1 font-semibold" style={{ color: brand.muted }}>
-          Objetivo
-        </div>
+        <EditableText
+          value={noteTitle ?? ""}
+          placeholder="Objetivo"
+          onCommit={onCommitTitle}
+          className="mb-1 block font-semibold"
+          style={{ color: brand.muted }}
+        />
         {editing ? (
           <textarea
             ref={ref}
@@ -313,8 +331,8 @@ function RootNote({
           />
         ) : (
           <p
-            className="min-h-[16px] cursor-text whitespace-pre-wrap"
-            style={{ color: brand.ink }}
+            className="min-h-[16px] cursor-text whitespace-pre-wrap text-left"
+            style={{ color: brand.ink, textAlign: "left" }}
             onClick={(e) => {
               e.stopPropagation();
               setEditing(true);
@@ -667,8 +685,8 @@ function StickyNote({
           />
         ) : (
           <p
-            className="min-h-[16px] cursor-text whitespace-pre-wrap"
-            style={{ color: brand.ink }}
+            className="min-h-[16px] cursor-text whitespace-pre-wrap text-left"
+            style={{ color: brand.ink, textAlign: "left" }}
             onClick={(e) => {
               e.stopPropagation();
               setEditing(true);

@@ -87,6 +87,8 @@ export interface PdiRoot {
   track?: string;
   /** Objetivo geral ("pra onde estou indo") — anotação do card raiz, igual à do bloco. */
   note?: string;
+  /** Rótulo da anotação acima ("Objetivo" por padrão) — editável. */
+  noteTitle?: string;
 }
 
 /**

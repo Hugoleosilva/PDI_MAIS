@@ -422,7 +422,7 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
   );
 
   // ---- injeta handlers nos nós raiz / bloco ----
-  const patchRoot = useCallback(async (patch: { title?: string; track?: string; note?: string }) => {
+  const patchRoot = useCallback(async (patch: { title?: string; track?: string; note?: string; noteTitle?: string }) => {
     setNodes((ns) =>
       ns.map((n) => (n.id === "root" ? ({ ...n, data: { ...n.data, ...patch } } as PdiNode) : n)),
     );
@@ -448,6 +448,7 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
               onEditTitle: (v: string) => patchRoot({ title: v }),
               onEditTrack: (v: string) => patchRoot({ track: v }),
               onEditNote: (v: string) => patchRoot({ note: v }),
+              onEditNoteTitle: (v: string) => patchRoot({ noteTitle: v }),
               onResize: (size: { w: number; h: number }) => {
                 setRootSize(size);
                 scheduleSave();

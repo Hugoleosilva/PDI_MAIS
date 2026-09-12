@@ -41,15 +41,20 @@ export interface RootNodeData extends Record<string, unknown> {
   track?: string;
   progress: number;
   areaCount: number;
+  /** Quantos blocos existem — pra não confundir "quantas áreas" com "como estão organizadas". */
+  groupCount: number;
   dir: Direction;
   /** Tamanho redimensionado pelo usuário (sobrepõe NODE_SIZE.root). */
   width?: number;
   height?: number;
   /** Objetivo geral ("pra onde estou indo") — igual à anotação do bloco. */
   note?: string;
+  /** Rótulo da anotação acima ("Objetivo" por padrão) — editável. */
+  noteTitle?: string;
   onEditTitle?: (v: string) => void;
   onEditTrack?: (v: string) => void;
   onEditNote?: (v: string) => void;
+  onEditNoteTitle?: (v: string) => void;
   onResize?: (size: { w: number; h: number }) => void;
 }
 
@@ -134,10 +139,12 @@ function baseNodes(pdi: PdiDoc, dir: Direction, rootSize?: { w: number; h: numbe
       track: pdi.root.track,
       progress: overallProgress(pdi.areas),
       areaCount: pdi.areas.length,
+      groupCount: pdi.groups?.length ?? 0,
       dir,
       width: rootSize?.w,
       height: rootSize?.h,
       note: pdi.root.note,
+      noteTitle: pdi.root.noteTitle,
     },
   };
 

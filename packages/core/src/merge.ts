@@ -136,6 +136,7 @@ export function mergePdi(
       title: payload.root.title,
       track: payload.root.track ?? existing?.root.track,
       note: existing?.root.note,
+      noteTitle: existing?.root.noteTitle,
     },
     updatedAt: now,
     syncedAt: opts.source === "extension" ? now : (existing?.syncedAt ?? null),

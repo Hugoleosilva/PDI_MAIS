@@ -164,7 +164,7 @@ export async function updateAction(
  */
 export async function updateRoot(
   userId: string,
-  patch: { title?: string; track?: string | null; note?: string | null },
+  patch: { title?: string; track?: string | null; note?: string | null; noteTitle?: string | null },
 ): Promise<void> {
   const col = await collection();
   const $set: Record<string, unknown> = { updatedAt: new Date() };
@@ -174,6 +174,8 @@ export async function updateRoot(
   else if (patch.track !== undefined) $set["root.track"] = patch.track;
   if (patch.note === null) $unset["root.note"] = "";
   else if (patch.note !== undefined) $set["root.note"] = patch.note;
+  if (patch.noteTitle === null) $unset["root.noteTitle"] = "";
+  else if (patch.noteTitle !== undefined) $set["root.noteTitle"] = patch.noteTitle;
 
   const update: Record<string, unknown> = { $set };
   if (Object.keys($unset).length > 0) update.$unset = $unset;
