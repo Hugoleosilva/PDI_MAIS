@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { getPdiByUserId } from "@/lib/pdi-repo";
@@ -30,9 +29,10 @@ export default async function ImportPage() {
         <h1 className="text-xl font-bold">
           {pdi ? "Editar / importar PDI" : "Montar PDI"}
         </h1>
-        <Link href="/" className="text-sm text-neutral-500 hover:text-neutral-800">
+        {/* <a> normal de propósito — força recarregar, sem cache de navegação */}
+        <a href="/" className="text-sm text-neutral-500 hover:text-neutral-800">
           ← voltar ao canvas
-        </Link>
+        </a>
       </div>
       <ImportTabs
         initialTitle={pdi?.root.title ?? "PDI 2026"}

@@ -69,12 +69,15 @@ export default async function Home() {
           {pdi && <GeminiButton pdi={pdi} />}
           {pdi && <ReportButton pdi={pdi} />}
           {pdi && (
-            <Link
+            // <a> normal (não <Link>) de propósito: força recarregar a página
+            // de verdade, sem reaproveitar o cache de navegação do Next — o
+            // canvas e o planejamento têm que sempre ver o dado mais recente.
+            <a
               href="/planejamento"
               className="rounded-md border border-neutral-300 px-3 py-1 text-xs font-medium text-neutral-700 hover:bg-neutral-100"
             >
               Planejamento
-            </Link>
+            </a>
           )}
           <Link
             href="/import"

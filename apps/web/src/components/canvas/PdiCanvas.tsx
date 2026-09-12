@@ -489,7 +489,9 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
   );
 
   // ---- sincroniza estrutura; fitView só quando muda o formato ----
-  const prevLayoutKind = useRef<Layout | null>(null);
+  // começa igual ao layoutKind inicial (não null!) — senão a 1ª renderização
+  // já conta como "mudou de direção" e solta a âncora do raiz logo de cara.
+  const prevLayoutKind = useRef<Layout>(layoutKind);
   useEffect(() => {
     setNodes(withHandlers(layout.nodes));
     if (prevLayoutKind.current !== layoutKind) {

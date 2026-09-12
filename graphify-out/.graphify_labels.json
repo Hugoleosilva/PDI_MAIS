@@ -16,7 +16,7 @@
   "14": "canvas-presets/route.ts",
   "15": "PDI+ — contexto do projeto",
   "16": "canvas/route.ts",
-  "17": "[id]/route.ts",
+  "17": "merge.ts",
   "18": "extension/README.md",
   "19": "pdi-repo.ts",
   "20": "Next.js Config",
@@ -27,7 +27,12 @@
   "25": "Vitest Test Config",
   "26": "root/route.ts",
   "27": "RELATORIO.md",
-  "28": "groups/route.ts",
+  "28": "capacity/route.ts",
   "29": "mongo.ts",
-  "30": "addReportSnapshot"
+  "30": "Checklist de Testes Manuais — PDI+ MVP (Rodadas 1–5)",
+  "31": "Setup do ambiente — PDI+",
+  "32": "getPdiByUserId",
+  "33": "Prompt inicial — PDI+",
+  "34": "README.md",
+  "35": "PDI+"
 }

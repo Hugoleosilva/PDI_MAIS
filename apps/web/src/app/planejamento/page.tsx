@@ -15,9 +15,10 @@ export default async function PlanningPage() {
     <main className="mx-auto max-w-4xl p-6">
       <div className="mb-2 flex items-center justify-between">
         <h1 className="text-xl font-bold">Planejamento</h1>
-        <Link href="/" className="text-sm text-neutral-500 hover:text-neutral-800">
+        {/* <a> normal de propósito — força recarregar, sem cache de navegação */}
+        <a href="/" className="text-sm text-neutral-500 hover:text-neutral-800">
           ← voltar ao canvas
-        </Link>
+        </a>
       </div>
       <p className="mb-6 max-w-2xl text-sm text-neutral-500">
         Informe a carga horária de cada curso e o progresso real (módulos ou horas
