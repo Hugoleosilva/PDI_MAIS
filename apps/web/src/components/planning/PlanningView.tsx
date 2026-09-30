@@ -64,6 +64,11 @@ export function PlanningView({ pdi, today }: { pdi: PdiDoc; today: string }) {
     );
   });
   const [modes, setModes] = useState<Record<string, ProgMode>>({});
+  // guarda o último valor de cada modo por ação, pra não perder o que já foi
+  // digitado quando o usuário troca "medir progresso por" e volta.
+  const modeCache = useRef<
+    Record<string, { units?: { done: number | null; total: number | null; label: string | null }; hours?: number | null }>
+  >({});
 
   const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const pending = useRef<Record<string, Record<string, unknown>>>({});
@@ -332,17 +337,37 @@ export function PlanningView({ pdi, today }: { pdi: PdiDoc; today: string }) {
                           : "status";
                     const mode = modes[a.id] ?? derived;
                     const setMode = (m: ProgMode) => {
+                      // guarda o que estava preenchido no modo que está saindo
+                      if (mode === "units") {
+                        modeCache.current[a.id] = {
+                          ...modeCache.current[a.id],
+                          units: {
+                            done: act.unitsDone ?? null,
+                            total: act.unitsTotal ?? null,
+                            label: act.unitsLabel ?? null,
+                          },
+                        };
+                      } else if (mode === "hours") {
+                        modeCache.current[a.id] = {
+                          ...modeCache.current[a.id],
+                          hours: act.hoursDone ?? null,
+                        };
+                      }
                       setModes((x) => ({ ...x, [a.id]: m }));
+                      const cached = modeCache.current[a.id];
                       if (m === "units") {
                         patchAction(a.id, {
                           hoursDone: null,
-                          unitsLabel: act.unitsLabel ?? "módulos",
+                          unitsDone: cached?.units?.done ?? null,
+                          unitsTotal: cached?.units?.total ?? null,
+                          unitsLabel: cached?.units?.label ?? act.unitsLabel ?? "módulos",
                         });
                       } else if (m === "hours") {
                         patchAction(a.id, {
                           unitsTotal: null,
                           unitsDone: null,
                           unitsLabel: null,
+                          hoursDone: cached?.hours ?? null,
                         });
                       } else {
                         patchAction(a.id, {
@@ -393,7 +418,7 @@ export function PlanningView({ pdi, today }: { pdi: PdiDoc; today: string }) {
                           </Field>
 
                           {mode === "units" && (
-                            <Field label={`${act.unitsLabel || "unidades"} feitas / total`}>
+                            <Field label={`${act.unitsLabel || "unidades"} feitos / total`}>
                               <div className="flex items-center gap-1">
                                 <input
                                   type="number"
