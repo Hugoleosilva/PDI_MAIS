@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { getPdiByUserId } from "@/lib/pdi-repo";
 import { ImportTabs } from "@/components/ImportTabs";
 import type { DraftArea } from "@/components/ManualBuilder";
+import { AppHeader } from "@/components/AppHeader";
 
 export default async function ImportPage() {
   const session = await auth();
@@ -24,22 +25,19 @@ export default async function ImportPage() {
   }));
 
   return (
-    <main className="mx-auto max-w-2xl p-6">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-xl font-bold">
+    <div className="flex min-h-screen flex-col bg-[#F4F4F5]">
+      <AppHeader active="import" session={session} />
+      <main className="mx-auto w-full max-w-2xl flex-1 p-6">
+        <h1 className="mb-6 text-xl font-bold">
           {pdi ? "Editar / importar PDI" : "Montar PDI"}
         </h1>
-        {/* <a> normal de propósito — força recarregar, sem cache de navegação */}
-        <a href="/" className="text-sm text-neutral-500 hover:text-neutral-800">
-          ← voltar ao canvas
-        </a>
-      </div>
-      <ImportTabs
-        initialTitle={pdi?.root.title ?? "PDI 2026"}
-        initialTrack={pdi?.root.track ?? ""}
-        initialAreas={initialAreas}
-        hasExisting={Boolean(pdi)}
-      />
-    </main>
+        <ImportTabs
+          initialTitle={pdi?.root.title ?? "PDI 2026"}
+          initialTrack={pdi?.root.track ?? ""}
+          initialAreas={initialAreas}
+          hasExisting={Boolean(pdi)}
+        />
+      </main>
+    </div>
   );
 }
