@@ -125,6 +125,21 @@ export interface PdiGroup {
   paused?: boolean;
 }
 
+/**
+ * Quadro de anotação livre no canvas — retângulo colorido, redimensionável,
+ * com texto dentro. Não representa dado do PDI, é só organização visual.
+ * Conectável como área/ação: setas entre anotações reaproveitam PdiLink.
+ */
+export interface PdiShape {
+  id: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  color: string;
+  text?: string;
+}
+
 /** Andamento de uma área num momento — o que fica gravado no relatório. */
 export interface AreaSnapshot {
   id: string;
@@ -169,6 +184,8 @@ export interface PdiDoc {
   reports?: ProgressSnapshot[];
   /** Versões nomeadas do arranjo do canvas, salvas pelo usuário. */
   canvasPresets?: CanvasPreset[];
+  /** Quadros de anotação livre do canvas. */
+  shapes?: PdiShape[];
 }
 
 export interface PdiCanvasState {
@@ -195,4 +212,6 @@ export interface CanvasPreset {
   positions: Record<string, { x: number; y: number }>;
   frames: Record<string, { x: number; y: number; w: number; h: number }>;
   groups: PdiGroup[];
+  /** Opcional: ausente em versões salvas antes da feature de anotações existir. */
+  shapes?: PdiShape[];
 }

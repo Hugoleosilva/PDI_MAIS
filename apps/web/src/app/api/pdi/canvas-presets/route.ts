@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { setCanvasPresets } from "@/lib/pdi-repo";
-import { groupSchema } from "@/lib/schemas";
+import { groupSchema, shapeSchema } from "@/lib/schemas";
 
 export const runtime = "nodejs";
 
@@ -21,6 +21,8 @@ const presetSchema = z.object({
   positions: posSchema,
   frames: frameSchema,
   groups: z.array(groupSchema).max(24),
+  // opcional — versões salvas antes da feature de anotações não têm esse campo
+  shapes: z.array(shapeSchema).max(60).optional(),
 });
 
 const bodySchema = z.object({ presets: z.array(presetSchema).max(30) });

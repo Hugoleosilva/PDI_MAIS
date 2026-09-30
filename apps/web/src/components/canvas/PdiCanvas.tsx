@@ -19,6 +19,14 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import {
+  Boxes,
+  History,
+  LayoutTemplate,
+  SlidersHorizontal,
+  StickyNote,
+  type LucideIcon,
+} from "lucide-react";
+import {
   GROUP_COLORS,
   resolveSeedGroups,
   type CanvasPreset,
@@ -26,6 +34,7 @@ import {
   type PdiDoc,
   type PdiGroup,
   type PdiLink,
+  type PdiShape,
 } from "@pdi-mais/core";
 import {
   areasInBox,
@@ -53,22 +62,13 @@ type PosMap = Record<string, Pos>;
 type UndoEntry =
   | { kind: "positions"; data: PosMap }
   | { kind: "link-add"; link: PdiLink }
-  | { kind: "link-remove"; link: PdiLink };
+  | { kind: "link-remove"; link: PdiLink }
+  | { kind: "shapes"; data: PdiShape[] };
 
 const LAYOUTS: Layout[] = ["tree-lr", "tree-tb", "kanban", "swimlane", "radial"];
 const uuid = () =>
   globalThis.crypto?.randomUUID?.() ?? `x${Date.now()}${Math.random().toString(36).slice(2, 8)}`;
 
-function Group({ children }: { children: React.ReactNode }) {
-  return (
-    <div
-      className="flex overflow-hidden rounded-md border shadow-sm"
-      style={{ borderColor: brand.border }}
-    >
-      {children}
-    </div>
-  );
-}
 function TBtn({
   active,
   onClick,
@@ -82,22 +82,88 @@ function TBtn({
     <button
       type="button"
       onClick={onClick}
-      className="whitespace-nowrap px-2.5 py-1 text-xs font-medium"
-      style={{ background: active ? brand.ink : "white", color: active ? "white" : brand.muted }}
+      className="w-full whitespace-nowrap rounded-lg px-3 py-2 text-left text-[13px] font-medium transition-colors"
+      style={
+        active
+          ? { background: brand.orangeSoft, color: brand.orangeText }
+          : { background: "transparent", color: brand.ink }
+      }
+      onMouseEnter={(e) => {
+        if (!active) e.currentTarget.style.background = "#F4F4F5";
+      }}
+      onMouseLeave={(e) => {
+        if (!active) e.currentTarget.style.background = "transparent";
+      }}
     >
       {children}
     </button>
   );
 }
 
+/**
+ * Tópico da gaveta de ferramentas — linha ícone+nome sempre visível; clicar
+ * expande/recolhe as opções dele por baixo (acordeão, só um aberto por vez).
+ * O rótulo aparece com fade só quando a gaveta está aberta (`labelVisible`);
+ * o ícone fica sempre no mesmo lugar, mesmo com a gaveta fechada.
+ */
+function ToolTopic({
+  icon: Icon,
+  label,
+  labelVisible,
+  isOpen,
+  onToggle,
+  children,
+}: {
+  icon: LucideIcon;
+  label: string;
+  labelVisible: boolean;
+  isOpen: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-neutral-50"
+      >
+        <Icon className="h-[18px] w-[18px] shrink-0" style={{ color: brand.ink }} />
+        <span
+          className="whitespace-nowrap text-[13px] font-semibold transition-opacity duration-150"
+          style={{ opacity: labelVisible ? 1 : 0, color: brand.ink }}
+        >
+          {label}
+        </span>
+      </button>
+      <div
+        className="grid transition-[grid-template-rows] duration-200 ease-out"
+        style={{ gridTemplateRows: labelVisible && isOpen ? "1fr" : "0fr" }}
+      >
+        <div className="overflow-hidden">
+          <div className="flex flex-col gap-0.5 py-1 pl-11 pr-3">{children}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Canvas({ pdi }: { pdi: PdiDoc }) {
   const [layoutKind, setLayoutKind] = useState<Layout>("tree-lr");
   const [showGroups, setShowGroups] = useState(true);
+  const [showGrid, setShowGrid] = useState(true);
+  const [toolsOpen, setToolsOpen] = useState(false);
+  // vários tópicos podem ficar abertos ao mesmo tempo (acordeão independente,
+  // não fecha os outros ao abrir um novo).
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({ layout: true });
+  const toggleSection = (key: string) =>
+    setOpenSections((s) => ({ ...s, [key]: !s[key] }));
   const [selected, setSelected] = useState<PdiNode | null>(null);
   // Seleção do BLOCO — estado à parte, não mexe na seleção de cards do RF.
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [links, setLinks] = useState<PdiLink[]>(pdi.links ?? []);
   const [groups, setGroups] = useState<PdiGroup[]>(pdi.groups ?? []);
+  const [shapes, setShapes] = useState<PdiShape[]>(pdi.shapes ?? []);
   const [presets, setPresets] = useState<CanvasPreset[]>(pdi.canvasPresets ?? []);
   const [presetSel, setPresetSel] = useState("");
   const [positions, setPositions] = useState<PosMap>(pdi.canvas?.positions ?? {});
@@ -136,8 +202,9 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
         positions,
         frameBoxes,
         rootSize,
+        shapes,
       }),
-    [pdi, layoutKind, groupsActive, groups, positions, frameBoxes, rootSize],
+    [pdi, layoutKind, groupsActive, groups, positions, frameBoxes, rootSize, shapes],
   );
 
   const [nodes, setNodes, onNodesChange] = useNodesState(layout.nodes);
@@ -150,11 +217,13 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
   const [lineV, setLineV] = useState<number>();
 
   // ---- persistência do canvas (debounce) ----
-  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const saveTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const savedTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const groupsRef = useRef(groups);
   useEffect(() => void (groupsRef.current = groups), [groups]);
+  const shapesRef = useRef(shapes);
+  useEffect(() => void (shapesRef.current = shapes), [shapes]);
 
   const saveCanvas = useCallback(() => {
     const body: PdiCanvasState = {
@@ -174,10 +243,24 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ groups: groupsRef.current }),
       }),
-    ]).finally(() => {
-      setSaveState("saved");
+      fetch("/api/pdi/shapes", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ shapes: shapesRef.current }),
+      }),
+    ]).then((results) => {
+      // fetch só rejeita em falha de rede — uma resposta 4xx/5xx "resolve"
+      // normalmente, então sem checar .ok um erro de validação (ex.: nota
+      // do bloco longa demais) mostrava "✓ Salvo" sem gravar nada no banco.
+      const failed = results.some((r) => r.status === "rejected" || !r.value.ok);
+      setSaveState(failed ? "error" : "saved");
+      if (failed) {
+        window.alert(
+          "Não foi possível salvar o canvas. Uma anotação (bloco ou quadro) pode estar muito longa, ou houve falha de conexão — tente novamente.",
+        );
+      }
       clearTimeout(savedTimer.current);
-      savedTimer.current = setTimeout(() => setSaveState("idle"), 2500);
+      savedTimer.current = setTimeout(() => setSaveState("idle"), failed ? 4000 : 2500);
     });
   }, []);
   const scheduleSave = useCallback(() => {
@@ -210,6 +293,37 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
       frameBoxesRef.current = { ...frameBoxesRef.current, [gid]: box };
     },
     [],
+  );
+
+  // ---- quadros de anotação livre ----
+  const commitShapes = useCallback(
+    (next: PdiShape[]) => {
+      setShapes(next);
+      shapesRef.current = next;
+      scheduleSave();
+    },
+    [scheduleSave],
+  );
+  const addShape = useCallback(() => {
+    const c = screenToFlowPosition({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
+    const shape: PdiShape = {
+      id: uuid(),
+      x: c.x - 80,
+      y: c.y - 50,
+      w: 160,
+      h: 100,
+      color: GROUP_COLORS[0],
+    };
+    commitShapes([...shapesRef.current, shape]);
+  }, [commitShapes, screenToFlowPosition]);
+  const updateShape = useCallback(
+    (id: string, patch: Partial<Omit<PdiShape, "id">>) =>
+      commitShapes(shapesRef.current.map((s) => (s.id === id ? { ...s, ...patch } : s))),
+    [commitShapes],
+  );
+  const deleteShape = useCallback(
+    (id: string) => commitShapes(shapesRef.current.filter((s) => s.id !== id)),
+    [commitShapes],
   );
 
   /**
@@ -324,12 +438,28 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
 
   // ---- versões salvas do canvas (Rodada 7.7) ----
   const savePresets = useCallback((next: CanvasPreset[]) => {
-    setPresets(next);
-    void fetch("/api/pdi/canvas-presets", {
+    let prev: CanvasPreset[] = [];
+    setPresets((cur) => {
+      prev = cur;
+      return next;
+    });
+    fetch("/api/pdi/canvas-presets", {
       method: "PUT",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ presets: next }),
-    }).catch(() => {});
+    })
+      .then((res) => {
+        if (!res.ok) {
+          setPresets(prev);
+          window.alert(
+            "Não foi possível salvar a versão do canvas. A anotação de algum bloco pode estar muito longa — nada foi salvo.",
+          );
+        }
+      })
+      .catch(() => {
+        setPresets(prev);
+        window.alert("Não foi possível salvar a versão do canvas — verifique a conexão.");
+      });
   }, []);
   const saveAsPreset = useCallback(() => {
     const name = window.prompt("Nome desta versão do canvas:")?.trim();
@@ -343,6 +473,7 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
       positions: positionsRef.current,
       frames: frameBoxesRef.current,
       groups: groupsRef.current,
+      shapes: shapesRef.current,
     };
     savePresets([...presets, preset]);
     setPresetSel(preset.id);
@@ -356,11 +487,12 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
       setFrameBoxes(p.frames);
       frameBoxesRef.current = p.frames;
       commitGroups(p.groups);
+      commitShapes(p.shapes ?? []);
       setShowGroups(p.showGroups);
       setLayoutKind(p.layout as Layout);
       requestAnimationFrame(() => fitView({ padding: 0.14, duration: 300 }));
     },
-    [presets, commitGroups, fitView],
+    [presets, commitGroups, commitShapes, fitView],
   );
   const deletePreset = useCallback(
     (id: string) => {
@@ -456,6 +588,25 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
             },
           } as PdiNode;
         }
+        if (n.type === "shape") {
+          const sid = n.data.shapeId as string;
+          return {
+            ...n,
+            data: {
+              ...n.data,
+              onResize: (box: { x: number; y: number; w: number; h: number }) => {
+                pushUndo({ kind: "shapes", data: shapesRef.current });
+                updateShape(sid, box);
+              },
+              onRecolor: (color: string) => updateShape(sid, { color }),
+              onEditText: (v: string) => updateShape(sid, { text: v || undefined }),
+              onDelete: () => {
+                pushUndo({ kind: "shapes", data: shapesRef.current });
+                deleteShape(sid);
+              },
+            },
+          } as PdiNode;
+        }
         if (n.type === "group") {
           const gid = n.data.groupId as string;
           return {
@@ -486,6 +637,9 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
       setNoteColor,
       setFrameBox,
       recapture,
+      updateShape,
+      deleteShape,
+      pushUndo,
     ],
   );
 
@@ -550,15 +704,18 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
     if (entry.kind === "positions") {
       setPositions((p) => ({ ...p, ...entry.data }));
       scheduleSave();
+    } else if (entry.kind === "shapes") {
+      commitShapes(entry.data);
     } else if (entry.kind === "link-add") {
       removeLink(entry.link.id, false);
     } else {
       addLink(entry.link, false);
     }
-  }, [addLink, removeLink, scheduleSave]);
+  }, [addLink, removeLink, scheduleSave, commitShapes]);
 
   // ---- arraste ----
   const dragSnapshot = useRef<PosMap>({});
+  const shapeDragSnapshot = useRef<PdiShape[] | null>(null);
   // arraste de um frame: leva os cards membros junto (estilo FigJam)
   const frameDrag = useRef<{ gid: string; start: Pos; members: PosMap } | null>(null);
 
@@ -604,8 +761,13 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
         return;
       }
       dragSnapshot.current = Object.fromEntries(
-        dragged.filter((d) => d.type !== "group").map((d) => [d.id, { ...d.position }]),
+        dragged
+          .filter((d) => d.type !== "group" && d.type !== "shape")
+          .map((d) => [d.id, { ...d.position }]),
       );
+      shapeDragSnapshot.current = dragged.some((d) => d.type === "shape")
+        ? shapesRef.current
+        : null;
     },
     [memberIdsOf, pushUndo],
   );
@@ -681,10 +843,26 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
         });
       }
 
+      // 4. persiste posição de quadros de anotação arrastados (não usa o
+      // mapa genérico `positions` — a posição já mora dentro do PdiShape).
+      const movedShapes = list.filter((d) => d.type === "shape");
+      if (movedShapes.length) {
+        if (shapeDragSnapshot.current) {
+          pushUndo({ kind: "shapes", data: shapeDragSnapshot.current });
+          shapeDragSnapshot.current = null;
+        }
+        const byId = new Map(
+          movedShapes.map((d) => [(d.data as { shapeId: string }).shapeId, d.position]),
+        );
+        commitShapes(
+          shapesRef.current.map((s) => (byId.has(s.id) ? { ...s, ...byId.get(s.id)! } : s)),
+        );
+      }
+
       scheduleSave();
       if (groupsActive) recapture();
     },
-    [groupsActive, recapture, pushUndo, scheduleSave, setFrameBox],
+    [groupsActive, recapture, pushUndo, scheduleSave, setFrameBox, commitShapes],
   );
 
   const handleNodesChange = useCallback(
@@ -738,6 +916,17 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
         e.preventDefault();
         deleteGroup(selectedGroupId);
       }
+      if (e.key === "Delete" || e.key === "Backspace") {
+        // Anotação selecionada nativamente pelo RF — via tecla, além do
+        // botão ✕ do mini-toolbar (mais fácil de acertar que um alvo
+        // pequeno em telas com zoom bem afastado).
+        const selectedShape = nodesRef.current.find((n) => n.type === "shape" && n.selected);
+        if (selectedShape) {
+          e.preventDefault();
+          pushUndo({ kind: "shapes", data: shapesRef.current });
+          deleteShape((selectedShape.data as { shapeId: string }).shapeId);
+        }
+      }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
         e.preventDefault();
         undo();
@@ -745,7 +934,7 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [undo, clearSelection, selectedGroupId, deleteGroup]);
+  }, [undo, clearSelection, selectedGroupId, deleteGroup, deleteShape, pushUndo]);
 
   const onNodeClick = useCallback(
     (_: unknown, node: Node) => {
@@ -755,7 +944,10 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
         return;
       }
       setSelectedGroupId(null);
-      if (node.type === "root" || node.type === "band") {
+      // Quadro de anotação: a seleção nativa do RF já cuida das alças/mini
+      // toolbar dentro do próprio ShapeNode — não abre o DetailPanel (que
+      // espera dado de área/ação).
+      if (node.type === "root" || node.type === "band" || node.type === "shape") {
         setSelected(null);
         return;
       }
@@ -783,14 +975,27 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
             p.y <= n.position.y + ((n.height as number) ?? 0),
         );
       if (!hit) return;
-      const onCard = nodesRef.current.some(
-        (n) =>
-          (n.type === "area" || n.type === "action") &&
-          p.x >= n.position.x &&
-          p.x <= n.position.x + NODE_SIZE[n.type as "area" | "action"].width &&
-          p.y >= n.position.y &&
-          p.y <= n.position.y + NODE_SIZE[n.type as "area" | "action"].height,
-      );
+      const onCard = nodesRef.current.some((n) => {
+        if (n.type === "area" || n.type === "action") {
+          const size = NODE_SIZE[n.type as "area" | "action"];
+          return (
+            p.x >= n.position.x &&
+            p.x <= n.position.x + size.width &&
+            p.y >= n.position.y &&
+            p.y <= n.position.y + size.height
+          );
+        }
+        // quadro de anotação: não deixa o duplo clique vazar pro bloco de baixo
+        if (n.type === "shape") {
+          return (
+            p.x >= n.position.x &&
+            p.x <= n.position.x + ((n.width as number) ?? 0) &&
+            p.y >= n.position.y &&
+            p.y <= n.position.y + ((n.height as number) ?? 0)
+          );
+        }
+        return false;
+      });
       if (onCard) return;
       setSelectedGroupId((hit.n.data as { groupId: string }).groupId);
     };
@@ -844,68 +1049,10 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
         minZoom={0.06}
         style={{ background: brand.pageBg }}
       >
-        <Background gap={20} color="#D4D4D8" />
-        <Controls showInteractive={false} />
+        {showGrid && <Background gap={20} color="#D4D4D8" />}
+        <Controls showInteractive={false} position="bottom-right" />
         <MiniMap pannable zoomable nodeStrokeWidth={2} />
         <HelperLines horizontal={lineH} vertical={lineV} />
-
-        <Panel position="top-left">
-          <div className="flex flex-wrap items-center gap-2">
-            <Group>
-              {LAYOUTS.map((l) => (
-                <TBtn key={l} active={layoutKind === l} onClick={() => setLayoutKind(l)}>
-                  {LAYOUT_LABEL[l]}
-                </TBtn>
-              ))}
-            </Group>
-            <Group>
-              <TBtn active={showGroups} onClick={() => setShowGroups((v) => !v)}>▦ Blocos</TBtn>
-              <TBtn onClick={addGroup}>+ Bloco</TBtn>
-              <TBtn onClick={applySuggestedGroups}>★ Sugeridos</TBtn>
-            </Group>
-            <Group>
-              <TBtn onClick={undo}>
-                <span style={{ opacity: canUndo ? 1 : 0.4 }}>↩ Desfazer</span>
-              </TBtn>
-              <TBtn onClick={reorganize}>⟳ Reorganizar</TBtn>
-            </Group>
-            <Group>
-              <select
-                value={presetSel}
-                onChange={(e) => {
-                  setPresetSel(e.target.value);
-                  if (e.target.value) loadPreset(e.target.value);
-                }}
-                title="Carregar uma versão salva do canvas"
-                className="max-w-[150px] truncate border-0 bg-white px-2 py-1 text-xs font-medium text-neutral-700 outline-none"
-                style={{ color: presetSel ? brand.ink : brand.muted }}
-              >
-                <option value="">Versões salvas…</option>
-                {presets.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-              <TBtn onClick={saveAsPreset}>💾 Salvar como…</TBtn>
-              {presetSel && (
-                <TBtn
-                  onClick={() => {
-                    deletePreset(presetSel);
-                    setPresetSel("");
-                  }}
-                >
-                  🗑
-                </TBtn>
-              )}
-            </Group>
-            <Group>
-              <TBtn onClick={saveCanvas}>
-                {saveState === "saving" ? "⟳ Salvando…" : saveState === "saved" ? "✓ Salvo" : "💾 Salvar"}
-              </TBtn>
-            </Group>
-          </div>
-        </Panel>
 
         {selectedGroup && (
           <Panel position="top-right">
@@ -936,7 +1083,7 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
 
         <Panel position="bottom-center">
           <div
-            className="max-w-[92vw] rounded-full border bg-white/95 px-4 py-1.5 text-center text-[11px] shadow-sm backdrop-blur"
+            className="max-w-[92vw] whitespace-nowrap rounded-full border bg-white/95 px-4 py-1.5 text-center text-[11px] shadow-sm backdrop-blur"
             style={{ borderColor: brand.border, color: brand.muted }}
           >
             {groupsActive ? (
@@ -952,6 +1099,127 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
           </div>
         </Panel>
       </ReactFlow>
+
+      {/* fundo escurecido atrás do menu aberto — separa visualmente do canvas,
+          igual à plataforma do CESAR. Sempre montado, só anima a opacidade —
+          sem isso ele piscava (aparecia/sumia de golpe) em vez de deslizar. */}
+      <div
+        className="absolute inset-0 z-10 bg-black/10 transition-opacity duration-150"
+        style={{ opacity: toolsOpen ? 1 : 0, pointerEvents: toolsOpen ? "auto" : "none" }}
+        onClick={() => setToolsOpen(false)}
+      />
+
+      {/* régua + gaveta como UM contêiner só: os ícones ficam fixos na mesma
+          posição sempre — só a largura do contêiner cresce. Dentro, cada
+          tópico é um acordeão (clica pra expandir as opções dele), sem
+          linhas divisórias — igual ao espírito do CESAR, adaptado pro fato
+          da gente ter várias opções por tópico (o CESAR só tem 1 por linha). */}
+      <div
+        className="absolute inset-y-0 left-0 z-20 flex flex-col overflow-y-auto overflow-x-hidden border-r bg-white py-2 shadow-lg transition-[width] duration-200 ease-out"
+        style={{ borderColor: brand.border, width: toolsOpen ? 296 : 56 }}
+        onMouseEnter={() => setToolsOpen(true)}
+        onMouseLeave={() => setToolsOpen(false)}
+      >
+        <ToolTopic
+          icon={LayoutTemplate}
+          label="Layout"
+          labelVisible={toolsOpen}
+          isOpen={Boolean(openSections.layout)}
+          onToggle={() => toggleSection("layout")}
+        >
+          {LAYOUTS.map((l) => (
+            <TBtn key={l} active={layoutKind === l} onClick={() => setLayoutKind(l)}>
+              {LAYOUT_LABEL[l]}
+            </TBtn>
+          ))}
+        </ToolTopic>
+
+        <ToolTopic
+          icon={Boxes}
+          label="Blocos"
+          labelVisible={toolsOpen}
+          isOpen={Boolean(openSections.blocos)}
+          onToggle={() => toggleSection("blocos")}
+        >
+          <TBtn active={showGroups} onClick={() => setShowGroups((v) => !v)}>▦ Blocos</TBtn>
+          <TBtn onClick={addGroup}>+ Bloco</TBtn>
+          <TBtn onClick={applySuggestedGroups}>★ Sugeridos</TBtn>
+        </ToolTopic>
+
+        <ToolTopic
+          icon={SlidersHorizontal}
+          label="Canvas"
+          labelVisible={toolsOpen}
+          isOpen={Boolean(openSections.canvas)}
+          onToggle={() => toggleSection("canvas")}
+        >
+          <TBtn active={showGrid} onClick={() => setShowGrid((v) => !v)}>▦ Grade</TBtn>
+          <TBtn onClick={undo}>
+            <span style={{ opacity: canUndo ? 1 : 0.4 }}>↩ Desfazer</span>
+          </TBtn>
+          <TBtn onClick={reorganize}>⟳ Reorganizar</TBtn>
+        </ToolTopic>
+
+        <ToolTopic
+          icon={StickyNote}
+          label="Anotações"
+          labelVisible={toolsOpen}
+          isOpen={Boolean(openSections.anotacoes)}
+          onToggle={() => toggleSection("anotacoes")}
+        >
+          <TBtn onClick={addShape}>▭ + Anotação</TBtn>
+        </ToolTopic>
+
+        <ToolTopic
+          icon={History}
+          label="Versões"
+          labelVisible={toolsOpen}
+          isOpen={Boolean(openSections.versoes)}
+          onToggle={() => toggleSection("versoes")}
+        >
+          <div className="flex overflow-hidden rounded-lg border shadow-sm" style={{ borderColor: brand.border }}>
+            <select
+              value={presetSel}
+              onChange={(e) => {
+                setPresetSel(e.target.value);
+                if (e.target.value) loadPreset(e.target.value);
+              }}
+              title="Carregar uma versão salva do canvas"
+              className="w-full truncate border-0 bg-white px-2.5 py-2 text-[13px] font-medium outline-none"
+              style={{ color: presetSel ? brand.ink : brand.muted }}
+            >
+              <option value="">Versões salvas…</option>
+              {presets.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+            {presetSel && (
+              <button
+                type="button"
+                onClick={() => {
+                  deletePreset(presetSel);
+                  setPresetSel("");
+                }}
+                className="shrink-0 px-2.5 text-sm hover:bg-neutral-50"
+              >
+                🗑
+              </button>
+            )}
+          </div>
+          <TBtn onClick={saveAsPreset}>💾 Salvar como…</TBtn>
+          <TBtn onClick={saveCanvas}>
+            {saveState === "saving"
+              ? "⟳ Salvando…"
+              : saveState === "saved"
+                ? "✓ Salvo"
+                : saveState === "error"
+                  ? "⚠ Erro ao salvar"
+                  : "💾 Salvar"}
+          </TBtn>
+        </ToolTopic>
+      </div>
 
       {selected && <DetailPanel node={selected} onClose={() => setSelected(null)} />}
     </div>

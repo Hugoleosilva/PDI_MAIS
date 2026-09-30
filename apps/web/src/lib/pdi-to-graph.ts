@@ -8,6 +8,7 @@ import {
   type PdiDoc,
   type PdiGroup,
   type PdiLink,
+  type PdiShape,
   type Status,
 } from "@pdi-mais/core";
 import { MarkerType, type Edge, type Node } from "@xyflow/react";
@@ -112,12 +113,41 @@ export interface GroupNodeData extends Record<string, unknown> {
   onNoteColor?: (color: string) => void;
 }
 
+export interface ShapeNodeData extends Record<string, unknown> {
+  shapeId: string;
+  color: string;
+  text?: string;
+  onResize?: (box: { x: number; y: number; w: number; h: number }) => void;
+  onRecolor?: (color: string) => void;
+  onEditText?: (v: string) => void;
+  onDelete?: () => void;
+}
+
 export type PdiNode =
   | Node<RootNodeData, "root">
   | Node<AreaNodeData, "area">
   | Node<ActionNodeData, "action">
   | Node<BandNodeData, "band">
-  | Node<GroupNodeData, "group">;
+  | Node<GroupNodeData, "group">
+  | Node<ShapeNodeData, "shape">;
+
+/** Converte os quadros de anotação livre em nós RF — 1:1, sem "abraço" nenhum. */
+export function shapeNodes(shapes: PdiShape[]): Node<ShapeNodeData, "shape">[] {
+  return shapes.map((s) => ({
+    id: `shape-${s.id}`,
+    type: "shape",
+    position: { x: s.x, y: s.y },
+    width: s.w,
+    height: s.h,
+    selectable: true,
+    connectable: true,
+    deletable: false,
+    // fica acima de blocos/faixas (zIndex 0/-1) mas abaixo dos cards
+    // (zIndex 1) — clicável mesmo sobre um bloco, sem tampar card nenhum.
+    zIndex: 0,
+    data: { shapeId: s.id, color: s.color, text: s.text },
+  }));
+}
 
 const ROOT_ID = "root";
 
@@ -134,6 +164,7 @@ function baseNodes(pdi: PdiDoc, dir: Direction, rootSize?: { w: number; h: numbe
     id: ROOT_ID,
     type: "root",
     position: { x: 0, y: 0 },
+    zIndex: 1,
     data: {
       title: pdi.root.title,
       track: pdi.root.track,
@@ -152,6 +183,7 @@ function baseNodes(pdi: PdiDoc, dir: Direction, rootSize?: { w: number; h: numbe
     id: area.id,
     type: "area",
     position: { x: 0, y: 0 },
+    zIndex: 1,
     data: {
       title: area.title,
       status: area.status,
@@ -168,6 +200,7 @@ function baseNodes(pdi: PdiDoc, dir: Direction, rootSize?: { w: number; h: numbe
       id: action.id,
       type: "action" as const,
       position: { x: 0, y: 0 },
+      zIndex: 1,
       data: {
         title: action.title,
         status: action.status,
@@ -603,6 +636,7 @@ export function layoutGraph(
     frameBoxes?: Record<string, FrameBox>;
     /** Tamanho do card raiz redimensionado pelo usuário (arraste no canto, como o bloco). */
     rootSize?: { w: number; h: number };
+    shapes?: PdiShape[];
   } = {},
 ): { nodes: PdiNode[]; edges: Edge[] } {
   const layout = opts.layout ?? "tree-lr";
@@ -617,6 +651,10 @@ export function layoutGraph(
   else if (layout === "radial") result = radialLayout(pdi, rootSize);
   else result = treeLayout(pdi, dirFor(layout), groups, positions, frameBoxes, rootSize);
 
+  // Anotações entram DEPOIS do layout específico — não participam de nenhum
+  // auto-layout/hug, são 100% posicionadas pelo usuário em todos os formatos.
+  const nodes = [...result.nodes, ...shapeNodes(opts.shapes ?? [])];
+
   const linkEdges = (opts.links ?? pdi.links ?? []).map(linkEdge);
-  return { nodes: result.nodes, edges: [...result.edges, ...linkEdges] };
+  return { nodes, edges: [...result.edges, ...linkEdges] };
 }

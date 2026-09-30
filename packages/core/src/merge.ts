@@ -101,6 +101,9 @@ export function mergePdi(
     nodeIds.add(area.id);
     for (const a of area.actions) nodeIds.add(a.id);
   }
+  // Anotações livres do canvas também são pontas válidas de conexão — sem
+  // isso, toda seta ligada a uma anotação seria descartada a cada sync.
+  for (const s of existing?.shapes ?? []) nodeIds.add(`shape-${s.id}`);
   const links = (existing?.links ?? []).filter(
     (l) => nodeIds.has(l.source) && nodeIds.has(l.target),
   );
@@ -147,5 +150,6 @@ export function mergePdi(
     ...(existing?.looseCapacity ? { looseCapacity: existing.looseCapacity } : {}),
     ...(existing?.reports?.length ? { reports: existing.reports } : {}),
     ...(existing?.canvasPresets?.length ? { canvasPresets: existing.canvasPresets } : {}),
+    ...(existing?.shapes?.length ? { shapes: existing.shapes } : {}),
   };
 }

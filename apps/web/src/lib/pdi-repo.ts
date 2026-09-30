@@ -8,6 +8,7 @@ import {
   type PdiDoc,
   type PdiGroup,
   type PdiLink,
+  type PdiShape,
   type ProgressSnapshot,
   type Source,
   type SyncPayload,
@@ -43,12 +44,13 @@ export async function applySync(
   return merged;
 }
 
-function nodeIdSet(doc: Pick<PdiDoc, "areas">): Set<string> {
+function nodeIdSet(doc: Pick<PdiDoc, "areas" | "shapes">): Set<string> {
   const ids = new Set<string>(["root"]);
   for (const area of doc.areas) {
     ids.add(area.id);
     for (const a of area.actions) ids.add(a.id);
   }
+  for (const s of doc.shapes ?? []) ids.add(`shape-${s.id}`);
   return ids;
 }
 
@@ -58,7 +60,7 @@ export async function addLink(
   link: PdiLink,
 ): Promise<{ ok: boolean; error?: string }> {
   const col = await collection();
-  const doc = await col.findOne({ userId }, { projection: { _id: 0, areas: 1 } });
+  const doc = await col.findOne({ userId }, { projection: { _id: 0, areas: 1, shapes: 1 } });
   if (!doc) return { ok: false, error: "PDI não encontrado" };
 
   const ids = nodeIdSet(doc);
@@ -92,6 +94,12 @@ export async function removeLink(userId: string, id: string): Promise<void> {
 export async function setGroups(userId: string, groups: PdiGroup[]): Promise<void> {
   const col = await collection();
   await col.updateOne({ userId }, { $set: { groups, updatedAt: new Date() } });
+}
+
+/** Substitui a lista de quadros de anotação do canvas. */
+export async function setShapes(userId: string, shapes: PdiShape[]): Promise<void> {
+  const col = await collection();
+  await col.updateOne({ userId }, { $set: { shapes, updatedAt: new Date() } });
 }
 
 /** Salva o estado visual do canvas (posições + frames manuais). */
@@ -193,6 +201,35 @@ export async function addReportSnapshot(userId: string): Promise<ProgressSnapsho
 
   const snapshot = buildSnapshot(doc);
   const reports = appendSnapshot(doc.reports, snapshot);
+  await col.updateOne({ userId }, { $set: { reports, updatedAt: new Date() } });
+  return snapshot;
+}
+
+/**
+ * Gera um snapshot RETROATIVO a partir de uma tabela colada (ex.: aba antiga
+ * de uma planilha própria do usuário) — pra uma data passada, sem tocar no
+ * PDI vivo (`areas`/`groups`/`canvas`). `mergePdi(null, payload, ...)` é
+ * usado só como sintetizador puro (não toca banco) pra calcular ids/status
+ * de área a partir do payload cru — mesmo padrão já usado em reports.test.ts.
+ * Reimportar a mesma data substitui o snapshot daquele dia (não duplica).
+ */
+export async function addHistoricalSnapshot(
+  userId: string,
+  date: string,
+  payload: SyncPayload,
+): Promise<ProgressSnapshot | null> {
+  const col = await collection();
+  const doc = await col.findOne({ userId }, { projection: { _id: 0 } });
+  if (!doc) return null;
+
+  const now = new Date(date);
+  const synthetic = mergePdi(null, payload, { userId, source: "manual", now });
+  const snapshot = buildSnapshot(synthetic, now);
+
+  const withoutSameDay = (doc.reports ?? []).filter(
+    (r) => r.generatedAt.slice(0, 10) !== date,
+  );
+  const reports = appendSnapshot(withoutSameDay, snapshot);
   await col.updateOne({ userId }, { $set: { reports, updatedAt: new Date() } });
   return snapshot;
 }

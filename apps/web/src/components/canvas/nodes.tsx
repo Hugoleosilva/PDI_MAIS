@@ -10,6 +10,7 @@ import type {
   Direction,
   GroupNodeData,
   RootNodeData,
+  ShapeNodeData,
 } from "@/lib/pdi-to-graph";
 import { NODE_SIZE } from "@/lib/pdi-to-graph";
 import { brand, statusStyle } from "@/lib/theme";
@@ -701,10 +702,129 @@ function StickyNote({
   );
 }
 
+/**
+ * Quadro de anotação livre — objeto de primeiro plano (seleção nativa do RF,
+ * diferente do bloco que é "clicável-através" com seleção paralela). Duplo
+ * clique no corpo edita o texto direto ali dentro.
+ */
+export function ShapeNode({ data, selected }: NodeProps & { data: ShapeNodeData }) {
+  const [colorOpen, setColorOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(data.text ?? "");
+  const ref = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => setDraft(data.text ?? ""), [data.text]);
+  useEffect(() => {
+    if (editing) ref.current?.focus();
+  }, [editing]);
+
+  return (
+    <>
+      <NodeResizer
+        color={data.color}
+        isVisible={selected}
+        minWidth={80}
+        minHeight={48}
+        handleStyle={{
+          pointerEvents: "all",
+          width: 14,
+          height: 14,
+          borderRadius: 4,
+          border: "2px solid white",
+          background: data.color,
+        }}
+        lineStyle={{ pointerEvents: "all", borderWidth: 10, opacity: 0 }}
+        onResizeEnd={(_, p) => data.onResize?.({ x: p.x, y: p.y, w: p.width, h: p.height })}
+      />
+      <div
+        className="relative h-full w-full rounded-lg p-2"
+        style={{
+          borderWidth: 2,
+          borderStyle: "solid",
+          borderColor: data.color,
+          background: `${data.color}18`,
+          boxShadow: selected ? `0 0 0 3px ${data.color}33` : undefined,
+        }}
+        onDoubleClick={(e) => {
+          e.stopPropagation();
+          setEditing(true);
+        }}
+      >
+        <Handle type="target" position={Position.Left} style={{ ...handleStyle, opacity: 0 }} />
+        <Handle type="source" position={Position.Right} style={{ ...handleStyle, opacity: 0 }} />
+
+        {selected && (
+          <div className="nodrag nopan absolute -top-9 right-0 z-10 flex items-center gap-1.5">
+            <div className="relative">
+              <button
+                type="button"
+                title="Trocar a cor"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setColorOpen((v) => !v);
+                }}
+                className="h-6 w-6 rounded-full border-2 border-white shadow"
+                style={{ background: data.color }}
+              />
+              {colorOpen && (
+                <ColorPicker
+                  value={data.color}
+                  options={GROUP_COLORS}
+                  onPick={(c) => data.onRecolor?.(c)}
+                  onClose={() => setColorOpen(false)}
+                />
+              )}
+            </div>
+            <button
+              type="button"
+              title="Excluir (ou tecla Delete)"
+              onClick={(e) => {
+                e.stopPropagation();
+                data.onDelete?.();
+              }}
+              className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-xs font-bold shadow"
+              style={{ color: "#DC2626" }}
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
+        {editing ? (
+          <textarea
+            ref={ref}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={() => {
+              setEditing(false);
+              const v = draft.trim();
+              if (v !== (data.text ?? "").trim()) data.onEditText?.(v);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                setDraft(data.text ?? "");
+                setEditing(false);
+              }
+            }}
+            onClick={(e) => e.stopPropagation()}
+            className="nodrag nopan h-full w-full resize-none border-none bg-transparent text-[13px] outline-none"
+            style={{ color: brand.ink }}
+            placeholder="Escreva aqui…"
+          />
+        ) : (
+          <p className="h-full w-full whitespace-pre-wrap break-words text-[13px]" style={{ color: brand.ink }}>
+            {data.text || <span style={{ color: brand.muted }}>duplo clique pra anotar</span>}
+          </p>
+        )}
+      </div>
+    </>
+  );
+}
+
 export const nodeTypes = {
   root: RootNode,
   area: AreaNode,
   action: ActionNode,
   band: BandNode,
   group: GroupNode,
+  shape: ShapeNode,
 };
