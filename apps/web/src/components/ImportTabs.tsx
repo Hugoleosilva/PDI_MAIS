@@ -3,6 +3,9 @@
 import { useState } from "react";
 import { ImportForm } from "./ImportForm";
 import { ManualBuilder, type DraftArea } from "./ManualBuilder";
+import { HistoricalSnapshotForm } from "./HistoricalSnapshotForm";
+
+type Tab = "manual" | "paste" | "historico";
 
 export function ImportTabs({
   initialTitle,
@@ -15,9 +18,9 @@ export function ImportTabs({
   initialAreas: DraftArea[];
   hasExisting: boolean;
 }) {
-  const [tab, setTab] = useState<"manual" | "paste">("manual");
+  const [tab, setTab] = useState<Tab>("manual");
 
-  const tabBtn = (id: "manual" | "paste", label: string) => (
+  const tabBtn = (id: Tab, label: string) => (
     <button
       type="button"
       onClick={() => setTab(id)}
@@ -36,6 +39,7 @@ export function ImportTabs({
       <div className="mb-5 flex gap-1 border-b border-neutral-200">
         {tabBtn("manual", "Preencher à mão")}
         {tabBtn("paste", "Colar tabela / CSV")}
+        {hasExisting && tabBtn("historico", "Snapshot histórico")}
       </div>
 
       {tab === "manual" ? (
@@ -45,12 +49,14 @@ export function ImportTabs({
           initialAreas={initialAreas}
           hasExisting={hasExisting}
         />
-      ) : (
+      ) : tab === "paste" ? (
         <ImportForm
           initialTitle={initialTitle}
           initialTrack={initialTrack}
           hasExisting={hasExisting}
         />
+      ) : (
+        <HistoricalSnapshotForm />
       )}
     </div>
   );

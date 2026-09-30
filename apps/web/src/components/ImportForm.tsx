@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { parseImportTable, type ImportResult } from "@pdi-mais/core";
+import { parseImportTable, type ImportResult, type SyncPayloadInput } from "@pdi-mais/core";
 import { brand } from "@/lib/theme";
 
 const EXAMPLE = `Área de desenvolvimento,Descrição da área,Ação,Descrição da ação,Tipo da ação,Prazo,Status
@@ -15,10 +15,25 @@ export function ImportForm({
   initialTitle,
   initialTrack,
   hasExisting,
+  showRootFields = true,
+  extraFields,
+  confirmLabel,
+  onConfirm,
+  footer,
 }: {
   initialTitle: string;
   initialTrack: string;
   hasExisting: boolean;
+  /** Esconde "Nome do ciclo / Trilha" — irrelevante pra snapshot histórico. */
+  showRootFields?: boolean;
+  /** Slot extra (ex.: campo de data no modo snapshot histórico). */
+  extraFields?: React.ReactNode;
+  /** Rótulo do botão de confirmar; default = comportamento de import normal. */
+  confirmLabel?: string;
+  /** Default = POST /api/import + navega pro canvas (import normal). */
+  onConfirm?: (payload: SyncPayloadInput) => Promise<void>;
+  /** `undefined` = rodapé padrão de import; passe `null` pra omitir. */
+  footer?: React.ReactNode;
 }) {
   const router = useRouter();
   const [title, setTitle] = useState(initialTitle);
@@ -48,24 +63,29 @@ export function ImportForm({
     setPreview(null);
   };
 
+  const defaultConfirm = async (payload: SyncPayloadInput) => {
+    const res = await fetch("/api/import", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error ?? `Erro ${res.status}`);
+    }
+    router.push("/");
+    router.refresh();
+  };
+
   const confirm = async () => {
     if (!preview) return;
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch("/api/import", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(preview.payload),
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.error ?? `Erro ${res.status}`);
-      }
-      router.push("/");
-      router.refresh();
+      await (onConfirm ?? defaultConfirm)(preview.payload);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Falha ao importar");
+    } finally {
       setBusy(false);
     }
   };
@@ -78,21 +98,25 @@ export function ImportForm({
 
   return (
     <div className="space-y-5">
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className={label}>Nome do ciclo *</label>
-          <input className={input} value={title} onChange={(e) => setTitle(e.target.value)} />
+      {showRootFields && (
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className={label}>Nome do ciclo *</label>
+            <input className={input} value={title} onChange={(e) => setTitle(e.target.value)} />
+          </div>
+          <div>
+            <label className={label}>Trilha / tema (opcional)</label>
+            <input
+              className={input}
+              value={track}
+              onChange={(e) => setTrack(e.target.value)}
+              placeholder="Desenvolvimento Fullstack"
+            />
+          </div>
         </div>
-        <div>
-          <label className={label}>Trilha / tema (opcional)</label>
-          <input
-            className={input}
-            value={track}
-            onChange={(e) => setTrack(e.target.value)}
-            placeholder="Desenvolvimento Fullstack"
-          />
-        </div>
-      </div>
+      )}
+
+      {extraFields}
 
       <div>
         <label className={label}>
@@ -204,9 +228,8 @@ export function ImportForm({
             >
               {busy
                 ? "Importando…"
-                : hasExisting
-                  ? "Confirmar (atualiza o PDI atual)"
-                  : "Confirmar import"}
+                : (confirmLabel ??
+                  (hasExisting ? "Confirmar (atualiza o PDI atual)" : "Confirmar import"))}
             </button>
           )}
         </div>
@@ -214,12 +237,14 @@ export function ImportForm({
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
-      {hasExisting && (
-        <p className="text-xs text-neutral-500">
-          Você já tem um PDI. Importar de novo faz o merge: mantém posições no canvas,
-          blocos e o status de ações que você editou à mão.
-        </p>
-      )}
+      {footer !== undefined
+        ? footer
+        : hasExisting && (
+            <p className="text-xs text-neutral-500">
+              Você já tem um PDI. Importar de novo faz o merge: mantém posições no canvas,
+              blocos e o status de ações que você editou à mão.
+            </p>
+          )}
     </div>
   );
 }

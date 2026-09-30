@@ -14,12 +14,18 @@ export function buildSnapshot(pdi: PdiDoc, now: Date = new Date()): ProgressSnap
   };
 }
 
-/** Anexa um snapshot ao histórico, cortando o mais antigo se passar do limite. */
+/**
+ * Anexa um snapshot ao histórico, mantendo ordem cronológica (sort estável
+ * por `generatedAt` — necessário pra permitir snapshots retroativos fora de
+ * ordem), e cortando os mais antigos se passar do limite.
+ */
 export function appendSnapshot(
   reports: ProgressSnapshot[] | undefined,
   snapshot: ProgressSnapshot,
 ): ProgressSnapshot[] {
-  const next = [...(reports ?? []), snapshot];
+  const next = [...(reports ?? []), snapshot].sort(
+    (a, b) => Date.parse(a.generatedAt) - Date.parse(b.generatedAt),
+  );
   return next.length > MAX_REPORTS ? next.slice(next.length - MAX_REPORTS) : next;
 }
 
