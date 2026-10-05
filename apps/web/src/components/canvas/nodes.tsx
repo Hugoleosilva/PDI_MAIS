@@ -350,10 +350,21 @@ function RootNote({
 
 export function AreaNode({ data, selected }: NodeProps & { data: AreaNodeData }) {
   const s = statusStyle(data.status, "area");
+  const roadmap = data.variant === "roadmap";
+  // Roadmap: etapa futura/bloqueada esmaece, etapa atual ganha destaque —
+  // é o que faz a linha do tempo parecer viva em vez de um painel estático.
+  const dimmed = roadmap && data.status === "todo";
+  const glow = roadmap && data.status === "doing";
   return (
     <div
       className="flex cursor-pointer flex-col gap-1.5 rounded-xl bg-white p-3 shadow-sm"
-      style={{ width: NODE_SIZE.area.width, height: NODE_SIZE.area.height, ...borderStyle(s.accent, selected) }}
+      style={{
+        width: NODE_SIZE.area.width,
+        height: NODE_SIZE.area.height,
+        opacity: dimmed ? 0.55 : 1,
+        ...borderStyle(s.accent, selected),
+        ...(glow && !selected ? { boxShadow: `0 0 0 3px ${s.accent}40` } : {}),
+      }}
     >
       <div className="flex items-center gap-1.5">
         <span className="rounded px-1.5 py-0.5 text-[10px] font-medium" style={{ background: s.badgeBg, color: s.badgeText }}>
@@ -498,7 +509,7 @@ export function GroupNode({ data }: NodeProps & { data: GroupNodeData }) {
           borderWidth: selected ? 3 : 2,
           borderStyle: selected ? "solid" : "dashed",
           borderColor: data.color,
-          background: selected ? `${data.color}22` : `${data.color}12`,
+          background: selected ? `${data.color}16` : `${data.color}0A`,
           boxShadow: selected ? `0 0 0 4px ${data.color}33` : undefined,
         }}
       >

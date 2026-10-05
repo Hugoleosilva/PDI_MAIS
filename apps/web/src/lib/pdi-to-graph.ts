@@ -1,9 +1,11 @@
 import Dagre from "@dagrejs/dagre";
 import {
   areaProgress,
+  deriveAreaStatus,
   groupOfArea,
   hasNotStarted,
   overallProgress,
+  type Area,
   type ActionKind,
   type PdiDoc,
   type PdiGroup,
@@ -12,13 +14,13 @@ import {
   type Status,
 } from "@pdi-mais/core";
 import { MarkerType, type Edge, type Node } from "@xyflow/react";
-import { statusStyle } from "./theme";
+import { brand, statusStyle } from "./theme";
 
 /** Direção dos handles nos nós (de onde saem/entram as conexões). */
 export type Direction = "LR" | "TB";
 
 /** Formatos de layout que o usuário pode escolher. */
-export type Layout = "tree-lr" | "tree-tb" | "kanban" | "swimlane" | "radial";
+export type Layout = "tree-lr" | "tree-tb" | "kanban" | "swimlane" | "radial" | "roadmap";
 
 export const LAYOUT_LABEL: Record<Layout, string> = {
   "tree-lr": "Árvore →",
@@ -26,6 +28,7 @@ export const LAYOUT_LABEL: Record<Layout, string> = {
   kanban: "Kanban (status)",
   swimlane: "Raias (área)",
   radial: "Radial",
+  roadmap: "Roadmap (bloco)",
 };
 
 export const NODE_SIZE = {
@@ -67,6 +70,8 @@ export interface AreaNodeData extends Record<string, unknown> {
   hasNotStarted: boolean;
   description?: string;
   dir: Direction;
+  /** "roadmap" = card esmaecido se "todo", com destaque se "doing" (linha do tempo). */
+  variant?: "roadmap";
 }
 
 export interface ActionNodeData extends Record<string, unknown> {
@@ -159,12 +164,20 @@ function dirFor(layout: Layout): Direction {
 // Construção dos nós/arestas base (sem posição)
 // ---------------------------------------------------------------------------
 
-function baseNodes(pdi: PdiDoc, dir: Direction, rootSize?: { w: number; h: number }) {
+function baseNodes(
+  pdi: PdiDoc,
+  dir: Direction,
+  rootSize?: { w: number; h: number },
+  hideActions = false,
+) {
   const root: Node<RootNodeData, "root"> = {
     id: ROOT_ID,
     type: "root",
     position: { x: 0, y: 0 },
-    zIndex: 1,
+    // Sempre abaixo de TUDO (área/ação=1, bloco/raia=0 ou -1) — o usuário
+    // pode arrastar o raiz pra qualquer lugar, inclusive por cima de um
+    // bloco/card na horizontal, sem nunca cobrir o conteúdo visualmente.
+    zIndex: -2,
     data: {
       title: pdi.root.title,
       track: pdi.root.track,
@@ -195,30 +208,39 @@ function baseNodes(pdi: PdiDoc, dir: Direction, rootSize?: { w: number; h: numbe
     },
   }));
 
-  const actionNodes: Node<ActionNodeData, "action">[] = pdi.areas.flatMap((area) =>
-    area.actions.map((action) => ({
-      id: action.id,
-      type: "action" as const,
-      position: { x: 0, y: 0 },
-      zIndex: 1,
-      data: {
-        title: action.title,
-        status: action.status,
-        dueDate: action.dueDate,
-        kind: action.kind,
-        description: action.description,
-        certificateUrl: action.certificateUrl,
-        areaId: area.id,
-        areaTitle: area.title,
-        dir,
-      },
-    })),
-  );
+  const actionNodes: Node<ActionNodeData, "action">[] = hideActions
+    ? []
+    : pdi.areas.flatMap((area) =>
+        area.actions.map((action) => ({
+          id: action.id,
+          type: "action" as const,
+          position: { x: 0, y: 0 },
+          zIndex: 1,
+          data: {
+            title: action.title,
+            status: action.status,
+            dueDate: action.dueDate,
+            kind: action.kind,
+            description: action.description,
+            certificateUrl: action.certificateUrl,
+            areaId: area.id,
+            areaTitle: area.title,
+            dir,
+          },
+        })),
+      );
 
   return { root, areaNodes, actionNodes };
 }
 
+/**
+ * Aresta estrutural (raiz→bloco/área, área→ação): cor vem do status de quem
+ * "sai" da seta — verde sólido (feito), laranja tracejado animado (em
+ * andamento), cinza tracejado apagado (futuro/bloqueado). Mesma paleta de
+ * `statusStyle` em todo lugar, sem linha cinza genérica nem cor inventada.
+ */
 function structuralEdge(source: string, target: string, status: Status): Edge {
+  const accent = statusStyle(status, "area").accent;
   return {
     id: `${source}->${target}`,
     source,
@@ -227,18 +249,22 @@ function structuralEdge(source: string, target: string, status: Status): Edge {
     animated: status === "doing",
     deletable: false,
     selectable: false,
+    markerEnd: { type: MarkerType.ArrowClosed, width: 14, height: 14, color: accent },
     style: {
-      strokeWidth: status === "todo" ? 1 : 1.75,
-      opacity: status === "todo" ? 0.4 : 1,
+      stroke: accent,
+      strokeWidth: status === "todo" ? 1.25 : 2,
+      strokeDasharray: status === "done" ? undefined : "6,4",
+      opacity: status === "todo" ? 0.45 : 1,
     },
   };
 }
 
 /** Arestas usadas pelo Dagre para o cálculo (sempre a árvore completa). */
-function dagreEdges(pdi: PdiDoc): Edge[] {
+function dagreEdges(pdi: PdiDoc, hideActions = false): Edge[] {
   const edges: Edge[] = [];
   for (const area of pdi.areas) {
     edges.push(structuralEdge(ROOT_ID, area.id, area.status));
+    if (hideActions) continue;
     for (const action of area.actions) {
       edges.push(structuralEdge(area.id, action.id, action.status));
     }
@@ -250,21 +276,31 @@ function dagreEdges(pdi: PdiDoc): Edge[] {
  * Arestas exibidas. Com blocos: a raiz liga no FRAME de cada bloco (menos
  * linhas cruzando); áreas soltas ligam direto na raiz. Ações sempre ligam na área.
  */
-function renderEdges(pdi: PdiDoc, groups: PdiGroup[]): Edge[] {
+function renderEdges(pdi: PdiDoc, groups: PdiGroup[], hideActions = false): Edge[] {
   const areaToGroup = groupOfArea(groups);
   const edges: Edge[] = [];
   const framesLinked = new Set<string>();
+  // status do bloco = status derivado do conjunto de ações de todas as suas
+  // áreas — mesma regra de `deriveAreaStatus`, só que aplicada num nível acima.
+  const actionsByArea = new Map(pdi.areas.map((a) => [a.id, a.actions]));
+  const groupStatus = (gid: string): Status =>
+    deriveAreaStatus(
+      (groups.find((g) => g.id === gid)?.areaIds ?? []).flatMap(
+        (aid) => actionsByArea.get(aid) ?? [],
+      ),
+    );
 
   for (const area of pdi.areas) {
     const gid = areaToGroup.get(area.id);
     if (gid) {
       if (!framesLinked.has(gid)) {
-        edges.push(structuralEdge(ROOT_ID, `frame-${gid}`, "doing"));
+        edges.push(structuralEdge(ROOT_ID, `frame-${gid}`, groupStatus(gid)));
         framesLinked.add(gid);
       }
     } else {
       edges.push(structuralEdge(ROOT_ID, area.id, area.status));
     }
+    if (hideActions) continue;
     for (const action of area.actions) {
       edges.push(structuralEdge(area.id, action.id, action.status));
     }
@@ -299,8 +335,10 @@ function treeLayout(
   positions: Record<string, { x: number; y: number }>,
   framesBoxes: Record<string, FrameBox>,
   rootSize?: { w: number; h: number },
+  hideActions = false,
+  savedRoot?: { x: number; y: number },
 ) {
-  const { root, areaNodes, actionNodes } = baseNodes(pdi, dir, rootSize);
+  const { root, areaNodes, actionNodes } = baseNodes(pdi, dir, rootSize, hideActions);
   const nodes = [root, ...areaNodes, ...actionNodes];
 
   const areaToGroup = groupOfArea(groups);
@@ -330,21 +368,26 @@ function treeLayout(
       for (const act of area.actions) g.setParent(act.id, gid);
     }
   }
-  for (const e of dagreEdges(pdi)) g.setEdge(e.source, e.target);
+  for (const e of dagreEdges(pdi, hideActions)) g.setEdge(e.source, e.target);
   Dagre.layout(g);
 
   const positioned = nodes.map((n) => {
     const s = NODE_SIZE[n.type];
-    const saved = positions[n.id];
+    // Raiz: usa a posição arrastada PARA ESTE FORMATO (savedRoot), nunca o
+    // mapa genérico `positions` — o Dagre recalcula a árvore inteira a cada
+    // mudança de bloco, e se o raiz lesse dali ele "herdaria" uma posição de
+    // antes que não faz mais sentido geometricamente. Sem arraste salvo,
+    // cai no que o Dagre calcular (mesmo caminho de área/ação).
+    const saved = n.type === "root" ? savedRoot : positions[n.id];
     if (saved) return { ...n, position: { ...saved } };
     const { x, y } = g.node(n.id);
     return { ...n, position: { x: x - s.width / 2, y: y - s.height / 2 } };
   }) as PdiNode[];
 
-  const frames = computeFrames(positioned, groups, framesBoxes);
+  const frames = computeFrames(positioned, groups, framesBoxes, pdi);
   return {
     nodes: [...frames, ...positioned] as PdiNode[],
-    edges: renderEdges(pdi, groups),
+    edges: renderEdges(pdi, groups, hideActions),
   };
 }
 
@@ -404,6 +447,7 @@ export function computeFrames(
   nodes: PdiNode[],
   groups: PdiGroup[],
   frameBoxes: Record<string, FrameBox> = {},
+  pdi?: PdiDoc,
 ): Node<GroupNodeData, "group">[] {
   let fallbackIndex = 0;
   const refX = Math.min(0, ...nodes.map((n) => n.position.x));
@@ -427,10 +471,23 @@ export function computeFrames(
   };
 
   // Quantitativo de ações do bloco — quantas faltam iniciar, em andamento, finalizadas.
+  // Lê direto do `pdi.areas` (dado real), não dos nós renderizados — no modo
+  // macro os cards de ação somem do canvas, mas o total do bloco não pode
+  // cair pra zero por causa disso.
+  const actionsByAreaId = new Map((pdi?.areas ?? []).map((a) => [a.id, a.actions]));
   const actionNodesAll = nodes.filter(
     (n): n is Node<ActionNodeData, "action"> => n.type === "action",
   );
   const groupActionStats = (areaIds: string[]) => {
+    if (pdi) {
+      const acts = areaIds.flatMap((id) => actionsByAreaId.get(id) ?? []);
+      return {
+        total: acts.length,
+        todo: acts.filter((a) => a.status === "todo").length,
+        doing: acts.filter((a) => a.status === "doing").length,
+        done: acts.filter((a) => a.status === "done").length,
+      };
+    }
     const set = new Set(areaIds);
     const acts = actionNodesAll.filter((n) => set.has(n.data.areaId));
     return {
@@ -483,12 +540,17 @@ export function computeFrames(
     });
 }
 
-function kanbanLayout(pdi: PdiDoc, rootSize?: { w: number; h: number }) {
+function kanbanLayout(
+  pdi: PdiDoc,
+  rootSize?: { w: number; h: number },
+  savedRoot?: { x: number; y: number },
+) {
   const colW = 360;
   const gapX = 40;
   const cardGap = 14;
   const headerH = 44;
   const { root, actionNodes } = baseNodes(pdi, "TB", rootSize);
+  const rootH = rootSize?.h ?? NODE_SIZE.root.height;
 
   const areaOrder = new Map(pdi.areas.map((a, i) => [a.title, i]));
   const byStatus = (s: Status) =>
@@ -500,7 +562,7 @@ function kanbanLayout(pdi: PdiDoc, rootSize?: { w: number; h: number }) {
       );
 
   const nodes: PdiNode[] = [
-    { ...root, position: { x: 0, y: -NODE_SIZE.root.height - 40 } },
+    { ...root, position: savedRoot ?? { x: 0, y: -rootH - 40 } },
   ];
 
   STATUS_ORDER.forEach((s, col) => {
@@ -535,23 +597,30 @@ function kanbanLayout(pdi: PdiDoc, rootSize?: { w: number; h: number }) {
   return { nodes, edges: [] as Edge[] };
 }
 
-function swimlaneLayout(pdi: PdiDoc, rootSize?: { w: number; h: number }) {
+function swimlaneLayout(
+  pdi: PdiDoc,
+  rootSize?: { w: number; h: number },
+  hideActions = false,
+  savedRoot?: { x: number; y: number },
+) {
   const labelW = 200;
   const gap = 20;
   const padY = 14;
   const laneH = NODE_SIZE.action.height + padY * 2 + 8;
-  const { root, actionNodes } = baseNodes(pdi, "LR", rootSize);
+  const { root, actionNodes } = baseNodes(pdi, "LR", rootSize, hideActions);
   const actById = new Map(actionNodes.map((n) => [n.id, n]));
+  const rootW = rootSize?.w ?? NODE_SIZE.root.width;
 
   const nodes: PdiNode[] = [
-    { ...root, position: { x: -NODE_SIZE.root.width - 40, y: 0 } },
+    { ...root, position: savedRoot ?? { x: -rootW - 40, y: 0 } },
   ];
   const edges: Edge[] = [];
 
   pdi.areas.forEach((area, i) => {
     const y0 = i * (laneH + 12);
     const st = statusStyle(area.status, "area");
-    const laneW = labelW + area.actions.length * (NODE_SIZE.action.width + gap) + 40;
+    const laneW =
+      labelW + (hideActions ? 0 : area.actions.length * (NODE_SIZE.action.width + gap)) + 40;
     nodes.push({
       id: `lane-${area.id}`,
       type: "band",
@@ -568,6 +637,11 @@ function swimlaneLayout(pdi: PdiDoc, rootSize?: { w: number; h: number }) {
         height: laneH,
       },
     });
+    if (hideActions) {
+      // sem card de ação nenhum pra apontar — liga direto na raia (a área).
+      edges.push(structuralEdge(ROOT_ID, `lane-${area.id}`, area.status));
+      return;
+    }
     area.actions.forEach((action, j) => {
       const n = actById.get(action.id);
       if (!n) return;
@@ -582,15 +656,22 @@ function swimlaneLayout(pdi: PdiDoc, rootSize?: { w: number; h: number }) {
   return { nodes, edges };
 }
 
-function radialLayout(pdi: PdiDoc, rootSize?: { w: number; h: number }) {
-  const { root, areaNodes, actionNodes } = baseNodes(pdi, "LR", rootSize);
+function radialLayout(
+  pdi: PdiDoc,
+  rootSize?: { w: number; h: number },
+  hideActions = false,
+  savedRoot?: { x: number; y: number },
+) {
+  const { root, areaNodes, actionNodes } = baseNodes(pdi, "LR", rootSize, hideActions);
   const actById = new Map(actionNodes.map((n) => [n.id, n]));
   const n = Math.max(pdi.areas.length, 1);
   const R1 = Math.max(360, n * 70);
+  const rootW = rootSize?.w ?? NODE_SIZE.root.width;
+  const rootH = rootSize?.h ?? NODE_SIZE.root.height;
   const nodes: PdiNode[] = [
-    { ...root, position: { x: -NODE_SIZE.root.width / 2, y: -NODE_SIZE.root.height / 2 } },
+    { ...root, position: savedRoot ?? { x: -rootW / 2, y: -rootH / 2 } },
   ];
-  const edges = renderEdges(pdi, []);
+  const edges = renderEdges(pdi, [], hideActions);
 
   pdi.areas.forEach((area, i) => {
     const ang = -Math.PI / 2 + (i / n) * 2 * Math.PI;
@@ -623,6 +704,90 @@ function radialLayout(pdi: PdiDoc, rootSize?: { w: number; h: number }) {
   return { nodes, edges };
 }
 
+/**
+ * Roadmap: raia = BLOCO (macro-domínio), card = ÁREA (curso/formação) — nível
+ * mais alto que a Raias normal (que é raia=área, card=ação). Sem módulos no
+ * canvas aqui de propósito: clicar num card abre a gaveta com a lista deles
+ * (mesmo mecanismo do modo macro). Dependência dentro do bloco é sequencial
+ * (ordem de cadastro); dependência cruzada entre blocos usa as setas manuais
+ * que já existem (ficam por cima, ver `layoutGraph`).
+ */
+function roadmapLayout(
+  pdi: PdiDoc,
+  groups: PdiGroup[],
+  rootSize?: { w: number; h: number },
+  savedRoot?: { x: number; y: number },
+) {
+  const labelW = 200;
+  const gap = 60;
+  const padY = 20;
+  const laneH = NODE_SIZE.area.height + padY * 2 + 10;
+  const { root, areaNodes } = baseNodes(pdi, "LR", rootSize, true);
+  const areaById = new Map(areaNodes.map((n) => [n.id, n]));
+
+  const areaToGroup = groupOfArea(groups);
+  const NO_GROUP = "__none";
+  const lanesMap = new Map<string, Area[]>();
+  for (const area of pdi.areas) {
+    const gid = areaToGroup.get(area.id) ?? NO_GROUP;
+    if (!lanesMap.has(gid)) lanesMap.set(gid, []);
+    lanesMap.get(gid)!.push(area);
+  }
+  for (const list of lanesMap.values()) list.sort((a, b) => a.order - b.order);
+
+  const lanes = [
+    ...[...groups].sort((a, b) => a.order - b.order).map((g) => ({ id: g.id, title: g.title, color: g.color })),
+    ...(lanesMap.has(NO_GROUP) ? [{ id: NO_GROUP, title: "Sem bloco", color: brand.gray }] : []),
+  ].filter((l) => (lanesMap.get(l.id) ?? []).length > 0);
+
+  const rootW = rootSize?.w ?? NODE_SIZE.root.width;
+  const nodes: PdiNode[] = [
+    { ...root, position: savedRoot ?? { x: -rootW - 40, y: 0 } },
+  ];
+  const edges: Edge[] = [];
+
+  lanes.forEach(({ id: gid, title, color }, i) => {
+    const areas = lanesMap.get(gid) ?? [];
+    const y0 = i * (laneH + 16);
+    const avgProgress = areas.reduce((s, a) => s + areaProgress(a), 0) / areas.length;
+    const laneW = labelW + areas.length * (NODE_SIZE.area.width + gap) + 40;
+    nodes.push({
+      id: `lane-${gid}`,
+      type: "band",
+      position: { x: 0, y: y0 },
+      draggable: false,
+      selectable: false,
+      zIndex: -1,
+      data: {
+        label: title,
+        sub: `${Math.round(avgProgress * 100)}%`,
+        accent: color,
+        variant: "lane",
+        width: laneW,
+        height: laneH,
+      },
+    });
+
+    areas.forEach((area, j) => {
+      const n = areaById.get(area.id);
+      if (!n) return;
+      nodes.push({
+        ...n,
+        position: { x: labelW + j * (NODE_SIZE.area.width + gap), y: y0 + padY },
+        data: { ...n.data, variant: "roadmap" },
+      });
+      const prev = areas[j - 1];
+      edges.push(
+        prev
+          ? structuralEdge(prev.id, area.id, prev.status)
+          : structuralEdge(ROOT_ID, area.id, area.status),
+      );
+    });
+  });
+
+  return { nodes, edges };
+}
+
 // ---------------------------------------------------------------------------
 
 /** Monta nós + arestas para o layout escolhido. Links manuais ficam por cima. */
@@ -637,6 +802,8 @@ export function layoutGraph(
     /** Tamanho do card raiz redimensionado pelo usuário (arraste no canto, como o bloco). */
     rootSize?: { w: number; h: number };
     shapes?: PdiShape[];
+    /** Modo macro: esconde os cards de ação (ficam só na gaveta de detalhe da área). Ignorado no Kanban. */
+    hideActions?: boolean;
   } = {},
 ): { nodes: PdiNode[]; edges: Edge[] } {
   const layout = opts.layout ?? "tree-lr";
@@ -644,12 +811,18 @@ export function layoutGraph(
   const positions = opts.positions ?? {};
   const frameBoxes = opts.frameBoxes ?? {};
   const rootSize = opts.rootSize;
+  const hideActions = Boolean(opts.hideActions) && layout !== "kanban";
+  // Cada formato tem seu próprio sistema de coordenadas — uma chave de
+  // posição do raiz por formato evita que o arraste em um "vaze" pro outro.
+  const rootKey = `root@${layout}`;
+  const savedRoot = positions[rootKey];
 
   let result: { nodes: PdiNode[]; edges: Edge[] };
-  if (layout === "kanban") result = kanbanLayout(pdi, rootSize);
-  else if (layout === "swimlane") result = swimlaneLayout(pdi, rootSize);
-  else if (layout === "radial") result = radialLayout(pdi, rootSize);
-  else result = treeLayout(pdi, dirFor(layout), groups, positions, frameBoxes, rootSize);
+  if (layout === "kanban") result = kanbanLayout(pdi, rootSize, savedRoot);
+  else if (layout === "swimlane") result = swimlaneLayout(pdi, rootSize, hideActions, savedRoot);
+  else if (layout === "radial") result = radialLayout(pdi, rootSize, hideActions, savedRoot);
+  else if (layout === "roadmap") result = roadmapLayout(pdi, groups, rootSize, savedRoot);
+  else result = treeLayout(pdi, dirFor(layout), groups, positions, frameBoxes, rootSize, hideActions, savedRoot);
 
   // Anotações entram DEPOIS do layout específico — não participam de nenhum
   // auto-layout/hug, são 100% posicionadas pelo usuário em todos os formatos.

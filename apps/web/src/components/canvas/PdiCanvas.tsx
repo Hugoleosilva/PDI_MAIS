@@ -27,6 +27,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import {
+  deriveAreaStatus,
   GROUP_COLORS,
   resolveSeedGroups,
   type CanvasPreset,
@@ -35,6 +36,7 @@ import {
   type PdiGroup,
   type PdiLink,
   type PdiShape,
+  type Status,
 } from "@pdi-mais/core";
 import {
   areasInBox,
@@ -65,7 +67,7 @@ type UndoEntry =
   | { kind: "link-remove"; link: PdiLink }
   | { kind: "shapes"; data: PdiShape[] };
 
-const LAYOUTS: Layout[] = ["tree-lr", "tree-tb", "kanban", "swimlane", "radial"];
+const LAYOUTS: Layout[] = ["tree-lr", "tree-tb", "kanban", "swimlane", "radial", "roadmap"];
 const uuid = () =>
   globalThis.crypto?.randomUUID?.() ?? `x${Date.now()}${Math.random().toString(36).slice(2, 8)}`;
 
@@ -152,6 +154,9 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
   const [layoutKind, setLayoutKind] = useState<Layout>("tree-lr");
   const [showGroups, setShowGroups] = useState(true);
   const [showGrid, setShowGrid] = useState(true);
+  // Linhas estruturais (raiz→bloco/área→ação) — setas manuais desenhadas
+  // pelo usuário continuam aparecendo mesmo com isso desligado.
+  const [showConnections, setShowConnections] = useState(true);
   const [toolsOpen, setToolsOpen] = useState(false);
   // vários tópicos podem ficar abertos ao mesmo tempo (acordeão independente,
   // não fecha os outros ao abrir um novo).
@@ -176,6 +181,46 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
   const [rootSize, setRootSizeState] = useState<{ w: number; h: number } | undefined>(
     pdi.canvas?.rootSize,
   );
+  // Modo macro: esconde os cards de ação do canvas (Árvore/Raias/Radial) — só
+  // aparecem na gaveta de detalhe da área, como lista de módulos. Kanban é
+  // sempre no nível de ação, então o modo macro não se aplica lá.
+  const [macroMode, setMacroMode] = useState(true);
+  // Edições de status feitas pela gaveta (lista de módulos) — sobrepõe o
+  // status vindo do servidor até a próxima carga da página, já que `pdi` é
+  // uma prop estática (mesmo padrão dos outros optimistic updates daqui).
+  const [statusOverrides, setStatusOverrides] = useState<Record<string, Status>>({});
+  const effectivePdi = useMemo<PdiDoc>(() => {
+    if (Object.keys(statusOverrides).length === 0) return pdi;
+    return {
+      ...pdi,
+      areas: pdi.areas.map((a) => {
+        let changed = false;
+        const actions = a.actions.map((ac) => {
+          const next = statusOverrides[ac.id];
+          if (!next || next === ac.status) return ac;
+          changed = true;
+          return { ...ac, status: next };
+        });
+        return changed ? { ...a, actions, status: deriveAreaStatus(actions) } : a;
+      }),
+    };
+  }, [pdi, statusOverrides]);
+  const updateActionStatus = useCallback((actionId: string, status: Status) => {
+    setStatusOverrides((o) => ({ ...o, [actionId]: status }));
+    fetch(`/api/pdi/action/${actionId}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ status }),
+    }).then((res) => {
+      if (!res.ok) {
+        setStatusOverrides((o) => {
+          const { [actionId]: _drop, ...rest } = o;
+          return rest;
+        });
+        window.alert("Não foi possível salvar o status dessa ação. Tenta de novo.");
+      }
+    });
+  }, []);
 
   const linksRef = useRef(links);
   const positionsRef = useRef(positions);
@@ -192,19 +237,26 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
 
   const isTree = layoutKind === "tree-lr" || layoutKind === "tree-tb";
   const groupsActive = showGroups && isTree;
+  // Cada formato tem seu próprio sistema de coordenadas — guardar o arraste
+  // do raiz numa chave por `layoutKind` evita que ele "vaze" de um formato
+  // pro outro (mesma chave que `layoutGraph` usa internamente: `root@<layout>`).
+  const rootPosKey = `root@${layoutKind}`;
 
   const layout = useMemo(
     () =>
-      layoutGraph(pdi, {
+      layoutGraph(effectivePdi, {
         layout: layoutKind,
         links: [],
-        groups: groupsActive ? groups : [],
+        // Roadmap sempre precisa dos blocos (raia = bloco), independente do
+        // toggle "Blocos" que só se aplica à Árvore.
+        groups: groupsActive || layoutKind === "roadmap" ? groups : [],
         positions,
         frameBoxes,
         rootSize,
         shapes,
+        hideActions: macroMode,
       }),
-    [pdi, layoutKind, groupsActive, groups, positions, frameBoxes, rootSize, shapes],
+    [effectivePdi, layoutKind, groupsActive, groups, positions, frameBoxes, rootSize, shapes, macroMode],
   );
 
   const [nodes, setNodes, onNodesChange] = useNodesState(layout.nodes);
@@ -645,7 +697,7 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
 
   // ---- sincroniza estrutura; fitView só quando muda o formato ----
   // começa igual ao layoutKind inicial (não null!) — senão a 1ª renderização
-  // já conta como "mudou de direção" e solta a âncora do raiz logo de cara.
+  // já conta como "mudou de formato" e dispara o fitView logo de cara.
   const prevLayoutKind = useRef<Layout>(layoutKind);
   useEffect(() => {
     setNodes(withHandlers(layout.nodes));
@@ -653,40 +705,21 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
       prevLayoutKind.current = layoutKind;
       undoStack.current = [];
       setCanUndo(false);
-      // o raiz é ancorado abaixo (ver efeito seguinte) — ao trocar de direção
-      // (árvore →/↓) a posição antiga não faz mais sentido, solta a âncora.
-      if (positionsRef.current.root) {
-        const { root: _drop, ...rest } = positionsRef.current;
-        positionsRef.current = rest;
-        setPositions(rest);
-        saveCanvas();
-      }
       const id = requestAnimationFrame(() => fitView({ padding: 0.14, duration: 250 }));
       return () => cancelAnimationFrame(id);
     }
-  }, [layout.nodes, withHandlers, setNodes, fitView, layoutKind, saveCanvas]);
-
-  // Ancora a posição do raiz assim que calculada. Sem isso, qualquer mudança
-  // de bloco (arrastar um frame recalcula `groups` via recapture) recalcula
-  // o layout inteiro e o card do PDI "pula" pra onde o Dagre decidir agora —
-  // igual às áreas/ações, ele só deve se mover se o usuário arrastar ou
-  // clicar em Reorganizar.
-  useEffect(() => {
-    if (positions.root) return;
-    const rootNode = layout.nodes.find((n) => n.id === "root");
-    if (!rootNode) return;
-    const next = { ...positions, root: { ...rootNode.position } };
-    // atualiza a ref NA HORA (não espera o próximo render) e salva sem
-    // debounce — se o usuário trocar de tela rápido, o timer de 700ms podia
-    // não disparar a tempo e a âncora nunca ia pro banco.
-    positionsRef.current = next;
-    setPositions(next);
-    saveCanvas();
-  }, [layout.nodes, positions, saveCanvas]);
+  }, [layout.nodes, withHandlers, setNodes, fitView, layoutKind]);
 
   useEffect(() => {
-    setEdges([...layout.edges, ...linkEdgesMemo]);
-  }, [layout.edges, linkEdgesMemo, setEdges]);
+    // No modo macro (ou qualquer filtro futuro), uma seta manual cujo
+    // extremo sumiu do canvas (card de ação escondido) não pode tentar
+    // renderizar pra um nó inexistente — sobra um resto "fantasma" solto.
+    const nodeIds = new Set(layout.nodes.map((n) => n.id));
+    const visibleLinks = linkEdgesMemo.filter(
+      (e) => nodeIds.has(e.source) && nodeIds.has(e.target),
+    );
+    setEdges([...(showConnections ? layout.edges : []), ...visibleLinks]);
+  }, [layout.nodes, layout.edges, linkEdgesMemo, showConnections, setEdges]);
 
   const reorganize = useCallback(() => {
     undoStack.current = [];
@@ -763,13 +796,13 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
       dragSnapshot.current = Object.fromEntries(
         dragged
           .filter((d) => d.type !== "group" && d.type !== "shape")
-          .map((d) => [d.id, { ...d.position }]),
+          .map((d) => [d.id === "root" ? rootPosKey : d.id, { ...d.position }]),
       );
       shapeDragSnapshot.current = dragged.some((d) => d.type === "shape")
         ? shapesRef.current
         : null;
     },
-    [memberIdsOf, pushUndo],
+    [memberIdsOf, pushUndo, rootPosKey],
   );
 
   const onNodeDrag = useCallback((_: unknown, node: Node) => {
@@ -838,7 +871,9 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
         }
         setPositions((p) => {
           const next = { ...p };
-          for (const d of cards) next[d.id] = { x: d.position.x, y: d.position.y };
+          for (const d of cards) {
+            next[d.id === "root" ? rootPosKey : d.id] = { x: d.position.x, y: d.position.y };
+          }
           return next;
         });
       }
@@ -862,7 +897,7 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
       scheduleSave();
       if (groupsActive) recapture();
     },
-    [groupsActive, recapture, pushUndo, scheduleSave, setFrameBox, commitShapes],
+    [groupsActive, recapture, pushUndo, scheduleSave, setFrameBox, commitShapes, rootPosKey],
   );
 
   const handleNodesChange = useCallback(
@@ -1049,7 +1084,7 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
         minZoom={0.06}
         style={{ background: brand.pageBg }}
       >
-        {showGrid && <Background gap={20} color="#D4D4D8" />}
+        {showGrid && <Background gap={20} color={brand.gray} />}
         <Controls showInteractive={false} position="bottom-right" />
         <MiniMap pannable zoomable nodeStrokeWidth={2} />
         <HelperLines horizontal={lineH} vertical={lineV} />
@@ -1132,6 +1167,11 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
               {LAYOUT_LABEL[l]}
             </TBtn>
           ))}
+          {layoutKind !== "kanban" && layoutKind !== "roadmap" && (
+            <TBtn active={macroMode} onClick={() => setMacroMode((v) => !v)}>
+              🔎 Modo macro (módulos na gaveta)
+            </TBtn>
+          )}
         </ToolTopic>
 
         <ToolTopic
@@ -1154,6 +1194,9 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
           onToggle={() => toggleSection("canvas")}
         >
           <TBtn active={showGrid} onClick={() => setShowGrid((v) => !v)}>▦ Grade</TBtn>
+          <TBtn active={showConnections} onClick={() => setShowConnections((v) => !v)}>
+            ⤳ Conexões
+          </TBtn>
           <TBtn onClick={undo}>
             <span style={{ opacity: canUndo ? 1 : 0.4 }}>↩ Desfazer</span>
           </TBtn>
@@ -1221,7 +1264,18 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
         </ToolTopic>
       </div>
 
-      {selected && <DetailPanel node={selected} onClose={() => setSelected(null)} />}
+      {selected && (
+        <DetailPanel
+          node={selected}
+          onClose={() => setSelected(null)}
+          modules={
+            selected.type === "area"
+              ? effectivePdi.areas.find((a) => a.id === selected.id)?.actions
+              : undefined
+          }
+          onToggleModuleStatus={updateActionStatus}
+        />
+      )}
     </div>
   );
 }
