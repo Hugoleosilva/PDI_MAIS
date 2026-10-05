@@ -6,6 +6,14 @@ const isoDate = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/, "dueDate deve estar no formato YYYY-MM-DD");
 
+/** Link de certificado: só http(s) — evita `javascript:`/`data:` armazenado e clicável depois. */
+const certificateUrlInput = z
+  .string()
+  .trim()
+  .min(1)
+  .max(500)
+  .refine((v) => /^https?:\/\//i.test(v), "certificateUrl precisa ser um link http(s)");
+
 /** Status aceita rótulo da plataforma ("Não iniciado") ou canônico ("todo"). */
 const statusInput = z
   .string()
@@ -31,7 +39,7 @@ export const incomingActionSchema = z.object({
   unitsLabel: z.string().trim().min(1).max(30).optional(),
   hoursDone: z.number().nonnegative().optional(),
   completedAt: isoDate.optional(),
-  certificateUrl: z.string().trim().min(1).max(500).optional(),
+  certificateUrl: certificateUrlInput.optional(),
 });
 
 export const incomingAreaSchema = z.object({

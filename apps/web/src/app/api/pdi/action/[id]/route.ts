@@ -16,7 +16,16 @@ const patchSchema = z.object({
   unitsDone: z.number().int().nonnegative().max(100000).nullable().optional(),
   unitsLabel: z.string().trim().min(1).max(30).nullable().optional(),
   hoursDone: z.number().nonnegative().max(100000).nullable().optional(),
-  certificateUrl: z.string().trim().max(500).nullable().optional(),
+  // só http(s) — evita guardar um link `javascript:`/`data:` clicável depois.
+  // Pra limpar o campo, manda `null` (string vazia é rejeitada, não "limpa").
+  certificateUrl: z
+    .string()
+    .trim()
+    .min(1)
+    .max(500)
+    .refine((v) => /^https?:\/\//i.test(v), "certificateUrl precisa ser um link http(s)")
+    .nullable()
+    .optional(),
 });
 
 /** PATCH /api/pdi/action/[id] — edita uma ação. */
