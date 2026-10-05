@@ -1,4 +1,4 @@
-import { actionId, areaId } from "./ids";
+import { actionId, areaId, normalizeTitle } from "./ids";
 import type { SyncPayload } from "./schema";
 import type { Action, Area, PdiDoc, Source, Status } from "./types";
 
@@ -46,26 +46,47 @@ export function mergePdi(
   const now = opts.now ?? new Date();
   const prevAreas = new Map((existing?.areas ?? []).map((a) => [a.id, a]));
 
+  // Duas áreas com o MESMO título (mesmo ignorando acento/caixa) geram o
+  // mesmo ID determinístico — sem isso, elas brigam pelo mesmo nó no React
+  // Flow (uma some da tela) e as contagens/setas ficam inconsistentes com o
+  // que aparece. Desambigua a 2ª+ ocorrência dentro do MESMO payload, sem
+  // apagar nenhuma — o usuário decide depois se era duplicata de verdade.
+  const titleOccurrences = new Map<string, number>();
   const areas: Area[] = payload.areas.map((incomingArea, index) => {
-    const id = areaId(incomingArea.title);
+    const normalized = normalizeTitle(incomingArea.title);
+    const occurrence = titleOccurrences.get(normalized) ?? 0;
+    titleOccurrences.set(normalized, occurrence + 1);
+    // mesma desambiguação usada no ID da área — sem isso, as AÇÕES de duas
+    // áreas com título repetido ainda colidiam entre si (actionId usa o
+    // título da área como parte do hash), sumindo card de ação sem aviso.
+    const areaTitleForHash =
+      occurrence === 0 ? incomingArea.title : `${incomingArea.title} #${occurrence + 1}`;
+    const id = areaId(areaTitleForHash);
     const prevArea = prevAreas.get(id);
     const prevActions = new Map(
       (prevArea?.actions ?? []).map((a) => [a.id, a]),
     );
 
     const actions: Action[] = incomingArea.actions.map((incoming) => {
-      const aid = actionId(incomingArea.title, incoming.title);
+      const aid = actionId(areaTitleForHash, incoming.title);
       const prev = prevActions.get(aid);
-      const isManual = prev?.source === "manual";
+      // Só protege status/prazo de uma ação manual contra um SYNC DA EXTENSÃO
+      // (fonte não confiável tentando sobrescrever o que o usuário editou à
+      // mão). Um payload que É ELE MESMO manual (ManualBuilder/"colar
+      // tabela", ambos chamam applySync com source:"manual") é a edição do
+      // usuário agora — precisa vencer, senão status/prazo travam pra sempre
+      // depois do primeiro save manual (bug: toda reedição via "Preencher à
+      // mão" era descartada silenciosamente).
+      const protectManual = prev?.source === "manual" && opts.source === "extension";
 
-      const status = isManual && prev ? prev.status : incoming.status;
+      const status = protectManual && prev ? prev.status : incoming.status;
       return {
         id: aid,
         title: incoming.title,
         kind: incoming.kind,
         status,
         dueDate:
-          isManual && prev ? prev.dueDate : (incoming.dueDate ?? prev?.dueDate),
+          protectManual && prev ? prev.dueDate : (incoming.dueDate ?? prev?.dueDate),
         description: prev?.description ?? incoming.description,
         certificateUrl: prev?.certificateUrl ?? incoming.certificateUrl,
         source: prev?.source ?? opts.source,

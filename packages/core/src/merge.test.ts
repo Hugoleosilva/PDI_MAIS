@@ -59,6 +59,34 @@ describe("mergePdi", () => {
     expect(dddAfter?.status).toBe("done");
   });
 
+  it("um novo save manual ATUALIZA o status de uma ação já manual (bug: travava pra sempre)", () => {
+    const first = mergePdi(null, payload, opts);
+    const edited: PdiDoc = structuredClone(first);
+    const ddd = edited.areas[0].actions[0];
+    ddd.status = "todo";
+    ddd.source = "manual";
+
+    // reedição via ManualBuilder/"colar tabela" — o payload em si é manual,
+    // não um sync automático da extensão tentando sobrescrever.
+    const manualOpts = { ...opts, source: "manual" as const };
+    const resaved = syncPayloadSchema.parse({
+      ...input,
+      areas: [
+        {
+          ...input.areas![0],
+          actions: [
+            { ...input.areas![0].actions![0], status: "Finalizado" },
+            input.areas![0].actions![1],
+          ],
+        },
+        input.areas![1],
+      ],
+    });
+    const after = mergePdi(edited, resaved, manualOpts);
+    const dddAfter = after.areas[0].actions.find((a) => a.title === "Curso DDD");
+    expect(dddAfter?.status).toBe("done");
+  });
+
   it("preserva layout e description locais (área e ação)", () => {
     const first = mergePdi(null, payload, opts);
     const edited: PdiDoc = structuredClone(first);
@@ -110,6 +138,30 @@ describe("mergePdi", () => {
       opts,
     );
     expect(p2.areas[0].id).toBe(p1.areas[0].id);
+  });
+
+  it("duas áreas com o mesmo título no mesmo payload ganham IDs diferentes (bug: uma sumia da tela)", () => {
+    const dup = syncPayloadSchema.parse({
+      ...input,
+      areas: [input.areas![0], { ...input.areas![0], actions: [] }],
+    });
+    const doc = mergePdi(null, dup, opts);
+    expect(doc.areas).toHaveLength(2);
+    expect(doc.areas[0].id).not.toBe(doc.areas[1].id);
+    expect(doc.areas[0].title).toBe(doc.areas[1].title);
+  });
+
+  it("ações com o mesmo título em áreas duplicadas também ganham IDs diferentes (bug: card de ação sumia)", () => {
+    const dup = syncPayloadSchema.parse({
+      ...input,
+      areas: [input.areas![0], input.areas![0]],
+    });
+    const doc = mergePdi(null, dup, opts);
+    const idsArea0 = doc.areas[0].actions.map((a) => a.id);
+    const idsArea1 = doc.areas[1].actions.map((a) => a.id);
+    expect(idsArea0).toHaveLength(2);
+    expect(idsArea1).toHaveLength(2);
+    for (const id of idsArea1) expect(idsArea0).not.toContain(id);
   });
 });
 
