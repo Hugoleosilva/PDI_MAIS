@@ -4,6 +4,7 @@ import { PdiCanvas } from "@/components/canvas/PdiCanvas";
 import { EmptyState } from "@/components/EmptyState";
 import { GeminiButton } from "@/components/GeminiButton";
 import { ReportButton } from "@/components/ReportButton";
+import { ShareButton } from "@/components/ShareButton";
 import { AppHeader } from "@/components/AppHeader";
 import { brand } from "@/lib/theme";
 
@@ -51,6 +52,7 @@ export default async function Home() {
             <>
               <GeminiButton pdi={pdi} />
               <ReportButton pdi={pdi} />
+              <ShareButton pdi={pdi} />
             </>
           )
         }

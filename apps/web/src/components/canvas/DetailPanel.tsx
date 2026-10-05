@@ -10,6 +10,7 @@ import {
 } from "@pdi-mais/core";
 import type { PdiNode } from "@/lib/pdi-to-graph";
 import { brand, statusStyle } from "@/lib/theme";
+import { formatDate } from "@/lib/format";
 
 interface PanelData {
   title: string;
@@ -27,15 +28,43 @@ const STATUS_ORDER: Status[] = ["todo", "doing", "done"];
 type ActionPatch = { status?: Status; dueDate?: string | null };
 type EditableAction = Pick<Action, "id" | "status" | "dueDate" | "certificateUrl">;
 
-/** Status + prazo editáveis — reaproveitado na lista de módulos e na ação direta. */
+/**
+ * Status + prazo — editáveis (select/date) ou só leitura (badge/texto), pro
+ * Modo Gestor (`/r/[shareId]`) nunca mostrar controle que não faz nada.
+ */
 function ActionEditor({
   action,
   onUpdate,
+  readOnly,
 }: {
   action: EditableAction;
   onUpdate?: (id: string, patch: ActionPatch) => void;
+  readOnly?: boolean;
 }) {
   const s = statusStyle(action.status, "action");
+  if (readOnly) {
+    return (
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="rounded px-1.5 py-0.5 text-[11px] font-medium" style={{ background: s.badgeBg, color: s.badgeText }}>
+          {s.label}
+        </span>
+        {action.dueDate && (
+          <span className="text-[11px]" style={{ color: brand.muted }}>Prazo: {formatDate(action.dueDate)}</span>
+        )}
+        {action.certificateUrl && (
+          <a
+            href={action.certificateUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[11px] font-medium"
+            style={{ color: brand.teal }}
+          >
+            Certificado
+          </a>
+        )}
+      </div>
+    );
+  }
   return (
     <div className="flex flex-wrap items-center gap-2">
       <select
@@ -76,9 +105,11 @@ function ActionEditor({
 function ModuleRow({
   action,
   onUpdate,
+  readOnly,
 }: {
   action: Action;
   onUpdate?: (id: string, patch: ActionPatch) => void;
+  readOnly?: boolean;
 }) {
   return (
     <div
@@ -88,7 +119,7 @@ function ModuleRow({
       <span className="text-xs font-medium leading-snug" style={{ color: brand.ink }}>
         {action.title}
       </span>
-      <ActionEditor action={action} onUpdate={onUpdate} />
+      <ActionEditor action={action} onUpdate={onUpdate} readOnly={readOnly} />
     </div>
   );
 }
@@ -98,12 +129,15 @@ export function DetailPanel({
   onClose,
   modules,
   onUpdateAction,
+  readOnly,
 }: {
   node: PdiNode;
   onClose: () => void;
   /** Ações da área (modo macro) — vira "lista de módulos" com status/prazo editáveis. */
   modules?: Action[];
   onUpdateAction?: (id: string, patch: ActionPatch) => void;
+  /** Modo Gestor (`/r/[shareId]`) — mostra status/prazo como texto, nunca como controle. */
+  readOnly?: boolean;
 }) {
   const isArea = node.type === "area";
   const d = node.data as PanelData;
@@ -155,6 +189,7 @@ export function DetailPanel({
           <ActionEditor
             action={{ id: node.id, status: d.status, dueDate: d.dueDate, certificateUrl: d.certificateUrl }}
             onUpdate={onUpdateAction}
+            readOnly={readOnly}
           />
         </>
       )}
@@ -166,7 +201,7 @@ export function DetailPanel({
           </div>
           <div className="flex flex-col gap-1.5">
             {modules.map((a) => (
-              <ModuleRow key={a.id} action={a} onUpdate={onUpdateAction} />
+              <ModuleRow key={a.id} action={a} onUpdate={onUpdateAction} readOnly={readOnly} />
             ))}
           </div>
         </div>
@@ -185,7 +220,7 @@ export function DetailPanel({
           </p>
         ) : (
           <p className="text-sm italic" style={{ color: brand.muted }}>
-            Sem comentário. A edição chega na Rodada 4.
+            Sem comentário.
           </p>
         )}
       </div>

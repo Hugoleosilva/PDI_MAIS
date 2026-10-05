@@ -28,6 +28,22 @@ export async function getPdiByUserId(userId: string): Promise<PdiDoc | null> {
   return col.findOne({ userId }, { projection: { _id: 0 } });
 }
 
+/** Busca pública (Modo Gestor) — nunca pelo userId, só pelo link de compartilhamento. */
+export async function getPdiByShareId(shareId: string): Promise<PdiDoc | null> {
+  const col = await collection();
+  return col.findOne({ shareId }, { projection: { _id: 0 } });
+}
+
+/**
+ * Liga/desliga o compartilhamento (Modo Gestor). `shareId: null` desliga —
+ * o link antigo para de funcionar na hora (índice único garante que um novo
+ * `shareId` nunca colide com o de outro usuário).
+ */
+export async function setShareId(userId: string, shareId: string | null): Promise<void> {
+  const col = await collection();
+  await col.updateOne({ userId }, { $set: { shareId, updatedAt: new Date() } });
+}
+
 /**
  * Aplica um payload de sync (extensão ou import manual) e devolve o documento
  * resultante. A lógica de merge vive em @pdi-mais/core e é testada lá.
