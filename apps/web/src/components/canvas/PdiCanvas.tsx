@@ -57,6 +57,7 @@ import { nodeTypes } from "./nodes";
 import { edgeTypes } from "./edges";
 import { HelperLines } from "./HelperLines";
 import { DetailPanel } from "./DetailPanel";
+import { AIGroupingButton } from "./AIGroupingButton";
 
 type Pos = { x: number; y: number };
 type PosMap = Record<string, Pos>;
@@ -422,19 +423,26 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
     if (changed) commitGroups(next);
   }, [commitGroups]);
 
+  // Reaproveitado tanto pelos blocos "★ Sugeridos" fixos quanto pela
+  // sugestão de agrupamento por IA — qualquer lista de PdiGroup serve.
+  const applyGroups = useCallback(
+    (sg: PdiGroup[]) => {
+      const boxes: Record<string, FrameBox> = {};
+      for (const g of sg) {
+        const b = hugBox(nodesRef.current, g.areaIds);
+        if (b) boxes[g.id] = b;
+      }
+      setFrameBoxes(boxes);
+      frameBoxesRef.current = boxes;
+      commitGroups(sg);
+      if (!showGroups) setShowGroups(true);
+      requestAnimationFrame(() => fitView({ padding: 0.14, duration: 300 }));
+    },
+    [commitGroups, showGroups, fitView],
+  );
   const applySuggestedGroups = useCallback(() => {
-    const sg = resolveSeedGroups(pdi);
-    const boxes: Record<string, FrameBox> = {};
-    for (const g of sg) {
-      const b = hugBox(nodesRef.current, g.areaIds);
-      if (b) boxes[g.id] = b;
-    }
-    setFrameBoxes(boxes);
-    frameBoxesRef.current = boxes;
-    commitGroups(sg);
-    if (!showGroups) setShowGroups(true);
-    requestAnimationFrame(() => fitView({ padding: 0.14, duration: 300 }));
-  }, [pdi, commitGroups, showGroups, fitView]);
+    applyGroups(resolveSeedGroups(pdi));
+  }, [pdi, applyGroups]);
 
   const renameGroup = useCallback(
     (id: string, title: string) =>
@@ -1189,6 +1197,7 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
           <TBtn active={showGroups} onClick={() => setShowGroups((v) => !v)}>▦ Blocos</TBtn>
           <TBtn onClick={addGroup}>+ Bloco</TBtn>
           <TBtn onClick={applySuggestedGroups}>★ Sugeridos</TBtn>
+          <AIGroupingButton pdi={pdi} onApply={applyGroups} />
         </ToolTopic>
 
         <ToolTopic
