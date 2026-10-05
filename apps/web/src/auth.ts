@@ -6,10 +6,14 @@ import Google from "next-auth/providers/google";
  *
  * - Estratégia JWT: não guardamos usuários/sessões no banco. A identidade é o
  *   `sub` do Google, exposto em `session.user.id`.
- * - `Google` sem argumentos lê AUTH_GOOGLE_ID / AUTH_GOOGLE_SECRET do ambiente.
+ * - `Google` lê AUTH_GOOGLE_ID / AUTH_GOOGLE_SECRET do ambiente.
+ * - `prompt: "select_account"` força o Google a sempre mostrar a tela de
+ *   escolha de conta — sem isso, com o navegador/perfil já logado numa conta
+ *   (ex.: a do trabalho), o Google pula direto pra ela e nunca oferece
+ *   escolher outra (como a pessoal) usada nesse app.
  */
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  providers: [Google],
+  providers: [Google({ authorization: { params: { prompt: "select_account" } } })],
   session: { strategy: "jwt" },
   callbacks: {
     /**
