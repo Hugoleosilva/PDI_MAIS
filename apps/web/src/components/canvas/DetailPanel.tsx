@@ -10,7 +10,6 @@ import {
 } from "@pdi-mais/core";
 import type { PdiNode } from "@/lib/pdi-to-graph";
 import { brand, statusStyle } from "@/lib/theme";
-import { formatDate } from "@/lib/format";
 
 interface PanelData {
   title: string;
@@ -20,59 +19,76 @@ interface PanelData {
   kind?: ActionKind;
   progress?: number;
   actionCount?: number;
+  certificateUrl?: string;
 }
 
 const STATUS_ORDER: Status[] = ["todo", "doing", "done"];
 
-/** Linha de módulo — status editável direto na gaveta (modo macro). */
-function ModuleRow({
+type ActionPatch = { status?: Status; dueDate?: string | null };
+type EditableAction = Pick<Action, "id" | "status" | "dueDate" | "certificateUrl">;
+
+/** Status + prazo editáveis — reaproveitado na lista de módulos e na ação direta. */
+function ActionEditor({
   action,
-  onToggleStatus,
+  onUpdate,
 }: {
-  action: Action;
-  onToggleStatus?: (id: string, status: Status) => void;
+  action: EditableAction;
+  onUpdate?: (id: string, patch: ActionPatch) => void;
 }) {
   const s = statusStyle(action.status, "action");
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <select
+        value={action.status}
+        onChange={(e) => onUpdate?.(action.id, { status: e.target.value as Status })}
+        className="rounded border px-1.5 py-0.5 text-[11px] font-medium outline-none"
+        style={{ borderColor: brand.border, background: s.badgeBg, color: s.badgeText }}
+      >
+        {STATUS_ORDER.map((st) => (
+          <option key={st} value={st}>
+            {ACTION_STATUS_LABEL[st]}
+          </option>
+        ))}
+      </select>
+      <input
+        type="date"
+        value={action.dueDate ?? ""}
+        onChange={(e) => onUpdate?.(action.id, { dueDate: e.target.value || null })}
+        className="rounded border px-1.5 py-0.5 text-[11px] outline-none"
+        style={{ borderColor: brand.border, color: brand.ink }}
+      />
+      {action.certificateUrl && (
+        <a
+          href={action.certificateUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[11px] font-medium"
+          style={{ color: brand.teal }}
+        >
+          Certificado
+        </a>
+      )}
+    </div>
+  );
+}
+
+/** Linha de módulo — status/prazo editáveis direto na gaveta (modo macro). */
+function ModuleRow({
+  action,
+  onUpdate,
+}: {
+  action: Action;
+  onUpdate?: (id: string, patch: ActionPatch) => void;
+}) {
   return (
     <div
       className="flex flex-col gap-1.5 rounded-lg border p-2.5"
       style={{ borderColor: brand.border }}
     >
-      <div className="flex items-start justify-between gap-2">
-        <span className="text-xs font-medium leading-snug" style={{ color: brand.ink }}>
-          {action.title}
-        </span>
-        {action.dueDate && (
-          <span className="shrink-0 text-[11px]" style={{ color: brand.muted }}>
-            {formatDate(action.dueDate)}
-          </span>
-        )}
-      </div>
-      <div className="flex items-center gap-2">
-        <select
-          value={action.status}
-          onChange={(e) => onToggleStatus?.(action.id, e.target.value as Status)}
-          className="rounded border px-1.5 py-0.5 text-[11px] font-medium outline-none"
-          style={{ borderColor: brand.border, background: s.badgeBg, color: s.badgeText }}
-        >
-          {STATUS_ORDER.map((st) => (
-            <option key={st} value={st}>
-              {ACTION_STATUS_LABEL[st]}
-            </option>
-          ))}
-        </select>
-        {action.certificateUrl && (
-          <a
-            href={action.certificateUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[11px] font-medium"
-            style={{ color: brand.teal }}
-          >
-            Certificado
-          </a>
-        )}
-      </div>
+      <span className="text-xs font-medium leading-snug" style={{ color: brand.ink }}>
+        {action.title}
+      </span>
+      <ActionEditor action={action} onUpdate={onUpdate} />
     </div>
   );
 }
@@ -81,13 +97,13 @@ export function DetailPanel({
   node,
   onClose,
   modules,
-  onToggleModuleStatus,
+  onUpdateAction,
 }: {
   node: PdiNode;
   onClose: () => void;
-  /** Ações da área (modo macro) — vira "lista de módulos" com status editável. */
+  /** Ações da área (modo macro) — vira "lista de módulos" com status/prazo editáveis. */
   modules?: Action[];
-  onToggleModuleStatus?: (id: string, status: Status) => void;
+  onUpdateAction?: (id: string, patch: ActionPatch) => void;
 }) {
   const isArea = node.type === "area";
   const d = node.data as PanelData;
@@ -113,14 +129,13 @@ export function DetailPanel({
         </button>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="rounded px-2 py-0.5 text-xs font-medium" style={{ background: s.badgeBg, color: s.badgeText }}>
-          {s.label}
-        </span>
-        {!isArea && d.dueDate ? (
-          <span className="text-xs" style={{ color: brand.muted }}>Prazo: {formatDate(d.dueDate)}</span>
-        ) : null}
-      </div>
+      {isArea && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded px-2 py-0.5 text-xs font-medium" style={{ background: s.badgeBg, color: s.badgeText }}>
+            {s.label}
+          </span>
+        </div>
+      )}
 
       <h2 className="text-base font-semibold leading-snug" style={{ color: brand.ink }}>
         {d.title}
@@ -133,9 +148,15 @@ export function DetailPanel({
           <span>{d.actionCount ?? 0} ações</span>
         </div>
       ) : (
-        <div className="text-xs" style={{ color: brand.muted }}>
-          {d.kind ? ACTION_KIND_LABEL[d.kind] : ""}
-        </div>
+        <>
+          <div className="text-xs" style={{ color: brand.muted }}>
+            {d.kind ? ACTION_KIND_LABEL[d.kind] : ""}
+          </div>
+          <ActionEditor
+            action={{ id: node.id, status: d.status, dueDate: d.dueDate, certificateUrl: d.certificateUrl }}
+            onUpdate={onUpdateAction}
+          />
+        </>
       )}
 
       {isArea && modules && modules.length > 0 && (
@@ -145,7 +166,7 @@ export function DetailPanel({
           </div>
           <div className="flex flex-col gap-1.5">
             {modules.map((a) => (
-              <ModuleRow key={a.id} action={a} onToggleStatus={onToggleModuleStatus} />
+              <ModuleRow key={a.id} action={a} onUpdate={onUpdateAction} />
             ))}
           </div>
         </div>

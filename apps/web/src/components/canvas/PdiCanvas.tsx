@@ -185,39 +185,44 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
   // aparecem na gaveta de detalhe da área, como lista de módulos. Kanban é
   // sempre no nível de ação, então o modo macro não se aplica lá.
   const [macroMode, setMacroMode] = useState(true);
-  // Edições de status feitas pela gaveta (lista de módulos) — sobrepõe o
-  // status vindo do servidor até a próxima carga da página, já que `pdi` é
-  // uma prop estática (mesmo padrão dos outros optimistic updates daqui).
-  const [statusOverrides, setStatusOverrides] = useState<Record<string, Status>>({});
+  // Edições feitas pela gaveta (status/prazo) — sobrepõe o que veio do
+  // servidor até a próxima carga da página, já que `pdi` é uma prop estática
+  // (mesmo padrão dos outros optimistic updates daqui).
+  type ActionPatch = { status?: Status; dueDate?: string | null };
+  const [actionOverrides, setActionOverrides] = useState<Record<string, ActionPatch>>({});
   const effectivePdi = useMemo<PdiDoc>(() => {
-    if (Object.keys(statusOverrides).length === 0) return pdi;
+    if (Object.keys(actionOverrides).length === 0) return pdi;
     return {
       ...pdi,
       areas: pdi.areas.map((a) => {
         let changed = false;
         const actions = a.actions.map((ac) => {
-          const next = statusOverrides[ac.id];
-          if (!next || next === ac.status) return ac;
+          const patch = actionOverrides[ac.id];
+          if (!patch) return ac;
           changed = true;
-          return { ...ac, status: next };
+          return {
+            ...ac,
+            ...(patch.status != null ? { status: patch.status } : {}),
+            dueDate: patch.dueDate === undefined ? ac.dueDate : (patch.dueDate ?? undefined),
+          };
         });
         return changed ? { ...a, actions, status: deriveAreaStatus(actions) } : a;
       }),
     };
-  }, [pdi, statusOverrides]);
-  const updateActionStatus = useCallback((actionId: string, status: Status) => {
-    setStatusOverrides((o) => ({ ...o, [actionId]: status }));
+  }, [pdi, actionOverrides]);
+  const updateAction = useCallback((actionId: string, patch: ActionPatch) => {
+    setActionOverrides((o) => ({ ...o, [actionId]: { ...o[actionId], ...patch } }));
     fetch(`/api/pdi/action/${actionId}`, {
       method: "PATCH",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ status }),
+      body: JSON.stringify(patch),
     }).then((res) => {
       if (!res.ok) {
-        setStatusOverrides((o) => {
+        setActionOverrides((o) => {
           const { [actionId]: _drop, ...rest } = o;
           return rest;
         });
-        window.alert("Não foi possível salvar o status dessa ação. Tenta de novo.");
+        window.alert("Não foi possível salvar essa alteração. Tenta de novo.");
       }
     });
   }, []);
@@ -1273,7 +1278,7 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
               ? effectivePdi.areas.find((a) => a.id === selected.id)?.actions
               : undefined
           }
-          onToggleModuleStatus={updateActionStatus}
+          onUpdateAction={updateAction}
         />
       )}
     </div>
