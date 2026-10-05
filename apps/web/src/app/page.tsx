@@ -5,6 +5,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { GeminiButton } from "@/components/GeminiButton";
 import { ReportButton } from "@/components/ReportButton";
 import { AppHeader } from "@/components/AppHeader";
+import { brand } from "@/lib/theme";
 
 export default async function Home() {
   const session = await auth();
@@ -13,9 +14,11 @@ export default async function Home() {
     return (
       <main className="mx-auto flex min-h-screen max-w-lg flex-col items-center justify-center gap-6 p-8 text-center">
         <div className="space-y-1">
-          <h1 className="text-4xl font-bold tracking-tight">PDI+</h1>
-          <p className="text-neutral-500">
-            Transformando planos de desenvolvimento em jornadas.
+          <h1 className="text-4xl font-bold tracking-tight" style={{ color: brand.orange }}>
+            PDI+
+          </h1>
+          <p className="text-neutral-900">
+            Transformando Planos de Desenvolvimento em Jornadas.
           </p>
         </div>
         <form
@@ -26,7 +29,8 @@ export default async function Home() {
         >
           <button
             type="submit"
-            className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700"
+            className="rounded-md px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+            style={{ background: brand.orange }}
           >
             Entrar com Google
           </button>
