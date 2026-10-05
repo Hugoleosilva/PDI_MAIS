@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { ImportForm } from "./ImportForm";
 import { ManualBuilder, type DraftArea } from "./ManualBuilder";
 import { HistoricalSnapshotForm } from "./HistoricalSnapshotForm";
@@ -18,7 +19,11 @@ export function ImportTabs({
   initialAreas: DraftArea[];
   hasExisting: boolean;
 }) {
-  const [tab, setTab] = useState<Tab>("manual");
+  // `?tab=paste` já abre direto em "Colar tabela" — usado pela extensão
+  // (apps/extension) pra não precisar simular o clique na aba.
+  const params = useSearchParams();
+  const initialTab: Tab = params.get("tab") === "paste" ? "paste" : "manual";
+  const [tab, setTab] = useState<Tab>(initialTab);
 
   const tabBtn = (id: Tab, label: string) => (
     <button

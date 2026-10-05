@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>PDI+ — Extrator</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, sans-serif;
+        width: 420px;
+        padding: 14px;
+        color: #27272a;
+      }
+      h1 {
+        font-size: 14px;
+        margin: 0 0 6px;
+        color: #e8590c;
+      }
+      p {
+        font-size: 11px;
+        color: #71717a;
+        margin: 0 0 10px;
+        line-height: 1.4;
+      }
+      button {
+        background: #e8590c;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 8px 14px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
+      button.secondary {
+        background: white;
+        color: #27272a;
+        border: 1px solid #d4d4d8;
+      }
+      textarea {
+        width: 100%;
+        height: 200px;
+        margin-top: 10px;
+        font-family: monospace;
+        font-size: 10px;
+        box-sizing: border-box;
+        border: 1px solid #e4e4e7;
+        border-radius: 6px;
+        padding: 6px;
+      }
+      #status {
+        font-size: 11px;
+        margin-top: 8px;
+        color: #71717a;
+        min-height: 14px;
+      }
+      #status.error {
+        color: #dc2626;
+      }
+      .row {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>PDI+ — Extrair do Qulture.rocks</h1>
+    <p>
+      Abra a página do seu PDI (".../my-idp") no Qulture.rocks antes de clicar.
+      Isto só lê o que já está na tela — nenhuma chamada de rede é feita, nada
+      sai do navegador até você copiar e colar.
+    </p>
+    <button id="run">Extrair PDI desta página</button>
+    <div id="status"></div>
+    <textarea
+      id="out"
+      readonly
+      placeholder="A tabela aparece aqui — copie e cole em PDI+ > Importar > Colar tabela."
+    ></textarea>
+    <div class="row">
+      <button id="copy" class="secondary" disabled>Copiar</button>
+    </div>
+    <script src="popup.js"></script>
+  </body>
+</html>

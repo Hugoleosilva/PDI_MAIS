@@ -133,6 +133,7 @@ export function ImportForm({
           </span>
         </label>
         <textarea
+          data-testid="import-table-textarea"
           className={`${input} h-52 font-mono text-xs`}
           value={text}
           onChange={(e) => {
@@ -174,6 +175,7 @@ export function ImportForm({
 
       <button
         type="button"
+        data-testid="import-preview-button"
         disabled={!canPreview}
         onClick={doPreview}
         className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-40"
@@ -222,6 +224,7 @@ export function ImportForm({
           {preview.actionCount > 0 && (
             <button
               type="button"
+              data-testid="import-confirm-button"
               disabled={busy}
               onClick={confirm}
               className="mt-4 rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-40"
@@ -235,7 +238,11 @@ export function ImportForm({
         </div>
       )}
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && (
+        <p data-testid="import-error" className="text-sm text-red-600">
+          {error}
+        </p>
+      )}
 
       {footer !== undefined
         ? footer
