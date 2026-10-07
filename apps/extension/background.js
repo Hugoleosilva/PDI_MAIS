@@ -56,7 +56,7 @@ function fillAndSubmitImport(csv) {
   return (async () => {
     const textarea = await waitFor(
       () => document.querySelector('[data-testid="import-table-textarea"]'),
-      8000,
+      15000,
     );
     if (!textarea) {
       return {
@@ -78,7 +78,7 @@ function fillAndSubmitImport(csv) {
 
     const confirmBtn = await waitFor(
       () => document.querySelector('[data-testid="import-confirm-button"]'),
-      5000,
+      10000,
     );
     if (!confirmBtn) {
       const errEl = document.querySelector('[data-testid="import-error"]');
@@ -87,11 +87,14 @@ function fillAndSubmitImport(csv) {
     await sleep(250);
     confirmBtn.click();
 
+    // generoso de propósito: em dev o Next.js compila a rota na primeira
+    // chamada (alguns segundos sozinho), e um PDI grande (dezenas de ações)
+    // demora mais pra processar — 10s estourava com frequência.
     const outcome = await waitFor(() => {
       if (!location.pathname.includes("/import")) return "done";
       if (document.querySelector('[data-testid="import-error"]')) return "error";
       return null;
-    }, 10000);
+    }, 30000);
 
     if (outcome === "done") return { ok: true };
     if (outcome === "error") {
