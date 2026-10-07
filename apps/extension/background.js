@@ -106,6 +106,19 @@ async function runSync({ qultureUrl, baseUrl }) {
   let qultureTab;
   let pdiTab;
   try {
+    // O botão "PDI+" injetado na página (content.js) não pode pedir
+    // permissão sozinho — só o popup consegue (precisa do gesto do usuário
+    // numa página da própria extensão). Primeiro uso sempre passa pelo popup.
+    const origin = `${new URL(baseUrl).origin}/*`;
+    const hasPermission = await chrome.permissions.contains({ origins: [origin] });
+    if (!hasPermission) {
+      return {
+        ok: false,
+        needsPermission: true,
+        error: `Ainda não tenho permissão para ${origin}.`,
+      };
+    }
+
     sendProgress("Abrindo o Qulture.rocks em segundo plano...");
     qultureTab = await chrome.tabs.create({ url: qultureUrl, active: false });
     await waitTabComplete(qultureTab.id);

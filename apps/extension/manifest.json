@@ -5,6 +5,14 @@
   "description": "Lê o PDI aberto no Qulture.rocks (em segundo plano) e preenche sozinho o formulário de importação do PDI+ numa aba já logada. Não faz nenhuma chamada de rede própria — usa a sessão já aberta no seu navegador.",
   "action": { "default_popup": "popup.html" },
   "background": { "service_worker": "background.js" },
+  "content_scripts": [
+    {
+      "matches": ["https://app.qulture.rocks/*"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ],
   "permissions": ["activeTab", "scripting", "tabs", "storage", "clipboardWrite"],
   "host_permissions": ["https://app.qulture.rocks/*"],
   "optional_host_permissions": ["http://*/*", "https://*/*"]

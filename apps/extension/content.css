@@ -1,0 +1,32 @@
+/* Botão "PDI+" injetado na barra de abas do Qulture.rocks, ao lado de
+   "Instruções de PDI". Herda o resto do estilo do próprio elemento clonado
+   (a plataforma usa styled-components, então cores/fonte já vêm certas);
+   aqui só cuidamos do estado de "sincronizando" (spinner). */
+#pdi-mais-nav-btn {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+}
+
+#pdi-mais-nav-btn[data-pdi-syncing="true"] {
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+.pdi-mais-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: pdi-mais-spin 0.7s linear infinite;
+}
+
+@keyframes pdi-mais-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

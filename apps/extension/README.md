@@ -1,4 +1,4 @@
-# @pdi-mais/extension — Rodada 3 (v0.3, aguardando aval de TI/Segurança)
+# @pdi-mais/extension — Rodada 3 (v0.4, aguardando aval de TI/Segurança)
 
 Extensão Chrome (Manifest V3) que lê o PDI aberto no Qulture.rocks
 (`app.qulture.rocks/.../my-idp`) e preenche sozinha o formulário de
@@ -35,14 +35,30 @@ sincronização são sempre abertas com `active: false`: ficam em segundo
 plano, nunca roubam a aba que você está olhando. Só a aba do PDI+ vem pra
 frente no final, se der tudo certo, pra mostrar o resultado.
 
+## Botão "PDI+" dentro do Qulture.rocks
+
+Além do popup, um content script injeta um item **"PDI+"** na barra de abas
+do Qulture.rocks, ao lado de "Instruções de PDI" — clicar nele dispara a
+mesma sincronização (extração + preenchimento do import), com um spinner
+enquanto roda, sem precisar abrir o ícone da extensão. Ele reaproveita o
+`background.js`; não duplica lógica nenhuma.
+
+**Pré-requisito**: a permissão pro domínio do PDI+ só pode ser pedida a
+partir do popup (é uma regra do Chrome — só uma página da própria extensão
+pode pedir permissão, um content script não consegue). Então o primeiro uso
+*tem* que ser pelo popup ("Criar PDI+"); depois disso, o botão da página
+funciona sozinho.
+
 ## Estrutura
 
 ```
 apps/extension/
-├── manifest.json    # MV3 — background service worker + host_permissions sob demanda
+├── manifest.json    # MV3 — background service worker + content script + host_permissions sob demanda
 ├── popup.html        # UI: URL do PDI+, botão "Criar PDI+", status, tabela de depuração
 ├── popup.js          # só dispara o background e escuta progresso — não faz o trabalho
 ├── background.js     # service worker: abre as abas em 2º plano, extrai, preenche, confirma
+├── content.js         # injeta o botão "PDI+" na barra de abas do Qulture.rocks
+├── content.css        # spinner do botão "PDI+" enquanto sincroniza
 └── extract.js         # injetado no Qulture.rocks via chrome.scripting.executeScript
 ```
 
