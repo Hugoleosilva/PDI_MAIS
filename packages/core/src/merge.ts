@@ -67,8 +67,20 @@ export function mergePdi(
       (prevArea?.actions ?? []).map((a) => [a.id, a]),
     );
 
+    // Mesmo problema, um nível abaixo: duas ações com o MESMO título dentro
+    // da MESMA área (duplicata real do usuário, ou uma extração que leu o
+    // mesmo card duas vezes) geram o mesmo ID determinístico — sem
+    // desambiguar, as duas colapsam numa só entrada com o MESMO id dentro do
+    // array (não um merge, um literal duplicado), o que fazia o React Flow
+    // acusar "two children with the same key" e deixar aresta solta no canvas.
+    const actionTitleOccurrences = new Map<string, number>();
     const actions: Action[] = incomingArea.actions.map((incoming) => {
-      const aid = actionId(areaTitleForHash, incoming.title);
+      const normalizedTitle = normalizeTitle(incoming.title);
+      const actionOccurrence = actionTitleOccurrences.get(normalizedTitle) ?? 0;
+      actionTitleOccurrences.set(normalizedTitle, actionOccurrence + 1);
+      const actionTitleForHash =
+        actionOccurrence === 0 ? incoming.title : `${incoming.title} #${actionOccurrence + 1}`;
+      const aid = actionId(areaTitleForHash, actionTitleForHash);
       const prev = prevActions.get(aid);
       // Só protege status/prazo de uma ação manual contra um SYNC DA EXTENSÃO
       // (fonte não confiável tentando sobrescrever o que o usuário editou à

@@ -705,7 +705,7 @@ function radialLayout(
 }
 
 /** Mantém só a 1ª ocorrência de cada `id` — ver nota em `layoutGraph`. */
-function dedupeById<T extends { id: string }>(list: T[]): T[] {
+export function dedupeById<T extends { id: string }>(list: T[]): T[] {
   const seen = new Set<string>();
   return list.filter((item) => {
     if (seen.has(item.id)) return false;

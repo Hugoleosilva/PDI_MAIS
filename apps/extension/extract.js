@@ -83,13 +83,11 @@
   }
 
   /** Extrai os dados de UMA ação imediatamente — o item ainda está montado. */
-  async function extractActionRow(item) {
+  async function extractActionRow(item, title) {
     const text = item.textContent || "";
     const statusMatch = text.match(STATUS_RE);
     const kindMatch = text.match(KIND_RE);
     const dateMatch = text.match(/Prazo:\s*(\d{2}\/\d{2}\/\d{2,4})/);
-    const title = leftoverTitle(item);
-    if (!title) return null;
 
     let desc = "";
     // escopado DENTRO do item — com vários itens na tela ao mesmo tempo,
@@ -121,19 +119,27 @@
    * Lê todas as ações de uma área, rolando pra carregar mais conforme
    * precisa — mas cada item só é lido UMA VEZ, na primeira vez que aparece,
    * nunca depois de rolar (pode já ter sumido do DOM).
+   *
+   * Dedup por TÍTULO, não por referência de nó: clicar em "Mostrar
+   * descrição" pode disparar um re-render que remonta os itens seguintes da
+   * lista como nós NOVOS — um WeakSet por nó deixava passar o mesmo card
+   * extraído duas vezes (ids "area->ação" duplicados no payload final, que
+   * o merge guardava como duas entradas e o React Flow via como chave
+   * repetida no canvas).
    */
   async function loadActionRows(expectedCount) {
     const rows = [];
-    const captured = new WeakSet();
+    const seenTitles = new Set();
     let stableRounds = 0;
 
     for (let round = 0; round < 150; round++) {
       const current = [...document.querySelectorAll('[data-testid="idp-action-item"]')];
       let gotNew = false;
       for (const el of current) {
-        if (captured.has(el)) continue;
-        captured.add(el);
-        const row = await extractActionRow(el);
+        const title = leftoverTitle(el);
+        if (!title || seenTitles.has(title)) continue;
+        seenTitles.add(title);
+        const row = await extractActionRow(el, title);
         if (row) {
           rows.push(row);
           gotNew = true;

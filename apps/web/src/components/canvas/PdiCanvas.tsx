@@ -40,6 +40,7 @@ import {
 } from "@pdi-mais/core";
 import {
   areasInBox,
+  dedupeById,
   EMPTY_FRAME,
   hugBox,
   LAYOUT_LABEL,
@@ -731,7 +732,11 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
     const visibleLinks = linkEdgesMemo.filter(
       (e) => nodeIds.has(e.source) && nodeIds.has(e.target),
     );
-    setEdges([...(showConnections ? layout.edges : []), ...visibleLinks]);
+    // dedupe de novo aqui: `layout.edges` já vem sem duplicata (ver
+    // `layoutGraph`), mas `visibleLinks` é concatenado DEPOIS — se uma área
+    // acabar com duas ações de mesmo ID (import com entradas repetidas, por
+    // exemplo), a rede de segurança lá dentro não cobre essa junção.
+    setEdges(dedupeById([...(showConnections ? layout.edges : []), ...visibleLinks]));
   }, [layout.nodes, layout.edges, linkEdgesMemo, showConnections, setEdges]);
 
   const reorganize = useCallback(() => {
