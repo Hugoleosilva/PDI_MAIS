@@ -127,7 +127,7 @@
     const captured = new WeakSet();
     let stableRounds = 0;
 
-    for (let round = 0; round < 60; round++) {
+    for (let round = 0; round < 90; round++) {
       const current = [...document.querySelectorAll('[data-testid="idp-action-item"]')];
       let gotNew = false;
       for (const el of current) {
@@ -145,13 +145,16 @@
       const last = current[current.length - 1];
       if (!last) break;
       last.scrollIntoView({ block: "end" });
-      await sleep(220);
+      // generoso de propósito: rolar dispara um carregamento (de API, não só
+      // DOM) que pode demorar mais que isso — mais vale esperar uns rounds a
+      // mais do que desistir cedo e perder ação.
+      await sleep(350);
 
       if (gotNew) {
         stableRounds = 0;
       } else {
         stableRounds += 1;
-        if (stableRounds >= 4) break;
+        if (stableRounds >= 7) break;
       }
     }
     return rows;
@@ -202,7 +205,15 @@
       // Lê as ações PRIMEIRO, com a aba "Ações" já ativa por padrão (é onde
       // o painel abre) — a descrição da área (aba "Mais informações") entra
       // em cada linha só no final, depois que as ações já estão garantidas.
-      const actionsTabLabel = findByText("button, div[role='tab'], a", /^Ações\s*\(\d+\)$/i);
+      // O rótulo "Ações (N)" pode demorar um instante a mais que o painel
+      // pra atualizar com a contagem real — espera ele aparecer de verdade
+      // em vez de ler uma vez só (senão expectedCount vem undefined e a
+      // rolagem para cedo demais, só no "estabilizou 7 rounds").
+      const actionsTabLabel = await waitFor(
+        () => findByText("button, div[role='tab'], a", /^Ações\s*\(\d+\)$/i),
+        4000,
+        150,
+      );
       const expectedActionCount = parseCount(actionsTabLabel);
       const areaRows = await loadActionRows(expectedActionCount);
 
@@ -252,14 +263,14 @@
       areaStableRounds = 0;
     } else {
       areaStableRounds += 1;
-      if (areaStableRounds >= 3) break;
+      if (areaStableRounds >= 6) break;
       // nada novo nesta rodada — tenta rolar a LISTA de áreas pra carregar
       // mais (mesma técnica das ações: rola o último card atual pra vista).
       const currentCards = [...document.querySelectorAll('[data-testid="idp-goal-item"]')];
       const lastCard = currentCards[currentCards.length - 1];
       if (lastCard) {
         lastCard.scrollIntoView({ block: "end" });
-        await sleep(250);
+        await sleep(350);
       }
     }
   }
