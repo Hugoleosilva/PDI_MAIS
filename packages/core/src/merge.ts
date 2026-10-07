@@ -99,7 +99,11 @@ export function mergePdi(
         status,
         dueDate:
           protectManual && prev ? prev.dueDate : (incoming.dueDate ?? prev?.dueDate),
-        description: prev?.description ?? incoming.description,
+        // || (não ??): uma descrição salva como string VAZIA (bug de
+        // extração, ou área sem texto na origem) não conta como "edição
+        // manual que precisa ser protegida" — sem isso, um sync novo com
+        // dado corrigido nunca substituía o "" que já tinha sido gravado.
+        description: prev?.description || incoming.description,
         certificateUrl: prev?.certificateUrl ?? incoming.certificateUrl,
         source: prev?.source ?? opts.source,
         layout: prev?.layout,
@@ -121,7 +125,7 @@ export function mergePdi(
       kind: incomingArea.kind,
       status: deriveAreaStatus(actions),
       order: index,
-      description: prevArea?.description ?? incomingArea.description,
+      description: prevArea?.description || incomingArea.description,
       actions,
       layout: prevArea?.layout,
     };
