@@ -111,7 +111,12 @@
       await sleep(400);
       const descHeader = findByText("div,h2,h3", "Descrição");
       if (descHeader?.parentElement) {
-        areaDesc = descHeader.parentElement.textContent.replace(/^Descrição/, "").trim();
+        // o container pode embrulhar o painel INTEIRO (Responsável/Líder/
+        // Ciclo vêm juntos, antes) — corta pelo texto literal "Descrição"
+        // em vez de só o prefixo, assim só sobra o que vem depois dele.
+        const full = descHeader.parentElement.textContent || "";
+        const idx = full.indexOf("Descrição");
+        areaDesc = idx >= 0 ? full.slice(idx + "Descrição".length).trim() : full.trim();
       }
       const actionsTab = findByText("button, div[role='tab'], a", /^Ações\s*\(\d+\)$/i);
       if (actionsTab) {
