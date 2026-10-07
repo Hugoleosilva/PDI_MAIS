@@ -1,9 +1,10 @@
 {
   "manifest_version": 3,
-  "name": "PDI+ — Extrator de PDI (Qulture.rocks)",
-  "version": "0.1.0",
-  "description": "Lê o PDI aberto na aba atual e monta a tabela para colar em PDI+ > Importar > Colar tabela. Não faz nenhuma chamada de rede — só lê a página, nada sai do navegador sem você copiar e colar.",
+  "name": "PDI+ — Sincronizar com Qulture.rocks",
+  "version": "0.2.0",
+  "description": "Lê o PDI aberto na aba atual do Qulture.rocks e preenche sozinho o formulário de importação do PDI+ numa aba já logada. Não faz nenhuma chamada de rede própria — usa a sessão já aberta no seu navegador.",
   "action": { "default_popup": "popup.html" },
-  "permissions": ["activeTab", "scripting", "clipboardWrite"],
-  "host_permissions": ["https://app.qulture.rocks/*"]
+  "permissions": ["activeTab", "scripting", "tabs", "storage", "clipboardWrite"],
+  "host_permissions": ["https://app.qulture.rocks/*"],
+  "optional_host_permissions": ["http://*/*", "https://*/*"]
 }

@@ -2,11 +2,11 @@
 <html lang="pt-BR">
   <head>
     <meta charset="utf-8" />
-    <title>PDI+ — Extrator</title>
+    <title>PDI+ — Sincronizar</title>
     <style>
       body {
         font-family: system-ui, -apple-system, sans-serif;
-        width: 420px;
+        width: 400px;
         padding: 14px;
         color: #27272a;
       }
@@ -21,15 +21,32 @@
         margin: 0 0 10px;
         line-height: 1.4;
       }
+      label {
+        font-size: 11px;
+        font-weight: 600;
+        color: #52525b;
+        display: block;
+        margin-bottom: 3px;
+      }
+      input[type="text"] {
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid #d4d4d8;
+        border-radius: 6px;
+        padding: 6px 8px;
+        font-size: 12px;
+        margin-bottom: 10px;
+      }
       button {
         background: #e8590c;
         color: white;
         border: none;
         border-radius: 6px;
-        padding: 8px 14px;
+        padding: 9px 14px;
         font-size: 13px;
         font-weight: 600;
         cursor: pointer;
+        width: 100%;
       }
       button:disabled {
         opacity: 0.5;
@@ -39,11 +56,38 @@
         background: white;
         color: #27272a;
         border: 1px solid #d4d4d8;
+        width: auto;
+        font-weight: 500;
+        font-size: 11px;
+        padding: 5px 10px;
+        margin-top: 8px;
+      }
+      #status {
+        font-size: 11px;
+        margin-top: 10px;
+        color: #71717a;
+        min-height: 14px;
+        line-height: 1.4;
+      }
+      #status.error {
+        color: #dc2626;
+      }
+      #status.ok {
+        color: #059669;
+        font-weight: 600;
+      }
+      details {
+        margin-top: 10px;
+      }
+      summary {
+        font-size: 11px;
+        color: #71717a;
+        cursor: pointer;
       }
       textarea {
         width: 100%;
-        height: 200px;
-        margin-top: 10px;
+        height: 140px;
+        margin-top: 6px;
         font-family: monospace;
         font-size: 10px;
         box-sizing: border-box;
@@ -51,39 +95,24 @@
         border-radius: 6px;
         padding: 6px;
       }
-      #status {
-        font-size: 11px;
-        margin-top: 8px;
-        color: #71717a;
-        min-height: 14px;
-      }
-      #status.error {
-        color: #dc2626;
-      }
-      .row {
-        display: flex;
-        gap: 8px;
-        margin-top: 8px;
-      }
     </style>
   </head>
   <body>
-    <h1>PDI+ — Extrair do Qulture.rocks</h1>
+    <h1>PDI+ — Sincronizar</h1>
     <p>
-      Abra a página do seu PDI (".../my-idp") no Qulture.rocks antes de clicar.
-      Isto só lê o que já está na tela — nenhuma chamada de rede é feita, nada
-      sai do navegador até você copiar e colar.
+      Abra a página do seu PDI (".../my-idp") no Qulture.rocks antes de
+      clicar. Isto lê a página, abre o PDI+ numa aba já logada e preenche o
+      formulário de importação sozinho — não envia nada direto pela rede.
     </p>
-    <button id="run">Extrair PDI desta página</button>
+    <label for="url">URL do PDI+</label>
+    <input id="url" type="text" placeholder="http://localhost:3000" />
+    <button id="run">Criar PDI+</button>
     <div id="status"></div>
-    <textarea
-      id="out"
-      readonly
-      placeholder="A tabela aparece aqui — copie e cole em PDI+ > Importar > Colar tabela."
-    ></textarea>
-    <div class="row">
+    <details>
+      <summary>Ver tabela extraída (avançado / depuração)</summary>
+      <textarea id="out" readonly></textarea>
       <button id="copy" class="secondary" disabled>Copiar</button>
-    </div>
+    </details>
     <script src="popup.js"></script>
   </body>
 </html>
