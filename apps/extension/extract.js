@@ -11,6 +11,14 @@
 // `data-testid` (estável) e padrões de TEXTO (status conhecido, "Prazo:",
 // "Mostrar descrição"), não className exato. Se a Qulture mudar o texto dos
 // rótulos, isso quebra e precisa ajustar os regex abaixo.
+//
+// IMPORTANTE sobre listas virtualizadas (áreas E ações): rolar a tela pra
+// carregar mais itens faz os itens já vistos SAIREM do DOM. A versão antiga
+// só lia tudo no fim da rolagem e perdia os primeiros itens (confirmado em
+// teste real: "Ações (17)" no rótulo, só 13 chegavam no PDI+; "Área de
+// Desenvolvimento (10)", só 5 eram processadas). Por isso aqui cada item é
+// extraído NO INSTANTE em que aparece, antes de rolar mais — nunca se
+// confia em reconsultar o DOM depois de já ter avançado.
 (async () => {
   const KIND_RE = /^(Treinamento e estudo|Desafio profissional|Mentoria e feedbacks?)$/i;
   const STATUS_RE = /(N[aã]o iniciad[oa]|Em progresso|Em andamento|Finalizad[oa]|Conclu[ií]d[oa])/i;
@@ -23,6 +31,7 @@
     /^\d{1,3}(,\d+)?%$/,
     /^\d+\s+a[cç][oõ]es?$/i,
     /^Ações\s*\(\d+\)$/i,
+    /^Área\s+de\s+Desenvolvimento\s*\(\d+\)$/i,
     /^Mais informações$/i,
     /^Criar\s*\+?$/i,
   ];
@@ -55,31 +64,8 @@
     return findByText("button, a, div[role='button']", /^voltar$/i);
   }
 
-  /**
-   * A lista de ações provavelmente é virtualizada (só o que está visível na
-   * rolagem entra no DOM) — rolar o último item pra vista força o próximo
-   * lote a renderizar. Para quando bate a contagem esperada (lida do rótulo
-   * "Ações (N)" da aba) ou quando para de crescer por algumas rodadas.
-   */
-  async function loadAllActionItems(expectedCount) {
-    let items = [...document.querySelectorAll('[data-testid="idp-action-item"]')];
-    let stableRounds = 0;
-    for (let i = 0; i < 40; i++) {
-      if (expectedCount && items.length >= expectedCount) break;
-      const last = items[items.length - 1];
-      if (!last) break;
-      last.scrollIntoView({ block: "end" });
-      await sleep(200);
-      const next = [...document.querySelectorAll('[data-testid="idp-action-item"]')];
-      if (next.length === items.length) {
-        stableRounds += 1;
-        if (stableRounds >= 3) break;
-      } else {
-        stableRounds = 0;
-      }
-      items = next;
-    }
-    return items;
+  function parseCount(label) {
+    return Number(label?.textContent?.match(/\((\d+)\)/)?.[1]) || undefined;
   }
 
   // Primeiro bloco de texto "solto" (sem filhos) que não bate com nenhum
@@ -96,6 +82,81 @@
     return "";
   }
 
+  /** Extrai os dados de UMA ação imediatamente — o item ainda está montado. */
+  async function extractActionRow(item) {
+    const text = item.textContent || "";
+    const statusMatch = text.match(STATUS_RE);
+    const kindMatch = text.match(KIND_RE);
+    const dateMatch = text.match(/Prazo:\s*(\d{2}\/\d{2}\/\d{2,4})/);
+    const title = leftoverTitle(item);
+    if (!title) return null;
+
+    let desc = "";
+    // escopado DENTRO do item — com vários itens na tela ao mesmo tempo,
+    // buscar no document inteiro pegava sempre o primeiro "Mostrar
+    // descrição" da página, nunca o do item certo.
+    const descToggle = [...item.querySelectorAll("a,button,span,div")].find((el) =>
+      /^Mostrar descri[cç][aã]o/i.test(el.textContent?.trim() ?? ""),
+    );
+    if (descToggle) {
+      const before = item.textContent.length;
+      descToggle.click();
+      await sleep(250);
+      const after = item.textContent || "";
+      if (after.length > before) {
+        desc = after.slice(before).replace(/^Fechar descri[cç][aã]o\s*/i, "").trim();
+      }
+    }
+
+    return [
+      title,
+      desc,
+      kindMatch ? kindMatch[0] : "Treinamento e estudo",
+      dateMatch ? dateMatch[1] : "",
+      statusMatch ? statusMatch[0] : "Não iniciado",
+    ];
+  }
+
+  /**
+   * Lê todas as ações de uma área, rolando pra carregar mais conforme
+   * precisa — mas cada item só é lido UMA VEZ, na primeira vez que aparece,
+   * nunca depois de rolar (pode já ter sumido do DOM).
+   */
+  async function loadActionRows(expectedCount) {
+    const rows = [];
+    const captured = new WeakSet();
+    let stableRounds = 0;
+
+    for (let round = 0; round < 60; round++) {
+      const current = [...document.querySelectorAll('[data-testid="idp-action-item"]')];
+      let gotNew = false;
+      for (const el of current) {
+        if (captured.has(el)) continue;
+        captured.add(el);
+        const row = await extractActionRow(el);
+        if (row) {
+          rows.push(row);
+          gotNew = true;
+        }
+      }
+
+      if (expectedCount && rows.length >= expectedCount) break;
+
+      const last = current[current.length - 1];
+      if (!last) break;
+      last.scrollIntoView({ block: "end" });
+      await sleep(220);
+
+      if (gotNew) {
+        stableRounds = 0;
+      } else {
+        stableRounds += 1;
+        if (stableRounds >= 4) break;
+      }
+    }
+    return rows;
+  }
+
   const rows = [
     ["Área de desenvolvimento", "Descrição da área", "Ação", "Descrição da ação", "Tipo da ação", "Prazo", "Status"],
   ];
@@ -106,110 +167,109 @@
   // chegarem da API e os cards renderizarem — espera de verdade em vez de
   // checar uma vez só, principalmente numa aba nova em segundo plano.
   await waitFor(() => document.querySelectorAll('[data-testid="idp-goal-item"]').length > 0, 12000, 300);
-  const goalCount = document.querySelectorAll('[data-testid="idp-goal-item"]').length;
-  if (goalCount === 0) {
+  if (document.querySelectorAll('[data-testid="idp-goal-item"]').length === 0) {
     return { error: 'Não achei nenhuma área nesta página (esperei 12s). Confere se está em ".../my-idp".' };
   }
 
-  for (let i = 0; i < goalCount; i++) {
-    // re-consulta a cada volta: depois de "Voltar" o React pode ter
-    // remontado a lista, então segurar a referência antiga quebraria.
-    const card = document.querySelectorAll('[data-testid="idp-goal-item"]')[i];
-    if (!card) continue;
-    const areaTitle = leftoverTitle(card);
-    if (!areaTitle) {
-      warnings.push(`Área #${i + 1}: não consegui ler o título — pulei.`);
-      continue;
-    }
+  const areaHeading = findByText("h1,h2,h3,div,span", /Área\s+de\s+Desenvolvimento\s*\(\d+\)/i);
+  const expectedAreaCount = parseCount(areaHeading);
 
-    card.click();
-    const opened = await waitFor(() => document.querySelector('[data-testid="idp-action-item"]') || findBackButton());
-    if (!opened) {
-      warnings.push(`Área "${areaTitle}": o painel não abriu a tempo — pulei.`);
-      continue;
-    }
-    await sleep(300);
+  // mesmo problema de virtualização da lista de ações, um nível acima: a
+  // lista de áreas também pode só ter um subconjunto montado por vez.
+  // Processa (clica, extrai, volta) cada área só UMA VEZ, por TÍTULO — não
+  // por referência de nó, porque "Voltar" pode remontar a lista do zero.
+  const processedTitles = new Set();
+  let areaStableRounds = 0;
 
-    // Lê as ações PRIMEIRO, com a aba "Ações" já ativa por padrão (é onde o
-    // painel abre) — antes a gente visitava "Mais informações" e tentava
-    // clicar de volta em "Ações (N)" antes de ler, e se esse clique de volta
-    // falhasse (texto com espaçamento diferente, por exemplo), a área inteira
-    // ficava com ZERO ações, silenciosamente. Lendo antes, esse passo frágil
-    // nem precisa mais existir. Guarda num buffer — a descrição da área (lida
-    // depois, na aba "Mais informações") entra em cada linha só no final.
-    const actionsTabLabel = findByText("button, div[role='tab'], a", /^Ações\s*\(\d+\)$/i);
-    const expectedCount = Number(actionsTabLabel?.textContent?.match(/\((\d+)\)/)?.[1]) || undefined;
-    const actionItems = await loadAllActionItems(expectedCount);
-    const areaRows = [];
-    for (const item of actionItems) {
-      const text = item.textContent || "";
-      const statusMatch = text.match(STATUS_RE);
-      const kindMatch = text.match(KIND_RE);
-      const dateMatch = text.match(/Prazo:\s*(\d{2}\/\d{2}\/\d{2,4})/);
-      const title = leftoverTitle(item);
-      if (!title) continue;
+  for (let round = 0; round < 80; round++) {
+    const goalItems = [...document.querySelectorAll('[data-testid="idp-goal-item"]')];
+    let processedThisRound = 0;
 
-      let desc = "";
-      const descToggle = findByText("a,button,span,div", /^Mostrar descri[cç][aã]o/i);
-      if (descToggle && item.contains(descToggle)) {
-        const before = item.textContent.length;
-        descToggle.click();
-        await sleep(250);
-        const after = item.textContent || "";
-        if (after.length > before) {
-          desc = after.slice(before).replace(/^Fechar descri[cç][aã]o\s*/i, "").trim();
+    for (const card of goalItems) {
+      const areaTitle = leftoverTitle(card);
+      if (!areaTitle || processedTitles.has(areaTitle)) continue;
+      processedTitles.add(areaTitle);
+      processedThisRound += 1;
+
+      card.click();
+      const opened = await waitFor(() => document.querySelector('[data-testid="idp-action-item"]') || findBackButton());
+      if (!opened) {
+        warnings.push(`Área "${areaTitle}": o painel não abriu a tempo — pulei.`);
+        continue;
+      }
+      await sleep(300);
+
+      // Lê as ações PRIMEIRO, com a aba "Ações" já ativa por padrão (é onde
+      // o painel abre) — a descrição da área (aba "Mais informações") entra
+      // em cada linha só no final, depois que as ações já estão garantidas.
+      const actionsTabLabel = findByText("button, div[role='tab'], a", /^Ações\s*\(\d+\)$/i);
+      const expectedActionCount = parseCount(actionsTabLabel);
+      const areaRows = await loadActionRows(expectedActionCount);
+
+      if (areaRows.length === 0) {
+        warnings.push(`Área "${areaTitle}": não encontrei nenhuma ação.`);
+      } else if (expectedActionCount && areaRows.length < expectedActionCount) {
+        warnings.push(
+          `Área "${areaTitle}": esperava ${expectedActionCount} ação(ões), só consegui ler ${areaRows.length}.`,
+        );
+      }
+
+      let areaDesc = "";
+      const infoTab = findByText("button, div[role='tab'], a", /^Mais informações$/i);
+      if (infoTab) {
+        infoTab.click();
+        await sleep(400);
+        const descHeader = findByText("div,h2,h3", "Descrição");
+        if (descHeader?.parentElement) {
+          // o container pode embrulhar o painel INTEIRO (Responsável/Líder/
+          // Ciclo vêm juntos, antes) — corta pelo texto literal "Descrição"
+          // em vez de só o prefixo, assim só sobra o que vem depois dele.
+          const full = descHeader.parentElement.textContent || "";
+          const idx = full.indexOf("Descrição");
+          areaDesc = idx >= 0 ? full.slice(idx + "Descrição".length).trim() : full.trim();
         }
       }
 
-      areaRows.push([
-        title,
-        desc,
-        kindMatch ? kindMatch[0] : "Treinamento e estudo",
-        dateMatch ? dateMatch[1] : "",
-        statusMatch ? statusMatch[0] : "Não iniciado",
-      ]);
-    }
-    if (areaRows.length === 0) {
-      warnings.push(`Área "${areaTitle}": não encontrei nenhuma ação.`);
-    } else if (expectedCount && areaRows.length < expectedCount) {
-      warnings.push(
-        `Área "${areaTitle}": esperava ${expectedCount} ação(ões), só consegui ler ${areaRows.length}.`,
-      );
-    }
+      for (const [title, desc, kind, dueDate, status] of areaRows) {
+        rows.push([areaTitle, areaDesc, title, desc, kind, dueDate, status]);
+        actionCount += 1;
+      }
 
-    // aba "Mais informações" -> descrição da área (só depois de já ter as
-    // ações garantidas — se isso falhar agora, não perde ação nenhuma).
-    let areaDesc = "";
-    const infoTab = findByText("button, div[role='tab'], a", /^Mais informações$/i);
-    if (infoTab) {
-      infoTab.click();
-      await sleep(400);
-      const descHeader = findByText("div,h2,h3", "Descrição");
-      if (descHeader?.parentElement) {
-        // o container pode embrulhar o painel INTEIRO (Responsável/Líder/
-        // Ciclo vêm juntos, antes) — corta pelo texto literal "Descrição"
-        // em vez de só o prefixo, assim só sobra o que vem depois dele.
-        const full = descHeader.parentElement.textContent || "";
-        const idx = full.indexOf("Descrição");
-        areaDesc = idx >= 0 ? full.slice(idx + "Descrição".length).trim() : full.trim();
+      const backBtn = findBackButton();
+      if (backBtn) {
+        backBtn.click();
+        await sleep(350);
+      } else {
+        warnings.push(`Área "${areaTitle}": não achei o botão "Voltar" — a extração pode ter parado aqui.`);
+        const csv = rows.map((r) => r.map(csvEscape).join(",")).join("\n");
+        return { csv, areaCount: processedTitles.size, actionCount, warnings };
       }
     }
 
-    for (const [title, desc, kind, dueDate, status] of areaRows) {
-      rows.push([areaTitle, areaDesc, title, desc, kind, dueDate, status]);
-      actionCount += 1;
-    }
+    if (expectedAreaCount && processedTitles.size >= expectedAreaCount) break;
 
-    const backBtn = findBackButton();
-    if (backBtn) {
-      backBtn.click();
-      await sleep(300);
+    if (processedThisRound > 0) {
+      areaStableRounds = 0;
     } else {
-      warnings.push(`Área "${areaTitle}": não achei o botão "Voltar" — a extração pode ter parado aqui.`);
-      break;
+      areaStableRounds += 1;
+      if (areaStableRounds >= 3) break;
+      // nada novo nesta rodada — tenta rolar a LISTA de áreas pra carregar
+      // mais (mesma técnica das ações: rola o último card atual pra vista).
+      const currentCards = [...document.querySelectorAll('[data-testid="idp-goal-item"]')];
+      const lastCard = currentCards[currentCards.length - 1];
+      if (lastCard) {
+        lastCard.scrollIntoView({ block: "end" });
+        await sleep(250);
+      }
     }
   }
 
+  if (expectedAreaCount && processedTitles.size < expectedAreaCount) {
+    warnings.push(
+      `Esperava ${expectedAreaCount} área(s), só consegui processar ${processedTitles.size}.`,
+    );
+  }
+
   const csv = rows.map((r) => r.map(csvEscape).join(",")).join("\n");
-  return { csv, areaCount: goalCount, actionCount, warnings };
+  return { csv, areaCount: processedTitles.size, actionCount, warnings };
 })();
