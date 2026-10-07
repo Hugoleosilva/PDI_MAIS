@@ -69,8 +69,13 @@
     return Number(label?.textContent?.match(/\((\d+)\)/)?.[1]) || undefined;
   }
 
+  // "li" importa de verdade: descrição de curso (Udemy etc.) costuma vir
+  // como lista com marcadores (<ul><li>...</li></ul>), não texto solto —
+  // confirmado no DOM real (print do usuário). Sem isso, a descrição
+  // ficava vazia pra TODO curso com descrição em bullet points, e só
+  // funcionava pra ações com texto corrido (sem lista).
   function leafTexts(container) {
-    return [...container.querySelectorAll("div,span,p")].filter(
+    return [...container.querySelectorAll("div,span,p,li")].filter(
       (el) => el.children.length === 0 && (el.textContent?.trim().length ?? 0) > 2,
     );
   }
