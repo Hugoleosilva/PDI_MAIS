@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { getPdiByUserId } from "@/lib/pdi-repo";
+import { deletePdi, getPdiByUserId } from "@/lib/pdi-repo";
 
 export const runtime = "nodejs";
 
@@ -20,4 +20,22 @@ export async function GET() {
 
   const pdi = await getPdiByUserId(session.user.id);
   return NextResponse.json({ ok: true, pdi });
+}
+
+/**
+ * DELETE /api/pdi
+ * "Apagar tudo" — remove o PDI inteiro do usuário autenticado. Botão fica no
+ * menu de conta do AppHeader, com confirmação antes de chamar isso.
+ */
+export async function DELETE() {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json(
+      { ok: false, error: "não autenticado" },
+      { status: 401 },
+    );
+  }
+
+  await deletePdi(session.user.id);
+  return NextResponse.json({ ok: true });
 }

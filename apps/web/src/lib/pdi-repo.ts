@@ -79,6 +79,17 @@ export async function applySync(
   return merged;
 }
 
+/**
+ * Apaga o PDI inteiro do usuário — "Apagar tudo". Próxima visita cai na
+ * EmptyState (sem doc) e um novo sync/import recria do zero, sem nada
+ * herdado do estado anterior (útil pra reimportar limpo, ex.: testando a
+ * extensão repetidas vezes).
+ */
+export async function deletePdi(userId: string): Promise<void> {
+  const col = await collection();
+  await col.deleteOne({ userId });
+}
+
 function nodeIdSet(doc: Pick<PdiDoc, "areas" | "shapes">): Set<string> {
   const ids = new Set<string>(["root"]);
   for (const area of doc.areas) {

@@ -1,6 +1,7 @@
 import type { Session } from "next-auth";
 import { signOut } from "@/auth";
 import { brand } from "@/lib/theme";
+import { DeletePdiButton } from "./DeletePdiButton";
 
 const TABS = [
   { key: "canvas", label: "Canvas", href: "/" },
@@ -63,6 +64,8 @@ export function AppHeader({
             <p className="truncate px-3 py-2 text-xs" style={{ color: brand.muted }}>
               {session.user?.email}
             </p>
+            <DeletePdiButton />
+            <div className="my-1 border-t" style={{ borderColor: brand.border }} />
             <form
               action={async () => {
                 "use server";
