@@ -55,6 +55,33 @@
     return findByText("button, a, div[role='button']", /^voltar$/i);
   }
 
+  /**
+   * A lista de ações provavelmente é virtualizada (só o que está visível na
+   * rolagem entra no DOM) — rolar o último item pra vista força o próximo
+   * lote a renderizar. Para quando bate a contagem esperada (lida do rótulo
+   * "Ações (N)" da aba) ou quando para de crescer por algumas rodadas.
+   */
+  async function loadAllActionItems(expectedCount) {
+    let items = [...document.querySelectorAll('[data-testid="idp-action-item"]')];
+    let stableRounds = 0;
+    for (let i = 0; i < 40; i++) {
+      if (expectedCount && items.length >= expectedCount) break;
+      const last = items[items.length - 1];
+      if (!last) break;
+      last.scrollIntoView({ block: "end" });
+      await sleep(200);
+      const next = [...document.querySelectorAll('[data-testid="idp-action-item"]')];
+      if (next.length === items.length) {
+        stableRounds += 1;
+        if (stableRounds >= 3) break;
+      } else {
+        stableRounds = 0;
+      }
+      items = next;
+    }
+    return items;
+  }
+
   // Primeiro bloco de texto "solto" (sem filhos) que não bate com nenhum
   // padrão conhecido — na prática, o título do card/ação.
   function leftoverTitle(container) {
@@ -110,7 +137,9 @@
     // ficava com ZERO ações, silenciosamente. Lendo antes, esse passo frágil
     // nem precisa mais existir. Guarda num buffer — a descrição da área (lida
     // depois, na aba "Mais informações") entra em cada linha só no final.
-    const actionItems = [...document.querySelectorAll('[data-testid="idp-action-item"]')];
+    const actionsTabLabel = findByText("button, div[role='tab'], a", /^Ações\s*\(\d+\)$/i);
+    const expectedCount = Number(actionsTabLabel?.textContent?.match(/\((\d+)\)/)?.[1]) || undefined;
+    const actionItems = await loadAllActionItems(expectedCount);
     const areaRows = [];
     for (const item of actionItems) {
       const text = item.textContent || "";
@@ -142,6 +171,10 @@
     }
     if (areaRows.length === 0) {
       warnings.push(`Área "${areaTitle}": não encontrei nenhuma ação.`);
+    } else if (expectedCount && areaRows.length < expectedCount) {
+      warnings.push(
+        `Área "${areaTitle}": esperava ${expectedCount} ação(ões), só consegui ler ${areaRows.length}.`,
+      );
     }
 
     // aba "Mais informações" -> descrição da área (só depois de já ter as

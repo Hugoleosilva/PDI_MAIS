@@ -1,43 +1,65 @@
-/* Botão flutuante "PDI+" — fixo num canto da tela, fora do fluxo normal da
-   página (ver content.js pra entender por que não fica mais encaixado na
-   barra de abas deles). all: unset + reset explícito, pra não herdar nada
-   do CSS da Qulture (não é filho de nada deles, mas por segurança). */
-#pdi-mais-float-btn {
+/* Botão "PDI+" — reset total, pra nunca herdar nada da página (ver
+   content.js pra como ele escolhe entre a barra laranja do topo ou o
+   fallback flutuante). */
+.pdi-mais-btn--bar,
+.pdi-mais-btn--float {
   all: unset;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-weight: 600;
+  color: white;
+  user-select: none;
+}
+
+/* Dentro da barra laranja: pequeno, parecido com os ícones que já tem lá
+   (grade, "?", sino). */
+.pdi-mais-btn--bar {
+  height: 28px;
+  padding: 0 10px;
+  margin-right: 8px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.22);
+  font-size: 12px;
+}
+
+.pdi-mais-btn--bar:hover {
+  background: rgba(255, 255, 255, 0.34);
+}
+
+/* Fallback: flutuante no canto, fora do fluxo normal da página — usado só
+   se a barra laranja não for encontrada. */
+.pdi-mais-btn--float {
   position: fixed;
   bottom: 20px;
   right: 20px;
   z-index: 2147483647;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   min-width: 56px;
   height: 40px;
   padding: 0 16px;
   border-radius: 20px;
   background: #e8590c;
-  color: white;
-  font-family: system-ui, -apple-system, sans-serif;
   font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
 }
 
-#pdi-mais-float-btn:hover {
+.pdi-mais-btn--float:hover {
   background: #c94a08;
 }
 
-#pdi-mais-float-btn[data-pdi-syncing="true"] {
+.pdi-mais-btn--bar[data-pdi-syncing="true"],
+.pdi-mais-btn--float[data-pdi-syncing="true"] {
   cursor: default;
-  opacity: 0.85;
+  opacity: 0.8;
 }
 
 .pdi-mais-spinner {
   display: inline-block;
-  width: 16px;
-  height: 16px;
-  border: 2px solid white;
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
   border-top-color: transparent;
   border-radius: 50%;
   animation: pdi-mais-spin 0.7s linear infinite;
