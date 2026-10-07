@@ -4,13 +4,30 @@
 // lógica que morasse no popup.js morria no meio do caminho assim que a gente
 // tentava abrir a aba do PDI+. Aqui ela sobrevive o tempo todo.
 //
-// Além disso, as abas usadas (Qulture duplicado + PDI+) são sempre abertas
-// com `active: false` — ficam em segundo plano, a aba que o usuário está
-// olhando nunca muda. Só traz a aba do PDI+ pra frente no final, se der certo
-// (pra ele ver o resultado), ou deixa em segundo plano mesmo em caso de erro
-// (pra poder inspecionar sem atrapalhar).
+// As páginas usadas (Qulture duplicado + PDI+) abrem numa JANELA separada e
+// MINIMIZADA (`chrome.windows.create`), não como aba da janela atual — uma
+// aba com `active:false` ainda aparece na barra de abas que o usuário está
+// olhando (dá pra clicar nela sem querer); uma janela minimizada à parte não
+// aparece em lugar nenhum. Se der erro, a janela é restaurada (fica visível)
+// pra dar pra inspecionar; se der certo, ela é fechada e o resultado final
+// abre como uma aba normal, na janela que o usuário está de fato usando.
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function openHiddenWindow(url) {
+  const win = await chrome.windows.create({ url, focused: false, state: "minimized", type: "popup" });
+  return { windowId: win.id, tabId: win.tabs[0].id };
+}
+
+async function closeHiddenWindow(windowId) {
+  if (windowId == null) return;
+  await chrome.windows.remove(windowId).catch(() => {});
+}
+
+async function revealWindow(windowId) {
+  if (windowId == null) return;
+  await chrome.windows.update(windowId, { state: "normal", focused: true }).catch(() => {});
+}
 
 function waitTabComplete(tabId, timeoutMs = 15000) {
   return new Promise((resolve, reject) => {
@@ -106,8 +123,8 @@ function fillAndSubmitImport(csv) {
 }
 
 async function runSync({ qultureUrl, baseUrl }) {
-  let qultureTab;
-  let pdiTab;
+  let qultureWin;
+  let pdiWin;
   try {
     // O botão "PDI+" injetado na página (content.js) não pode pedir
     // permissão sozinho — só o popup consegue (precisa do gesto do usuário
@@ -122,14 +139,13 @@ async function runSync({ qultureUrl, baseUrl }) {
       };
     }
 
-    sendProgress("Abrindo o Qulture.rocks em segundo plano...");
-    qultureTab = await chrome.tabs.create({ url: qultureUrl, active: false });
-    await waitTabComplete(qultureTab.id);
+    sendProgress("Lendo o PDI em segundo plano (janela escondida)...");
+    qultureWin = await openHiddenWindow(qultureUrl);
+    await waitTabComplete(qultureWin.tabId);
     await sleep(500); // app ainda hidratando
 
-    sendProgress("Lendo o PDI...");
     const [{ result: extracted }] = await chrome.scripting.executeScript({
-      target: { tabId: qultureTab.id },
+      target: { tabId: qultureWin.tabId },
       files: ["extract.js"],
     });
 
@@ -140,17 +156,19 @@ async function runSync({ qultureUrl, baseUrl }) {
     // frente, o popup ainda consegue mostrar isso pra copiar manualmente.
     await chrome.storage.local.set({ lastCsv: extracted.csv });
 
+    await closeHiddenWindow(qultureWin.windowId);
+    qultureWin = null;
+
     sendProgress(
-      `Lido: ${extracted.areaCount} área(s), ${extracted.actionCount} ação(ões). Abrindo o PDI+...`,
+      `Lido: ${extracted.areaCount} área(s), ${extracted.actionCount} ação(ões). Preenchendo o PDI+...`,
     );
 
-    pdiTab = await chrome.tabs.create({ url: `${baseUrl}/import?tab=paste`, active: false });
-    await waitTabComplete(pdiTab.id);
+    pdiWin = await openHiddenWindow(`${baseUrl}/import?tab=paste`);
+    await waitTabComplete(pdiWin.tabId);
     await sleep(500);
 
-    sendProgress("Preenchendo e confirmando no PDI+...");
     const [{ result }] = await chrome.scripting.executeScript({
-      target: { tabId: pdiTab.id },
+      target: { tabId: pdiWin.tabId },
       func: fillAndSubmitImport,
       args: [extracted.csv],
     });
@@ -159,10 +177,11 @@ async function runSync({ qultureUrl, baseUrl }) {
       throw new Error(result?.error || "Não consegui confirmar no PDI+.");
     }
 
-    // sucesso: fecha a aba duplicada do Qulture (não precisa mais dela) e
-    // traz a aba do PDI+ pra frente, pra mostrar o resultado.
-    await chrome.tabs.remove(qultureTab.id).catch(() => {});
-    await chrome.tabs.update(pdiTab.id, { active: true });
+    // sucesso: fecha a janela escondida e abre o resultado como uma aba
+    // normal, na janela que o usuário está de fato usando.
+    await closeHiddenWindow(pdiWin.windowId);
+    pdiWin = null;
+    await chrome.tabs.create({ url: `${baseUrl}/`, active: true });
 
     const warnLine = extracted.warnings?.length ? ` (${extracted.warnings.join(" ")})` : "";
     const okMsg = `PDI+ atualizado — ${extracted.areaCount} área(s), ${extracted.actionCount} ação(ões).${warnLine}`;
@@ -170,9 +189,10 @@ async function runSync({ qultureUrl, baseUrl }) {
     return { ok: true, message: okMsg };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
-    // em erro, NÃO fecha as abas — deixa em segundo plano pra dar pra
-    // inspecionar (F12) e ver onde travou, sem atrapalhar o que o usuário
-    // estava olhando.
+    // em erro, restaura a janela escondida (fica visível) pra dar pra
+    // inspecionar (F12) e ver onde travou — só nesse caso ela aparece.
+    await revealWindow(qultureWin?.windowId);
+    await revealWindow(pdiWin?.windowId);
     sendProgress(`✕ ${msg}`);
     return { ok: false, error: msg };
   }
