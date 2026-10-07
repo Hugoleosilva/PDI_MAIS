@@ -21,12 +21,13 @@
   padding: 0 10px;
   margin-right: 8px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.22);
+  background: #111111;
+  color: #e8590c;
   font-size: 12px;
 }
 
 .pdi-mais-btn--bar:hover {
-  background: rgba(255, 255, 255, 0.34);
+  background: #2a2a2a;
 }
 
 /* Fallback: flutuante no canto, fora do fluxo normal da página — usado só

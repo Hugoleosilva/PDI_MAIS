@@ -76,6 +76,16 @@
       if (r.left < window.innerWidth * 0.5) continue;
       if (!best || r.width < best.getBoundingClientRect().width) best = el;
     }
+    if (!best) return null;
+    // o grupinho achado pode vir DEPOIS de um ícone irmão (ex: a grade) que
+    // mora no mesmo pai — nesse caso "antes de tudo" é o pai, não ele.
+    const parent = best.parentElement;
+    if (parent && parent !== bar && parent.children.length <= 6) {
+      const pr = parent.getBoundingClientRect();
+      if (pr.width > 0 && pr.width < barWidth * 0.6 && pr.left > window.innerWidth * 0.4) {
+        return parent;
+      }
+    }
     return best;
   }
 
