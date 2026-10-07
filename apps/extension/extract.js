@@ -103,29 +103,15 @@
     }
     await sleep(300);
 
-    // aba "Mais informações" -> descrição da área
-    let areaDesc = "";
-    const infoTab = findByText("button, div[role='tab'], a", /^Mais informações$/i);
-    if (infoTab) {
-      infoTab.click();
-      await sleep(400);
-      const descHeader = findByText("div,h2,h3", "Descrição");
-      if (descHeader?.parentElement) {
-        // o container pode embrulhar o painel INTEIRO (Responsável/Líder/
-        // Ciclo vêm juntos, antes) — corta pelo texto literal "Descrição"
-        // em vez de só o prefixo, assim só sobra o que vem depois dele.
-        const full = descHeader.parentElement.textContent || "";
-        const idx = full.indexOf("Descrição");
-        areaDesc = idx >= 0 ? full.slice(idx + "Descrição".length).trim() : full.trim();
-      }
-      const actionsTab = findByText("button, div[role='tab'], a", /^Ações\s*\(\d+\)$/i);
-      if (actionsTab) {
-        actionsTab.click();
-        await sleep(300);
-      }
-    }
-
+    // Lê as ações PRIMEIRO, com a aba "Ações" já ativa por padrão (é onde o
+    // painel abre) — antes a gente visitava "Mais informações" e tentava
+    // clicar de volta em "Ações (N)" antes de ler, e se esse clique de volta
+    // falhasse (texto com espaçamento diferente, por exemplo), a área inteira
+    // ficava com ZERO ações, silenciosamente. Lendo antes, esse passo frágil
+    // nem precisa mais existir. Guarda num buffer — a descrição da área (lida
+    // depois, na aba "Mais informações") entra em cada linha só no final.
     const actionItems = [...document.querySelectorAll('[data-testid="idp-action-item"]')];
+    const areaRows = [];
     for (const item of actionItems) {
       const text = item.textContent || "";
       const statusMatch = text.match(STATUS_RE);
@@ -146,15 +132,38 @@
         }
       }
 
-      rows.push([
-        areaTitle,
-        areaDesc,
+      areaRows.push([
         title,
         desc,
         kindMatch ? kindMatch[0] : "Treinamento e estudo",
         dateMatch ? dateMatch[1] : "",
         statusMatch ? statusMatch[0] : "Não iniciado",
       ]);
+    }
+    if (areaRows.length === 0) {
+      warnings.push(`Área "${areaTitle}": não encontrei nenhuma ação.`);
+    }
+
+    // aba "Mais informações" -> descrição da área (só depois de já ter as
+    // ações garantidas — se isso falhar agora, não perde ação nenhuma).
+    let areaDesc = "";
+    const infoTab = findByText("button, div[role='tab'], a", /^Mais informações$/i);
+    if (infoTab) {
+      infoTab.click();
+      await sleep(400);
+      const descHeader = findByText("div,h2,h3", "Descrição");
+      if (descHeader?.parentElement) {
+        // o container pode embrulhar o painel INTEIRO (Responsável/Líder/
+        // Ciclo vêm juntos, antes) — corta pelo texto literal "Descrição"
+        // em vez de só o prefixo, assim só sobra o que vem depois dele.
+        const full = descHeader.parentElement.textContent || "";
+        const idx = full.indexOf("Descrição");
+        areaDesc = idx >= 0 ? full.slice(idx + "Descrição".length).trim() : full.trim();
+      }
+    }
+
+    for (const [title, desc, kind, dueDate, status] of areaRows) {
+      rows.push([areaTitle, areaDesc, title, desc, kind, dueDate, status]);
       actionCount += 1;
     }
 

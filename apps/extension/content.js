@@ -1,45 +1,29 @@
-// Injeta um item "PDI+" na barra de abas do Qulture.rocks (ao lado de
-// "Instruções de PDI"). Ao clicar, dispara a MESMA sincronização do popup
-// (extrai em segundo plano + preenche o import do PDI+) via background.js —
-// este arquivo só cuida da UI dentro da página, a lógica pesada mora lá.
+// Botão flutuante "PDI+" na página do Qulture.rocks. Ao clicar, dispara a
+// MESMA sincronização do popup (extrai em segundo plano + preenche o import
+// do PDI+) via background.js — este arquivo só cuida da UI, a lógica pesada
+// mora lá.
+//
+// Não tenta mais encaixar DENTRO da barra de abas deles (ao lado de
+// "Instruções de PDI") — tentamos clonar a aba e depois criar um elemento do
+// zero, e nos dois casos o container ficou desenhando os dois itens um em
+// cima do outro (provavelmente um grid/flex com número fixo de colunas, que
+// não sabe o que fazer com um 3º item). Um botão flutuante, fora do fluxo
+// normal da página, nunca esbarra nesse problema.
 (function () {
-  const BUTTON_ID = "pdi-mais-nav-btn";
+  const BUTTON_ID = "pdi-mais-float-btn";
+  if (document.getElementById(BUTTON_ID)) return;
 
-  function findInstrucoesTab() {
-    return [...document.querySelectorAll("button, a, div[role='tab']")].find(
-      (el) => el.textContent?.trim() === "Instruções de PDI",
-    );
-  }
+  const btn = document.createElement("button");
+  btn.id = BUTTON_ID;
+  btn.type = "button";
+  btn.textContent = "PDI+";
+  btn.title = "Sincronizar com o PDI+";
+  document.documentElement.appendChild(btn);
 
-  function injectButton() {
-    if (document.getElementById(BUTTON_ID)) return;
-    const refTab = findInstrucoesTab();
-    if (!refTab) return;
-
-    // Elemento criado do zero, de propósito — clonar a aba original
-    // (`cloneNode`) trazia junto algum indicador de posição interno da
-    // Qulture que não sabia lidar com um 3º item, e as duas abas ficavam
-    // desenhadas uma em cima da outra. Um botão simples, com classe nossa,
-    // não herda esse problema (fica menos "igualzinho" ao resto, mas não
-    // quebra o layout deles).
-    const btn = document.createElement("button");
-    btn.id = BUTTON_ID;
-    btn.type = "button";
-    btn.className = "pdi-mais-tab";
-    btn.textContent = "PDI+";
-    btn.addEventListener("click", onClick);
-    refTab.insertAdjacentElement("afterend", btn);
-  }
-
-  async function onClick(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    const btn = e.currentTarget;
+  btn.addEventListener("click", async () => {
     if (btn.dataset.pdiSyncing === "true") return;
-
     btn.dataset.pdiSyncing = "true";
-    const original = btn.textContent;
-    btn.innerHTML = '<span class="pdi-mais-spinner"></span> Sincronizando…';
+    btn.innerHTML = '<span class="pdi-mais-spinner"></span>';
 
     try {
       const { pdiPlusUrl } = await chrome.storage.local.get(["pdiPlusUrl"]);
@@ -61,13 +45,7 @@
       }
     } finally {
       btn.dataset.pdiSyncing = "false";
-      btn.textContent = original;
+      btn.textContent = "PDI+";
     }
-  }
-
-  // a SPA troca a barra de abas conforme navega — observa e reinjeta sempre
-  // que ela remontar, em vez de rodar só uma vez no carregamento.
-  const observer = new MutationObserver(() => injectButton());
-  observer.observe(document.body, { childList: true, subtree: true });
-  injectButton();
+  });
 })();

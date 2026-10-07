@@ -1,39 +1,43 @@
-/* Botão "PDI+" injetado na barra de abas do Qulture.rocks, ao lado de
-   "Instruções de PDI". É um elemento CRIADO DO ZERO (não clonado) de
-   propósito: clonar a aba original trazia junto algum posicionamento
-   interno da Qulture que não escalava pra um 3º item (duas abas
-   desenhadas uma em cima da outra). Estilo simples, auto-contido, pra
-   nunca interferir no layout deles. */
-.pdi-mais-tab {
+/* Botão flutuante "PDI+" — fixo num canto da tela, fora do fluxo normal da
+   página (ver content.js pra entender por que não fica mais encaixado na
+   barra de abas deles). all: unset + reset explícito, pra não herdar nada
+   do CSS da Qulture (não é filho de nada deles, mas por segurança). */
+#pdi-mais-float-btn {
   all: unset;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 2147483647;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  padding: 10px 14px;
-  margin-left: 4px;
+  justify-content: center;
+  min-width: 56px;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 20px;
+  background: #e8590c;
+  color: white;
+  font-family: system-ui, -apple-system, sans-serif;
   font-size: 14px;
-  font-weight: 500;
-  font-family: inherit;
-  color: #e8590c;
-  border-bottom: 2px solid transparent;
-  user-select: none;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
 }
 
-.pdi-mais-tab:hover {
-  border-bottom-color: #e8590c88;
+#pdi-mais-float-btn:hover {
+  background: #c94a08;
 }
 
-.pdi-mais-tab[data-pdi-syncing="true"] {
-  opacity: 0.7;
-  pointer-events: none;
+#pdi-mais-float-btn[data-pdi-syncing="true"] {
+  cursor: default;
+  opacity: 0.85;
 }
 
 .pdi-mais-spinner {
   display: inline-block;
-  width: 12px;
-  height: 12px;
-  border: 2px solid currentColor;
+  width: 16px;
+  height: 16px;
+  border: 2px solid white;
   border-top-color: transparent;
   border-radius: 50%;
   animation: pdi-mais-spin 0.7s linear infinite;
