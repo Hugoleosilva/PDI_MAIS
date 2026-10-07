@@ -88,28 +88,54 @@
   btn.addEventListener("click", onClick);
   document.documentElement.appendChild(btn);
 
+  /** Uma tentativa só de subir o botão pra barra. true = conseguiu. */
+  function placeInBar() {
+    const bar = findOrangeBar(false);
+    if (!bar) return false;
+    btn.classList.remove("pdi-mais-btn--float");
+    btn.classList.add("pdi-mais-btn--bar");
+    // antes do grupinho de ícones da direita (grade/"?"/sino/avatar), não
+    // no início da barra inteira — senão fica antes até do hambúrguer/logo.
+    const cluster = findIconCluster(bar);
+    if (cluster && cluster.firstElementChild) {
+      cluster.insertBefore(btn, cluster.firstElementChild);
+    } else {
+      bar.insertBefore(btn, bar.firstChild);
+    }
+    return true;
+  }
+
   async function tryMoveIntoBar() {
     const MAX_TRIES = 25; // ~10s
     for (let i = 0; i < MAX_TRIES; i++) {
       await new Promise((r) => setTimeout(r, 400));
-      const bar = findOrangeBar(i === MAX_TRIES - 1);
-      if (bar) {
-        btn.classList.remove("pdi-mais-btn--float");
-        btn.classList.add("pdi-mais-btn--bar");
-        // antes do grupinho de ícones da direita (grade/"?"/sino/avatar), não
-        // no início da barra inteira — senão fica antes até do hambúrguer/logo.
-        const cluster = findIconCluster(bar);
-        if (cluster && cluster.firstElementChild) {
-          cluster.insertBefore(btn, cluster.firstElementChild);
-        } else {
-          bar.insertBefore(btn, bar.firstChild);
-        }
-        return;
-      }
+      if (placeInBar()) return;
+      if (i === MAX_TRIES - 1) findOrangeBar(true); // só loga amostras no fim
     }
     // nunca achou — fica flutuante mesmo, já está visível desde o começo.
   }
   tryMoveIntoBar();
+
+  // A SPA re-renderiza a barra do topo em vários momentos (abrir o menu
+  // lateral, trocar de aba, redimensionar a janela) — e como o React não
+  // sabe da existência do nosso <button>, qualquer re-render do container
+  // onde ele mora apaga ele do DOM (visto em teste real: some ao fechar o
+  // DevTools, que muda a largura da janela). Esse observer detecta quando o
+  // botão saiu do DOM e reinsere, com um pequeno debounce pra não brigar com
+  // a própria re-renderização em andamento.
+  let healTimer = null;
+  function scheduleHeal() {
+    if (healTimer || btn.isConnected) return;
+    healTimer = setTimeout(() => {
+      healTimer = null;
+      if (btn.isConnected) return;
+      document.documentElement.appendChild(btn);
+      btn.classList.add("pdi-mais-btn--float");
+      btn.classList.remove("pdi-mais-btn--bar");
+      placeInBar();
+    }, 300);
+  }
+  new MutationObserver(scheduleHeal).observe(document.body, { childList: true, subtree: true });
 
   async function onClick(e) {
     const el = e.currentTarget;
