@@ -59,31 +59,30 @@
   }
 
   /**
-   * `bar` (acima) é o container INTEIRO da faixa laranja — inserir direto
-   * nele (firstChild) bota o botão antes até do menu-hambúrguer/logo, lá no
-   * extremo esquerdo. O que queremos é só o grupinho de ícones da direita
-   * (grade/"?"/sino/avatar): menor container, do lado direito da tela, com
-   * poucos filhos — não o bar inteiro.
+   * Em vez de adivinhar qual container "embrulha" o grupo de ícones (grade/
+   * "?"/sino/avatar) — tentativa anterior, ainda ficava depois da grade —
+   * acha o ÍCONE mais à esquerda direto pela geometria: pequeno, quadrado,
+   * sem texto (ou quase), no lado direito da barra. Esse é a grade. Insere
+   * como irmão ANTES dele, qualquer que seja a estrutura de containers.
    */
-  function findIconCluster(bar) {
-    const barWidth = bar.getBoundingClientRect().width;
+  function findLeftmostIcon(bar) {
     let best = null;
-    for (const el of bar.querySelectorAll("*")) {
-      const n = el.children.length;
-      if (n < 2 || n > 6) continue;
-      const r = el.getBoundingClientRect();
-      if (r.width <= 0 || r.width >= barWidth * 0.5) continue;
+    let bestLeft = Infinity;
+    for (const el of bar.querySelectorAll("button, a, [role='button'], svg")) {
+      if (el === btn || el.id === BUTTON_ID || el.contains(btn)) continue;
+      // se achou o <svg> do ícone, usa o <button>/<a> que o embrulha como
+      // âncora — inserir irmão de um <svg> colocaria nosso <button> DENTRO
+      // do botão deles (elemento interativo aninhado, clique quebrado).
+      const anchor = el.closest("button, a, [role='button']") || el;
+      if (!bar.contains(anchor) || anchor === btn) continue;
+      const r = anchor.getBoundingClientRect();
+      if (r.width < 14 || r.width > 60 || r.height < 14 || r.height > 60) continue;
       if (r.left < window.innerWidth * 0.5) continue;
-      if (!best || r.width < best.getBoundingClientRect().width) best = el;
-    }
-    if (!best) return null;
-    // o grupinho achado pode vir DEPOIS de um ícone irmão (ex: a grade) que
-    // mora no mesmo pai — nesse caso "antes de tudo" é o pai, não ele.
-    const parent = best.parentElement;
-    if (parent && parent !== bar && parent.children.length <= 6) {
-      const pr = parent.getBoundingClientRect();
-      if (pr.width > 0 && pr.width < barWidth * 0.6 && pr.left > window.innerWidth * 0.4) {
-        return parent;
+      const textLen = (anchor.textContent || "").trim().length;
+      if (textLen > 3) continue; // ícone puro, no máx. badge tipo "9+"
+      if (r.left < bestLeft) {
+        best = anchor;
+        bestLeft = r.left;
       }
     }
     return best;
@@ -104,11 +103,11 @@
     if (!bar) return false;
     btn.classList.remove("pdi-mais-btn--float");
     btn.classList.add("pdi-mais-btn--bar");
-    // antes do grupinho de ícones da direita (grade/"?"/sino/avatar), não
+    // antes do ícone mais à esquerda do grupo da direita (a grade), não
     // no início da barra inteira — senão fica antes até do hambúrguer/logo.
-    const cluster = findIconCluster(bar);
-    if (cluster && cluster.firstElementChild) {
-      cluster.insertBefore(btn, cluster.firstElementChild);
+    const icon = findLeftmostIcon(bar);
+    if (icon && icon.parentElement) {
+      icon.parentElement.insertBefore(btn, icon);
     } else {
       bar.insertBefore(btn, bar.firstChild);
     }
