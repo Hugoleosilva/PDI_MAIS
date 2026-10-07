@@ -127,6 +127,15 @@
         .map((el) => el.textContent.trim())
         .filter((t) => t && !before.has(t) && !/^Fechar descri[cç][aã]o/i.test(t));
       desc = newTexts.join(" ").trim();
+    } else {
+      // Sem toggle: quando o texto é curto, a Qulture pode mostrar a
+      // descrição direto, sem precisar truncar/expandir. Sobra de
+      // `leftoverTitle` igual, só que pulando o texto que já virou título e
+      // juntando o resto que não é status/tipo/prazo/menu.
+      const candidates = leafTexts(item)
+        .map((el) => el.textContent.trim())
+        .filter((t) => t && t !== title && !IGNORE_RES.some((re) => re.test(t)));
+      desc = candidates.join(" ").trim();
     }
 
     return [
@@ -293,14 +302,26 @@
       if (infoTab) {
         infoTab.click();
         await sleep(600);
-        const descHeader = findByText("div,h2,h3", "Descrição");
-        if (descHeader?.parentElement) {
-          // o container pode embrulhar o painel INTEIRO (Responsável/Líder/
-          // Ciclo vêm juntos, antes) — corta pelo texto literal "Descrição"
-          // em vez de só o prefixo, assim só sobra o que vem depois dele.
-          const full = descHeader.parentElement.textContent || "";
-          const idx = full.indexOf("Descrição");
-          areaDesc = idx >= 0 ? full.slice(idx + "Descrição".length).trim() : full.trim();
+        // "Descrição" sozinho (igualdade exata) falhava sempre que o
+        // cabeçalho vinha com algo a mais (dois pontos, ícone de
+        // expandir...) — agora basta COMEÇAR com a palavra.
+        const descHeader = findByText("div,h2,h3,span,label", /^Descri[cç][aã]o\b/i);
+        // mesmo padrão truncado das ações pode existir aqui — expande se
+        // tiver um "Mostrar mais"/"Mostrar descrição" por perto.
+        const moreToggle = findByText(
+          "a,button,span,div",
+          /^(Mostrar mais|Mostrar descri[cç][aã]o|Ver mais)/i,
+        );
+        if (moreToggle) {
+          moreToggle.click();
+          await sleep(400);
+        }
+        for (const container of [descHeader?.parentElement, descHeader?.parentElement?.parentElement]) {
+          if (areaDesc || !container) continue;
+          const full = container.textContent || "";
+          const idx = full.search(/Descri[cç][aã]o/i);
+          const sliced = idx >= 0 ? full.slice(idx).replace(/^Descri[cç][aã]o\b:?\s*/i, "").trim() : "";
+          if (sliced) areaDesc = sliced;
         }
       }
 
