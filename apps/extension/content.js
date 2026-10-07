@@ -20,20 +20,51 @@
   }
 
   function isOrange({ r, g, b }) {
-    return r > 190 && g > 50 && g < 160 && b < 90;
+    return r > 170 && g > 40 && g < 180 && b < 110 && r - b > 80;
+  }
+
+  /**
+   * Acha o elemento com fundo laranja num ponto exato da tela — checa o que
+   * está REALMENTE desenhado (pixel), não um nome de tag/tamanho chutado.
+   * Isso importa porque a cor pode estar num elemento PAI (o filho no topo
+   * da pilha teria `background-color` transparente, herdando visualmente).
+   * Entre vários elementos laranja na mesma pilha, fica com o mais largo —
+   * tende a ser a barra em si, não um ícone/badge pequeno dentro dela.
+   */
+  function orangeElementAt(x, y) {
+    const stack = document.elementsFromPoint(x, y);
+    let best = null;
+    for (const el of stack) {
+      const rgb = parseRgb(getComputedStyle(el).backgroundColor);
+      if (rgb && isOrange(rgb)) {
+        if (!best || el.getBoundingClientRect().width > best.getBoundingClientRect().width) {
+          best = el;
+        }
+      }
+    }
+    return best;
   }
 
   /** Barra fixa/no topo da página com fundo alaranjado — a "topbar" da Qulture. */
   function findOrangeBar() {
-    const candidates = [...document.querySelectorAll("header, nav, div")].filter((el) => {
-      const rect = el.getBoundingClientRect();
-      if (rect.top > 10 || rect.height < 30 || rect.height > 90 || rect.width < 200) return false;
-      const rgb = parseRgb(getComputedStyle(el).backgroundColor);
-      return rgb && isOrange(rgb);
-    });
-    // o menor (mais específico) tende a ser a barra em si, não um wrapper maior.
-    candidates.sort((a, b) => a.getBoundingClientRect().width - b.getBoundingClientRect().width);
-    return candidates[0];
+    const width = window.innerWidth;
+    const xs = [10, width * 0.25, width * 0.5, width * 0.75, width - 10];
+    const ys = [5, 15, 25, 40];
+    let best = null;
+    // debug: se não achar nada, dá pra ver no console (F12) exatamente que
+    // cor foi lida em cada ponto, sem precisar de mais um print pra ajustar.
+    const sampled = [];
+    for (const y of ys) {
+      for (const x of xs) {
+        const el = orangeElementAt(x, y);
+        sampled.push({ x, y, bg: el ? getComputedStyle(el).backgroundColor : document.elementFromPoint(x, y) && getComputedStyle(document.elementFromPoint(x, y)).backgroundColor });
+        if (el && (!best || el.getBoundingClientRect().width > best.getBoundingClientRect().width)) {
+          best = el;
+        }
+      }
+    }
+    if (!best) console.log("[PDI+] não achei barra laranja — amostras:", sampled);
+    return best;
   }
 
   function makeButton() {
