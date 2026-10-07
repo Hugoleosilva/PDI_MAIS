@@ -26,6 +26,7 @@
     KIND_RE,
     STATUS_RE,
     /^Prazo:/i,
+    /^\d{1,2}\/\d{1,2}\/\d{2,4}$/, // data solta, sem o prefixo "Prazo:" — defesa extra
     /^Mostrar descri[cç][aã]o/i,
     /^Fechar descri[cç][aã]o/i,
     /^\d{1,3}(,\d+)?%$/,
@@ -68,12 +69,27 @@
     return Number(label?.textContent?.match(/\((\d+)\)/)?.[1]) || undefined;
   }
 
-  // Primeiro bloco de texto "solto" (sem filhos) que não bate com nenhum
-  // padrão conhecido — na prática, o título do card/ação.
-  function leftoverTitle(container) {
-    const candidates = [...container.querySelectorAll("div,span")].filter(
+  function leafTexts(container) {
+    return [...container.querySelectorAll("div,span,p")].filter(
       (el) => el.children.length === 0 && (el.textContent?.trim().length ?? 0) > 2,
     );
+  }
+
+  /**
+   * Título do card/ação. O card SEMPRE mostra o tipo ("Treinamento e
+   * estudo"...) logo ABAIXO do título (visto no DOM real) — vocabulário
+   * pequeno e fixo, super confiável de achar. Ancorar nele é mais preciso
+   * que só "primeiro texto desconhecido" (esse método antigo pegava uma
+   * data solta no card — "31/12/26", sem o prefixo "Prazo:" — achando que
+   * era o título, confirmado em teste real).
+   */
+  function leftoverTitle(container) {
+    const candidates = leafTexts(container);
+    const kindIndex = candidates.findIndex((el) => KIND_RE.test(el.textContent.trim()));
+    if (kindIndex > 0) {
+      const before = candidates[kindIndex - 1].textContent.trim();
+      if (!IGNORE_RES.some((re) => re.test(before))) return before;
+    }
     for (const el of candidates) {
       const t = el.textContent.trim();
       if (IGNORE_RES.some((re) => re.test(t))) continue;
@@ -97,13 +113,20 @@
       /^Mostrar descri[cç][aã]o/i.test(el.textContent?.trim() ?? ""),
     );
     if (descToggle) {
-      const before = item.textContent.length;
+      // Conjunto de textos ANTES de expandir — comparar por TEXTO (não por
+      // tamanho total do card) é mais robusto: o rótulo do botão muda de
+      // "Mostrar descrição" (17 letras) pra "Fechar descrição" (16 letras)
+      // ao clicar, e um corte por CONTAGEM de caractere perdia a 1ª letra
+      // da descrição toda vez (confirmado em teste real: "Conhecimentos"
+      // virava "onhecimentos" em toda ação, sempre faltando exatamente 1
+      // caractere — a diferença de tamanho entre os dois rótulos).
+      const before = new Set(leafTexts(item).map((el) => el.textContent.trim()));
       descToggle.click();
       await sleep(400);
-      const after = item.textContent || "";
-      if (after.length > before) {
-        desc = after.slice(before).replace(/^Fechar descri[cç][aã]o\s*/i, "").trim();
-      }
+      const newTexts = leafTexts(item)
+        .map((el) => el.textContent.trim())
+        .filter((t) => t && !before.has(t) && !/^Fechar descri[cç][aã]o/i.test(t));
+      desc = newTexts.join(" ").trim();
     }
 
     return [
@@ -202,37 +225,66 @@
       processedTitles.add(areaTitle);
       processedThisRound += 1;
 
-      card.click();
-      const opened = await waitFor(
-        () => document.querySelector('[data-testid="idp-action-item"]') || findBackButton(),
-        15000,
-      );
+      // A contagem tem que bater EXATO com "Ações (N)" — não "pelo menos".
+      // Se não bater, sai da área e entra de novo (a lista pode renderizar
+      // diferente na 2ª vez) antes de aceitar um número errado.
+      const MAX_AREA_ATTEMPTS = 3;
+      let areaRows = [];
+      let expectedActionCount;
+      let opened = false;
+
+      for (let attempt = 1; attempt <= MAX_AREA_ATTEMPTS; attempt++) {
+        const target =
+          attempt === 1
+            ? card
+            : [...document.querySelectorAll('[data-testid="idp-goal-item"]')].find(
+                (c) => leftoverTitle(c) === areaTitle,
+              );
+        if (!target) break;
+        target.click();
+        opened = await waitFor(
+          () => document.querySelector('[data-testid="idp-action-item"]') || findBackButton(),
+          15000,
+        );
+        if (!opened) continue;
+        await sleep(400);
+
+        // Lê as ações PRIMEIRO, com a aba "Ações" já ativa por padrão (é onde
+        // o painel abre) — a descrição da área (aba "Mais informações") entra
+        // em cada linha só no final, depois que as ações já estão garantidas.
+        // O rótulo "Ações (N)" pode demorar um instante a mais que o painel
+        // pra atualizar com a contagem real — espera ele aparecer de verdade
+        // em vez de ler uma vez só (senão expectedCount vem undefined e a
+        // rolagem para cedo demais, só no "estabilizou 12 rounds").
+        const actionsTabLabel = await waitFor(
+          () => findByText("button, div[role='tab'], a", /^Ações\s*\(\d+\)$/i),
+          8000,
+          200,
+        );
+        expectedActionCount = parseCount(actionsTabLabel);
+        areaRows = await loadActionRows(expectedActionCount);
+
+        if (!expectedActionCount || areaRows.length === expectedActionCount) break;
+
+        if (attempt < MAX_AREA_ATTEMPTS) {
+          const back = findBackButton();
+          if (back) {
+            back.click();
+            await sleep(500);
+          }
+        }
+      }
+
       if (!opened) {
         warnings.push(`Área "${areaTitle}": o painel não abriu a tempo — pulei.`);
         continue;
       }
-      await sleep(400);
-
-      // Lê as ações PRIMEIRO, com a aba "Ações" já ativa por padrão (é onde
-      // o painel abre) — a descrição da área (aba "Mais informações") entra
-      // em cada linha só no final, depois que as ações já estão garantidas.
-      // O rótulo "Ações (N)" pode demorar um instante a mais que o painel
-      // pra atualizar com a contagem real — espera ele aparecer de verdade
-      // em vez de ler uma vez só (senão expectedCount vem undefined e a
-      // rolagem para cedo demais, só no "estabilizou 12 rounds").
-      const actionsTabLabel = await waitFor(
-        () => findByText("button, div[role='tab'], a", /^Ações\s*\(\d+\)$/i),
-        8000,
-        200,
-      );
-      const expectedActionCount = parseCount(actionsTabLabel);
-      const areaRows = await loadActionRows(expectedActionCount);
 
       if (areaRows.length === 0) {
         warnings.push(`Área "${areaTitle}": não encontrei nenhuma ação.`);
-      } else if (expectedActionCount && areaRows.length < expectedActionCount) {
+      } else if (expectedActionCount && areaRows.length !== expectedActionCount) {
         warnings.push(
-          `Área "${areaTitle}": esperava ${expectedActionCount} ação(ões), só consegui ler ${areaRows.length}.`,
+          `Área "${areaTitle}": esperava ${expectedActionCount} ação(ões) (tentei ${MAX_AREA_ATTEMPTS}x), só consegui ler ${areaRows.length} — dado pode estar incompleto.`,
         );
       }
 
