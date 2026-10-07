@@ -101,7 +101,7 @@
     if (descToggle) {
       const before = item.textContent.length;
       descToggle.click();
-      await sleep(250);
+      await sleep(400);
       const after = item.textContent || "";
       if (after.length > before) {
         desc = after.slice(before).replace(/^Fechar descri[cç][aã]o\s*/i, "").trim();
@@ -127,7 +127,7 @@
     const captured = new WeakSet();
     let stableRounds = 0;
 
-    for (let round = 0; round < 90; round++) {
+    for (let round = 0; round < 150; round++) {
       const current = [...document.querySelectorAll('[data-testid="idp-action-item"]')];
       let gotNew = false;
       for (const el of current) {
@@ -145,16 +145,18 @@
       const last = current[current.length - 1];
       if (!last) break;
       last.scrollIntoView({ block: "end" });
-      // generoso de propósito: rolar dispara um carregamento (de API, não só
-      // DOM) que pode demorar mais que isso — mais vale esperar uns rounds a
-      // mais do que desistir cedo e perder ação.
-      await sleep(350);
+      // MUITO generoso de propósito: a janela roda minimizada (Chrome não
+      // deixa posicionar de verdade fora da tela) e isso throttla scroll/
+      // IntersectionObserver/timers da página — o carregamento de mais
+      // itens fica mais lento e inconsistente, não trava de vez. Mais vale
+      // esperar bastante do que desistir cedo e perder ação.
+      await sleep(700);
 
       if (gotNew) {
         stableRounds = 0;
       } else {
         stableRounds += 1;
-        if (stableRounds >= 7) break;
+        if (stableRounds >= 12) break;
       }
     }
     return rows;
@@ -169,9 +171,9 @@
   // SPA: a aba pode "terminar de carregar" (HTML/JS) bem antes dos dados
   // chegarem da API e os cards renderizarem — espera de verdade em vez de
   // checar uma vez só, principalmente numa aba nova em segundo plano.
-  await waitFor(() => document.querySelectorAll('[data-testid="idp-goal-item"]').length > 0, 12000, 300);
+  await waitFor(() => document.querySelectorAll('[data-testid="idp-goal-item"]').length > 0, 20000, 300);
   if (document.querySelectorAll('[data-testid="idp-goal-item"]').length === 0) {
-    return { error: 'Não achei nenhuma área nesta página (esperei 12s). Confere se está em ".../my-idp".' };
+    return { error: 'Não achei nenhuma área nesta página (esperei 20s). Confere se está em ".../my-idp".' };
   }
 
   const areaHeading = findByText("h1,h2,h3,div,span", /Área\s+de\s+Desenvolvimento\s*\(\d+\)/i);
@@ -184,7 +186,7 @@
   const processedTitles = new Set();
   let areaStableRounds = 0;
 
-  for (let round = 0; round < 80; round++) {
+  for (let round = 0; round < 120; round++) {
     const goalItems = [...document.querySelectorAll('[data-testid="idp-goal-item"]')];
     let processedThisRound = 0;
 
@@ -195,12 +197,15 @@
       processedThisRound += 1;
 
       card.click();
-      const opened = await waitFor(() => document.querySelector('[data-testid="idp-action-item"]') || findBackButton());
+      const opened = await waitFor(
+        () => document.querySelector('[data-testid="idp-action-item"]') || findBackButton(),
+        15000,
+      );
       if (!opened) {
         warnings.push(`Área "${areaTitle}": o painel não abriu a tempo — pulei.`);
         continue;
       }
-      await sleep(300);
+      await sleep(400);
 
       // Lê as ações PRIMEIRO, com a aba "Ações" já ativa por padrão (é onde
       // o painel abre) — a descrição da área (aba "Mais informações") entra
@@ -208,11 +213,11 @@
       // O rótulo "Ações (N)" pode demorar um instante a mais que o painel
       // pra atualizar com a contagem real — espera ele aparecer de verdade
       // em vez de ler uma vez só (senão expectedCount vem undefined e a
-      // rolagem para cedo demais, só no "estabilizou 7 rounds").
+      // rolagem para cedo demais, só no "estabilizou 12 rounds").
       const actionsTabLabel = await waitFor(
         () => findByText("button, div[role='tab'], a", /^Ações\s*\(\d+\)$/i),
-        4000,
-        150,
+        8000,
+        200,
       );
       const expectedActionCount = parseCount(actionsTabLabel);
       const areaRows = await loadActionRows(expectedActionCount);
@@ -229,7 +234,7 @@
       const infoTab = findByText("button, div[role='tab'], a", /^Mais informações$/i);
       if (infoTab) {
         infoTab.click();
-        await sleep(400);
+        await sleep(600);
         const descHeader = findByText("div,h2,h3", "Descrição");
         if (descHeader?.parentElement) {
           // o container pode embrulhar o painel INTEIRO (Responsável/Líder/
@@ -249,7 +254,7 @@
       const backBtn = findBackButton();
       if (backBtn) {
         backBtn.click();
-        await sleep(350);
+        await sleep(500);
       } else {
         warnings.push(`Área "${areaTitle}": não achei o botão "Voltar" — a extração pode ter parado aqui.`);
         const csv = rows.map((r) => r.map(csvEscape).join(",")).join("\n");
@@ -263,14 +268,14 @@
       areaStableRounds = 0;
     } else {
       areaStableRounds += 1;
-      if (areaStableRounds >= 6) break;
+      if (areaStableRounds >= 10) break;
       // nada novo nesta rodada — tenta rolar a LISTA de áreas pra carregar
       // mais (mesma técnica das ações: rola o último card atual pra vista).
       const currentCards = [...document.querySelectorAll('[data-testid="idp-goal-item"]')];
       const lastCard = currentCards[currentCards.length - 1];
       if (lastCard) {
         lastCard.scrollIntoView({ block: "end" });
-        await sleep(350);
+        await sleep(700);
       }
     }
   }

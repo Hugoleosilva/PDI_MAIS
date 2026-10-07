@@ -8,34 +8,23 @@
 // não como aba da janela atual — uma aba com `active:false` ainda aparece na
 // barra de abas que o usuário está olhando (dá pra clicar nela sem querer).
 //
-// IMPORTANTE: essa janela NÃO pode ser minimizada. Testado na prática e
-// piorava a cada tentativa (10 áreas -> 5 -> 4): uma janela minimizada vira
-// `document.visibilityState === "hidden"` pro Chrome, que por isso throttla
-// bem mais agressivo timers/IntersectionObserver/scroll da página — e a
-// extração depende de rolar a lista pra carregar mais itens (ela é
-// virtualizada/paginada). Com a página "escondida" de verdade, esse
-// carregamento ficava lento e inconsistente, perdendo itens.
-//
-// Em vez disso, a janela fica em tamanho normal (não minimizada, então
-// permanece "visible") mas POSICIONADA FORA DA TELA (coordenadas bem
-// negativas) — o usuário nunca vê nada, mas a página renderiza normalmente.
-// Se der erro, a janela é trazida de volta pra área visível pra dar pra
-// inspecionar; se der certo, ela é fechada e o resultado final abre como uma
-// aba normal, na janela que o usuário está de fato usando.
+// Ela é MINIMIZADA (`state: "minimized"`) pra não aparecer em lugar nenhum.
+// Tentamos posicionar fora da tela em vez de minimizar (minimizada =
+// `document.visibilityState === "hidden"`, que o Chrome throttla mais forte
+// — e a extração depende de rolar listas virtualizadas/paginadas pra
+// carregar mais itens, sensível a esse throttling) — mas o Chrome REJEITA
+// bounds majoritariamente fora da tela ("Bounds must be at least 50% within
+// visible screen space"), então essa saída não existe. Em vez de brigar com
+// isso, compensamos o throttling dando bem mais paciência (esperas maiores,
+// mais tentativas) na extração — ver extract.js. Se der erro, a janela é
+// trazida de volta pra área visível pra dar pra inspecionar; se der certo,
+// ela é fechada e o resultado final abre como uma aba normal, na janela que
+// o usuário está de fato usando.
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const OFFSCREEN_POS = -1e5; // bem longe de qualquer monitor real
 
 async function openHiddenWindow(url) {
-  const win = await chrome.windows.create({
-    url,
-    focused: false,
-    type: "popup",
-    left: OFFSCREEN_POS,
-    top: OFFSCREEN_POS,
-    width: 1280,
-    height: 900,
-  });
+  const win = await chrome.windows.create({ url, focused: false, state: "minimized", type: "popup" });
   return { windowId: win.id, tabId: win.tabs[0].id };
 }
 
