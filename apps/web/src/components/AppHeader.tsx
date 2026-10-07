@@ -1,7 +1,7 @@
 import type { Session } from "next-auth";
 import { signOut } from "@/auth";
 import { brand } from "@/lib/theme";
-import { DeletePdiButton } from "./DeletePdiButton";
+import { DeletePdiButton } from "@/components/DeletePdiButton";
 
 const TABS = [
   { key: "canvas", label: "Canvas", href: "/" },
