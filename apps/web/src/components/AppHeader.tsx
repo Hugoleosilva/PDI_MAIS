@@ -6,6 +6,7 @@ const TABS = [
   { key: "canvas", label: "Canvas", href: "/" },
   { key: "planejamento", label: "Planejamento", href: "/planejamento" },
   { key: "progresso", label: "Progresso", href: "/progresso" },
+  { key: "equipe", label: "Equipe", href: "/equipe" },
   { key: "import", label: "Importar", href: "/import" },
 ] as const;
 

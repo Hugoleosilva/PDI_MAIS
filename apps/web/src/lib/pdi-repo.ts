@@ -45,6 +45,25 @@ export async function setShareId(userId: string, shareId: string | null): Promis
 }
 
 /**
+ * Autoriza (ou revoga, com `email: null`) um gestor a ver este PDI sem link —
+ * quem concede é sempre o liderado, digitando o e-mail do gestor.
+ */
+export async function setManagerEmail(userId: string, email: string | null): Promise<void> {
+  const col = await collection();
+  if (email) {
+    await col.updateOne({ userId }, { $set: { sharedWithManagerEmail: email, updatedAt: new Date() } });
+  } else {
+    await col.updateOne({ userId }, { $unset: { sharedWithManagerEmail: "" }, $set: { updatedAt: new Date() } });
+  }
+}
+
+/** Aba "Equipe" do gestor — todos os PDIs que autorizaram esse e-mail. */
+export async function getPdisSharedWithManager(managerEmail: string): Promise<PdiDoc[]> {
+  const col = await collection();
+  return col.find({ sharedWithManagerEmail: managerEmail }, { projection: { _id: 0 } }).toArray();
+}
+
+/**
  * Aplica um payload de sync (extensão ou import manual) e devolve o documento
  * resultante. A lógica de merge vive em @pdi-mais/core e é testada lá.
  */
@@ -258,4 +277,5 @@ export async function ensureIndexes(): Promise<void> {
   const col = await collection();
   await col.createIndex({ userId: 1 }, { unique: true });
   await col.createIndex({ shareId: 1 }, { unique: true, sparse: true });
+  await col.createIndex({ sharedWithManagerEmail: 1 }, { sparse: true });
 }

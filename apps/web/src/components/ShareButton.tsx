@@ -3,13 +3,19 @@
 import { useState } from "react";
 import type { PdiDoc } from "@pdi-mais/core";
 
-/** Liga/desliga o Modo Gestor (visão read-only em /r/[shareId]) e mostra o link. */
+/** Liga/desliga o Modo Gestor (link público) e a autorização direta ao gestor (aba "Equipe"). */
 export function ShareButton({ pdi }: { pdi: PdiDoc }) {
   const [open, setOpen] = useState(false);
   const [shareId, setShareId] = useState<string | null>(pdi.shareId);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  const [managerEmail, setManagerEmail] = useState(pdi.sharedWithManagerEmail ?? "");
+  const [savedManagerEmail, setSavedManagerEmail] = useState(pdi.sharedWithManagerEmail ?? "");
+  const [managerBusy, setManagerBusy] = useState(false);
+  const [managerError, setManagerError] = useState<string | null>(null);
+  const [managerSaved, setManagerSaved] = useState(false);
 
   const link = shareId && typeof window !== "undefined" ? `${window.location.origin}/r/${shareId}` : "";
 
@@ -53,6 +59,29 @@ export function ShareButton({ pdi }: { pdi: PdiDoc }) {
     }
   };
 
+  const saveManagerEmail = async (email: string | null) => {
+    setManagerBusy(true);
+    setManagerError(null);
+    setManagerSaved(false);
+    try {
+      const res = await fetch("/api/pdi/manager", {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json().catch(() => ({ ok: false }));
+      if (!data.ok) throw new Error(data.error || "não consegui salvar");
+      setSavedManagerEmail(email ?? "");
+      setManagerEmail(email ?? "");
+      setManagerSaved(true);
+      setTimeout(() => setManagerSaved(false), 2000);
+    } catch (e) {
+      setManagerError(e instanceof Error ? e.message : "Não consegui salvar.");
+    } finally {
+      setManagerBusy(false);
+    }
+  };
+
   return (
     <>
       <button
@@ -82,9 +111,49 @@ export function ShareButton({ pdi }: { pdi: PdiDoc }) {
                 ✕
               </button>
             </div>
+
+            <div className="border-b border-neutral-100 pb-3">
+              <p className="mb-2 text-xs font-semibold text-neutral-700">
+                Compartilhar com o gestor (sem link)
+              </p>
+              <p className="mb-2 text-xs text-neutral-500">
+                Digite o e-mail do seu gestor — ele passa a ver seu PDI na aba &quot;Equipe&quot;
+                dele, sem precisar de link novo toda vez.
+              </p>
+              <div className="flex items-center gap-2">
+                <input
+                  type="email"
+                  value={managerEmail}
+                  onChange={(e) => setManagerEmail(e.target.value)}
+                  placeholder="gestor@empresa.com"
+                  className="flex-1 rounded-md border border-neutral-300 px-2 py-1.5 text-xs outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => saveManagerEmail(managerEmail.trim() || null)}
+                  disabled={managerBusy || managerEmail.trim() === savedManagerEmail}
+                  className="shrink-0 rounded-md bg-neutral-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-neutral-700 disabled:opacity-40"
+                >
+                  {managerBusy ? "Salvando…" : "Salvar"}
+                </button>
+              </div>
+              {savedManagerEmail && (
+                <button
+                  type="button"
+                  onClick={() => saveManagerEmail(null)}
+                  disabled={managerBusy}
+                  className="mt-2 text-xs font-medium text-red-700 hover:underline disabled:opacity-40"
+                >
+                  Revogar acesso de {savedManagerEmail}
+                </button>
+              )}
+              {managerSaved && <p className="mt-1 text-xs text-emerald-600">Salvo!</p>}
+              {managerError && <p className="mt-1 text-xs text-red-600">{managerError}</p>}
+            </div>
+
             <p className="text-xs text-neutral-500">
-              Gera um link de visualização — quem abrir vê seu PDI exatamente como está
-              organizado no canvas, sem conseguir editar nada.
+              Ou gere um link — quem abrir vê seu PDI exatamente como está organizado no canvas,
+              sem conseguir editar nada.
             </p>
 
             {shareId ? (

@@ -167,6 +167,11 @@ export interface PdiDoc {
   userId: string;
   /** Slug aleatório para o link read-only do gestor; null se não compartilhado. */
   shareId: string | null;
+  /**
+   * E-mail do gestor autorizado a ver este PDI sem link (aba "Equipe" dele).
+   * Quem concede é sempre o liderado, digitando o e-mail aqui.
+   */
+  sharedWithManagerEmail?: string;
   updatedAt: Date;
   /** Último sync bem-sucedido vindo da extensão; null se nunca sincronizou. */
   syncedAt: Date | null;
