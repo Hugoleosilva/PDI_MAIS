@@ -69,15 +69,18 @@
     return Number(label?.textContent?.match(/\((\d+)\)/)?.[1]) || undefined;
   }
 
-  // "li" importa de verdade: descrição de curso (Udemy etc.) costuma vir
-  // como lista com marcadores (<ul><li>...</li></ul>), não texto solto —
-  // confirmado no DOM real (print do usuário). Sem isso, a descrição
-  // ficava vazia pra TODO curso com descrição em bullet points, e só
-  // funcionava pra ações com texto corrido (sem lista).
+  // Descrição rica (editor de texto da Qulture) usa formatos variados,
+  // confirmados no DOM real: lista com marcadores (<ul><li>) OU parágrafos
+  // (<p>) com formatação inline (<strong>/<em>) misturada no meio do texto.
+  // "sem filho nenhum" (children.length === 0) rejeitava um <p> com
+  // <strong> dentro — tinha 1 filho — perdendo o parágrafo inteiro. O que
+  // importa não é "zero filhos", é "nenhum BLOCO aninhado" (outro
+  // div/p/li/lista dentro) — formatação inline não desqualifica.
   function leafTexts(container) {
-    return [...container.querySelectorAll("div,span,p,li")].filter(
-      (el) => el.children.length === 0 && (el.textContent?.trim().length ?? 0) > 2,
-    );
+    return [...container.querySelectorAll("div,span,p,li")].filter((el) => {
+      if (el.querySelector("div,p,li,ul,ol")) return false;
+      return (el.textContent?.trim().length ?? 0) > 2;
+    });
   }
 
   /**
