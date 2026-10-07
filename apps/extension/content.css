@@ -1,17 +1,31 @@
 /* Botão "PDI+" injetado na barra de abas do Qulture.rocks, ao lado de
-   "Instruções de PDI". Herda o resto do estilo do próprio elemento clonado
-   (a plataforma usa styled-components, então cores/fonte já vêm certas);
-   aqui só cuidamos do estado de "sincronizando" (spinner). */
-#pdi-mais-nav-btn {
-  cursor: pointer;
+   "Instruções de PDI". É um elemento CRIADO DO ZERO (não clonado) de
+   propósito: clonar a aba original trazia junto algum posicionamento
+   interno da Qulture que não escalava pra um 3º item (duas abas
+   desenhadas uma em cima da outra). Estilo simples, auto-contido, pra
+   nunca interferir no layout deles. */
+.pdi-mais-tab {
+  all: unset;
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  cursor: pointer;
+  padding: 10px 14px;
+  margin-left: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  color: #e8590c;
+  border-bottom: 2px solid transparent;
   user-select: none;
 }
 
-#pdi-mais-nav-btn[data-pdi-syncing="true"] {
-  opacity: 0.75;
+.pdi-mais-tab:hover {
+  border-bottom-color: #e8590c88;
+}
+
+.pdi-mais-tab[data-pdi-syncing="true"] {
+  opacity: 0.7;
   pointer-events: none;
 }
 
