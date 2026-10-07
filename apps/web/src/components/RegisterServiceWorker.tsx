@@ -12,10 +12,23 @@ import { useEffect } from "react";
  */
 export function RegisterServiceWorker() {
   useEffect(() => {
-    if (process.env.NODE_ENV !== "production") return;
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/sw.js").catch(() => {});
+    if (!("serviceWorker" in navigator)) return;
+
+    if (process.env.NODE_ENV !== "production") {
+      // Limpeza automática: um service worker registrado ANTES dessa
+      // mudança (ou em qualquer sessão de dev anterior) continua servindo
+      // JS velho do cache dele pra sempre, mesmo com o app já corrigido —
+      // ninguém precisa abrir o DevTools pra tirar isso à mão.
+      navigator.serviceWorker.getRegistrations().then((regs) => {
+        for (const reg of regs) reg.unregister();
+      });
+      if ("caches" in window) {
+        caches.keys().then((keys) => keys.forEach((k) => caches.delete(k)));
+      }
+      return;
     }
+
+    navigator.serviceWorker.register("/sw.js").catch(() => {});
   }, []);
   return null;
 }
