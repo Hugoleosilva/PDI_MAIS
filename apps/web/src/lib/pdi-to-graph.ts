@@ -704,6 +704,16 @@ function radialLayout(
   return { nodes, edges };
 }
 
+/** Mantém só a 1ª ocorrência de cada `id` — ver nota em `layoutGraph`. */
+function dedupeById<T extends { id: string }>(list: T[]): T[] {
+  const seen = new Set<string>();
+  return list.filter((item) => {
+    if (seen.has(item.id)) return false;
+    seen.add(item.id);
+    return true;
+  });
+}
+
 /**
  * Roadmap: raia = BLOCO (macro-domínio), card = ÁREA (curso/formação) — nível
  * mais alto que a Raias normal (que é raia=área, card=ação). Sem módulos no
@@ -829,5 +839,15 @@ export function layoutGraph(
   const nodes = [...result.nodes, ...shapeNodes(opts.shapes ?? [])];
 
   const linkEdges = (opts.links ?? pdi.links ?? []).map(linkEdge);
-  return { nodes, edges: [...result.edges, ...linkEdges] };
+
+  // Rede de segurança: dois nós/arestas com o mesmo ID (dado de origem com
+  // título duplicado que escapou da desambiguação do merge, por exemplo)
+  // faziam o React Flow soltar warning de "key" repetida e renderizar de
+  // forma inconsistente (linha "apontando pro nada"). Mantém só a primeira
+  // ocorrência de cada ID — nunca deveria disparar, mas se disparar, o
+  // canvas continua de pé em vez de quebrar.
+  return {
+    nodes: dedupeById(nodes),
+    edges: dedupeById([...result.edges, ...linkEdges]),
+  };
 }
