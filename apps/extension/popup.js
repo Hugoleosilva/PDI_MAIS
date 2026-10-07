@@ -54,10 +54,19 @@ runBtn.addEventListener("click", async () => {
     // Dispara pro background.js e NÃO espera aqui: o processo inteiro roda
     // em abas de segundo plano (a aba que você está olhando não muda), e
     // sobrevive mesmo se este popup fechar no meio do caminho.
-    chrome.runtime.sendMessage({ type: "start-sync", qultureUrl: qulture.url, baseUrl }).then((result) => {
-      if (result?.ok) setStatus(`✓ ${result.message}`, "ok");
-      else setStatus(`✕ ${result?.error ?? "Falhou."}`, "error");
-    });
+    // .catch no final: se o popup fechar antes do background terminar (o
+    // normal, já que a sincronização demora minutos), a promessa rejeita com
+    // "message channel closed" — inofensivo (o trabalho continua rodando
+    // normalmente), mas sem isso virava um erro barulhento no
+    // chrome://extensions. O status final já chega de qualquer forma via
+    // chrome.storage.local (lido ao reabrir) e o listener de "progress" acima.
+    chrome.runtime
+      .sendMessage({ type: "start-sync", qultureUrl: qulture.url, baseUrl })
+      .then((result) => {
+        if (result?.ok) setStatus(`✓ ${result.message}`, "ok");
+        else setStatus(`✕ ${result?.error ?? "Falhou."}`, "error");
+      })
+      .catch(() => {});
   } catch (e) {
     setStatus(e.message || String(e), "error");
   } finally {
