@@ -9,154 +9,55 @@ function setStatus(msg, kind) {
   statusEl.className = kind ?? "";
 }
 
-// lembra a URL do PDI+ entre usos (só local, chrome.storage.local).
-chrome.storage.local.get(["pdiPlusUrl"], (r) => {
+// lembra a URL do PDI+ e o último status entre usos — a sincronização roda
+// no service worker (background.js), não aqui, então reabrir o popup no meio
+// do processo (ou depois dele) ainda mostra onde parou.
+chrome.storage.local.get(["pdiPlusUrl", "lastStatus", "lastCsv"], (r) => {
   urlInput.value = r.pdiPlusUrl || "http://localhost:3000";
+  if (r.lastStatus) setStatus(r.lastStatus);
+  if (r.lastCsv) {
+    out.value = r.lastCsv;
+    copyBtn.disabled = false;
+  }
 });
 urlInput.addEventListener("change", () => {
   chrome.storage.local.set({ pdiPlusUrl: urlInput.value.trim() });
 });
 
-/**
- * Injetada na aba do PDI+ (`/import?tab=paste`) — preenche a tabela colada e
- * confirma, usando os mesmos data-testid do ImportForm (código nosso, não
- * seletor adivinhado). Roda como função isolada: não pode fechar sobre
- * variáveis de fora, só recebe `csv` por parâmetro.
- */
-function fillAndSubmitImport(csv) {
-  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-  async function waitFor(check, timeoutMs, intervalMs = 150) {
-    const start = Date.now();
-    while (Date.now() - start < timeoutMs) {
-      const v = check();
-      if (v) return v;
-      await sleep(intervalMs);
-    }
-    return null;
-  }
-
-  return (async () => {
-    const textarea = await waitFor(
-      () => document.querySelector('[data-testid="import-table-textarea"]'),
-      8000,
-    );
-    if (!textarea) {
-      return {
-        ok: false,
-        error: "Não achei o formulário de importação — confere se está logado em /import.",
-      };
-    }
-
-    const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value").set;
-    setter.call(textarea, csv);
-    textarea.dispatchEvent(new Event("input", { bubbles: true }));
-    await sleep(200);
-
-    const previewBtn = document.querySelector('[data-testid="import-preview-button"]');
-    if (!previewBtn || previewBtn.disabled) {
-      return { ok: false, error: "Botão de pré-visualizar não habilitou." };
-    }
-    previewBtn.click();
-
-    const confirmBtn = await waitFor(
-      () => document.querySelector('[data-testid="import-confirm-button"]'),
-      5000,
-    );
-    if (!confirmBtn) {
-      const errEl = document.querySelector('[data-testid="import-error"]');
-      return { ok: false, error: errEl?.textContent || "Pré-visualização não apareceu." };
-    }
-    await sleep(250);
-    confirmBtn.click();
-
-    // sucesso = sai de /import; erro = aparece o parágrafo de erro
-    const outcome = await waitFor(() => {
-      if (!location.pathname.includes("/import")) return "done";
-      if (document.querySelector('[data-testid="import-error"]')) return "error";
-      return null;
-    }, 10000);
-
-    if (outcome === "done") return { ok: true };
-    if (outcome === "error") {
-      const errEl = document.querySelector('[data-testid="import-error"]');
-      return { ok: false, error: errEl?.textContent || "Erro ao confirmar import." };
-    }
-    return { ok: false, error: "Não consegui confirmar se deu certo — confere manualmente na aba." };
-  })();
-}
-
-function waitTabComplete(tabId, timeoutMs = 15000) {
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => {
-      chrome.tabs.onUpdated.removeListener(listener);
-      reject(new Error("A aba do PDI+ demorou demais para carregar."));
-    }, timeoutMs);
-    function listener(id, info) {
-      if (id === tabId && info.status === "complete") {
-        clearTimeout(timer);
-        chrome.tabs.onUpdated.removeListener(listener);
-        resolve();
-      }
-    }
-    chrome.tabs.onUpdated.addListener(listener);
-  });
-}
+// atualização ao vivo, se o popup continuar aberto (best-effort — ele pode
+// fechar a qualquer momento, por isso quem garante o trabalho é o
+// background.js, não este listener).
+chrome.runtime.onMessage.addListener((msg) => {
+  if (msg?.type === "progress") setStatus(msg.text);
+});
 
 runBtn.addEventListener("click", async () => {
   runBtn.disabled = true;
-  copyBtn.disabled = true;
-  out.value = "";
   try {
     const baseUrl = (urlInput.value || "http://localhost:3000").trim().replace(/\/$/, "");
     chrome.storage.local.set({ pdiPlusUrl: baseUrl });
 
-    // Pede a permissão do domínio do PDI+ JÁ NO INÍCIO do clique — o Chrome
-    // só aceita chrome.permissions.request() dentro do "gesto do usuário";
-    // se isso rodar depois de uns `await` (ex.: só depois de extrair do
-    // Qulture), o navegador pode recusar por já não considerar mais um clique
-    // direto. Pedir aqui, antes de qualquer outra coisa assíncrona, é a opção
-    // mais segura mesmo sem poder testar ao vivo.
+    // chrome.permissions.request() só funciona dentro do gesto do usuário —
+    // por isso roda aqui no clique, antes de passar a bola pro background.
     const origin = `${new URL(baseUrl).origin}/*`;
     const granted = await chrome.permissions.request({ origins: [origin] });
     if (!granted) {
       throw new Error("Preciso da permissão pra abrir e preencher a aba do PDI+ — tenta de novo e aceita.");
     }
 
-    setStatus("Lendo o PDI no Qulture.rocks...");
     const [qulture] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!qulture?.id) throw new Error("Nenhuma aba ativa.");
-    if (!/^https:\/\/app\.qulture\.rocks\//.test(qulture.url ?? "")) {
+    if (!qulture?.url || !/^https:\/\/app\.qulture\.rocks\//.test(qulture.url)) {
       throw new Error("Abra a página do seu PDI no Qulture.rocks primeiro.");
     }
 
-    const [{ result: extracted }] = await chrome.scripting.executeScript({
-      target: { tabId: qulture.id },
-      files: ["extract.js"],
+    setStatus("Rodando em segundo plano — pode fechar esta janela, se quiser.");
+    // Dispara pro background.js e NÃO espera aqui: o processo inteiro roda
+    // em abas de segundo plano (a aba que você está olhando não muda), e
+    // sobrevive mesmo se este popup fechar no meio do caminho.
+    chrome.runtime.sendMessage({ type: "start-sync", qultureUrl: qulture.url, baseUrl }).then((result) => {
+      if (result?.ok) setStatus(`✓ ${result.message}`, "ok");
+      else setStatus(`✕ ${result?.error ?? "Falhou."}`, "error");
     });
-    if (!extracted) throw new Error("A extração não devolveu nada.");
-    if (extracted.error) throw new Error(extracted.error);
-
-    out.value = extracted.csv;
-    copyBtn.disabled = false;
-
-    setStatus(`Lido: ${extracted.areaCount} área(s), ${extracted.actionCount} ação(ões). Abrindo o PDI+...`);
-    const pdiTab = await chrome.tabs.create({ url: `${baseUrl}/import?tab=paste`, active: true });
-    await waitTabComplete(pdiTab.id);
-    await new Promise((r) => setTimeout(r, 400)); // app ainda hidratando
-
-    setStatus("Preenchendo e confirmando no PDI+...");
-    const [{ result }] = await chrome.scripting.executeScript({
-      target: { tabId: pdiTab.id },
-      func: fillAndSubmitImport,
-      args: [extracted.csv],
-    });
-
-    if (result?.ok) {
-      const warnLine = extracted.warnings?.length ? ` (${extracted.warnings.join(" ")})` : "";
-      setStatus(`✓ PDI+ atualizado — ${extracted.areaCount} área(s), ${extracted.actionCount} ação(ões).${warnLine}`, "ok");
-    } else {
-      throw new Error(result?.error || "Não consegui confirmar no PDI+ — vê a tabela extraída abaixo e cola manualmente.");
-    }
   } catch (e) {
     setStatus(e.message || String(e), "error");
   } finally {

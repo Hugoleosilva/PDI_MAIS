@@ -1,9 +1,10 @@
 {
   "manifest_version": 3,
   "name": "PDI+ — Sincronizar com Qulture.rocks",
-  "version": "0.2.0",
-  "description": "Lê o PDI aberto na aba atual do Qulture.rocks e preenche sozinho o formulário de importação do PDI+ numa aba já logada. Não faz nenhuma chamada de rede própria — usa a sessão já aberta no seu navegador.",
+  "version": "0.3.0",
+  "description": "Lê o PDI aberto no Qulture.rocks (em segundo plano) e preenche sozinho o formulário de importação do PDI+ numa aba já logada. Não faz nenhuma chamada de rede própria — usa a sessão já aberta no seu navegador.",
   "action": { "default_popup": "popup.html" },
+  "background": { "service_worker": "background.js" },
   "permissions": ["activeTab", "scripting", "tabs", "storage", "clipboardWrite"],
   "host_permissions": ["https://app.qulture.rocks/*"],
   "optional_host_permissions": ["http://*/*", "https://*/*"]
