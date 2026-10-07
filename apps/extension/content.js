@@ -58,6 +58,27 @@
     return best;
   }
 
+  /**
+   * `bar` (acima) é o container INTEIRO da faixa laranja — inserir direto
+   * nele (firstChild) bota o botão antes até do menu-hambúrguer/logo, lá no
+   * extremo esquerdo. O que queremos é só o grupinho de ícones da direita
+   * (grade/"?"/sino/avatar): menor container, do lado direito da tela, com
+   * poucos filhos — não o bar inteiro.
+   */
+  function findIconCluster(bar) {
+    const barWidth = bar.getBoundingClientRect().width;
+    let best = null;
+    for (const el of bar.querySelectorAll("*")) {
+      const n = el.children.length;
+      if (n < 2 || n > 6) continue;
+      const r = el.getBoundingClientRect();
+      if (r.width <= 0 || r.width >= barWidth * 0.5) continue;
+      if (r.left < window.innerWidth * 0.5) continue;
+      if (!best || r.width < best.getBoundingClientRect().width) best = el;
+    }
+    return best;
+  }
+
   const btn = document.createElement("button");
   btn.id = BUTTON_ID;
   btn.type = "button";
@@ -75,9 +96,14 @@
       if (bar) {
         btn.classList.remove("pdi-mais-btn--float");
         btn.classList.add("pdi-mais-btn--bar");
-        // no início do grupo de ícones (antes de grade/"?"/sino/avatar), não
-        // no final — senão fica depois do avatar e sai da área visível.
-        bar.insertBefore(btn, bar.firstChild);
+        // antes do grupinho de ícones da direita (grade/"?"/sino/avatar), não
+        // no início da barra inteira — senão fica antes até do hambúrguer/logo.
+        const cluster = findIconCluster(bar);
+        if (cluster && cluster.firstElementChild) {
+          cluster.insertBefore(btn, cluster.firstElementChild);
+        } else {
+          bar.insertBefore(btn, bar.firstChild);
+        }
         return;
       }
     }
