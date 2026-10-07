@@ -75,7 +75,9 @@
       if (bar) {
         btn.classList.remove("pdi-mais-btn--float");
         btn.classList.add("pdi-mais-btn--bar");
-        bar.appendChild(btn);
+        // no início do grupo de ícones (antes de grade/"?"/sino/avatar), não
+        // no final — senão fica depois do avatar e sai da área visível.
+        bar.insertBefore(btn, bar.firstChild);
         return;
       }
     }
