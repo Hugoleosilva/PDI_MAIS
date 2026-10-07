@@ -3,13 +3,12 @@
 // PDI+) via background.js — este arquivo só cuida da UI, a lógica pesada
 // mora lá.
 //
-// Tentamos encaixar na barra de ABAS ("Instruções de PDI") de duas formas
-// (clonando o elemento, depois criando um do zero) e nos dois casos o
-// container deles desenhava os itens um em cima do outro — provavelmente um
-// grid/flex com número fixo de colunas que não sabe lidar com um 3º item.
-// Agora: procura a barra de navegação LARANJA no topo (pela cor de fundo
-// computada, não por classe — sobrevive a troca de build deles) e encaixa
-// o botão ali; se não achar, cai pro botão flutuante no canto da tela.
+// Mostra o botão FLUTUANTE imediatamente (garantido, sempre funciona) e, em
+// paralelo, tenta por alguns segundos encontrar a barra de navegação
+// LARANJA do topo pra "subir" o botão pra lá — confirmado por teste real:
+// no instante em que o content script roda, a SPA ainda não tinha terminado
+// de desenhar a barra (todas as amostras de cor vinham brancas), então uma
+// checagem única sempre falhava.
 (function () {
   const BUTTON_ID = "pdi-mais-btn";
   if (document.getElementById(BUTTON_ID)) return;
@@ -23,14 +22,7 @@
     return r > 170 && g > 40 && g < 180 && b < 110 && r - b > 80;
   }
 
-  /**
-   * Acha o elemento com fundo laranja num ponto exato da tela — checa o que
-   * está REALMENTE desenhado (pixel), não um nome de tag/tamanho chutado.
-   * Isso importa porque a cor pode estar num elemento PAI (o filho no topo
-   * da pilha teria `background-color` transparente, herdando visualmente).
-   * Entre vários elementos laranja na mesma pilha, fica com o mais largo —
-   * tende a ser a barra em si, não um ícone/badge pequeno dentro dela.
-   */
+  /** Elemento com fundo laranja REALMENTE desenhado num ponto da tela. */
   function orangeElementAt(x, y) {
     const stack = document.elementsFromPoint(x, y);
     let best = null;
@@ -45,57 +37,58 @@
     return best;
   }
 
-  /** Barra fixa/no topo da página com fundo alaranjado — a "topbar" da Qulture. */
-  function findOrangeBar() {
+  function findOrangeBar(logSamplesIfNotFound) {
     const width = window.innerWidth;
     const xs = [10, width * 0.25, width * 0.5, width * 0.75, width - 10];
     const ys = [5, 15, 25, 40];
     let best = null;
-    // debug: se não achar nada, dá pra ver no console (F12) exatamente que
-    // cor foi lida em cada ponto, sem precisar de mais um print pra ajustar.
     const sampled = [];
     for (const y of ys) {
       for (const x of xs) {
         const el = orangeElementAt(x, y);
-        sampled.push({ x, y, bg: el ? getComputedStyle(el).backgroundColor : document.elementFromPoint(x, y) && getComputedStyle(document.elementFromPoint(x, y)).backgroundColor });
+        if (logSamplesIfNotFound) {
+          sampled.push({ x, y, bg: getComputedStyle(el || document.elementFromPoint(x, y) || document.body).backgroundColor });
+        }
         if (el && (!best || el.getBoundingClientRect().width > best.getBoundingClientRect().width)) {
           best = el;
         }
       }
     }
-    if (!best) console.log("[PDI+] não achei barra laranja — amostras:", sampled);
+    if (!best && logSamplesIfNotFound) console.log("[PDI+] não achei barra laranja — amostras:", sampled);
     return best;
   }
 
-  function makeButton() {
-    const btn = document.createElement("button");
-    btn.id = BUTTON_ID;
-    btn.type = "button";
-    btn.textContent = "PDI+";
-    btn.title = "Sincronizar com o PDI+";
-    btn.addEventListener("click", onClick);
-    return btn;
-  }
+  const btn = document.createElement("button");
+  btn.id = BUTTON_ID;
+  btn.type = "button";
+  btn.textContent = "PDI+";
+  btn.title = "Sincronizar com o PDI+";
+  btn.classList.add("pdi-mais-btn--float");
+  btn.addEventListener("click", onClick);
+  document.documentElement.appendChild(btn);
 
-  function inject() {
-    if (document.getElementById(BUTTON_ID)) return;
-    const bar = findOrangeBar();
-    const btn = makeButton();
-    if (bar) {
-      btn.classList.add("pdi-mais-btn--bar");
-      bar.appendChild(btn);
-    } else {
-      btn.classList.add("pdi-mais-btn--float");
-      document.documentElement.appendChild(btn);
+  async function tryMoveIntoBar() {
+    const MAX_TRIES = 25; // ~10s
+    for (let i = 0; i < MAX_TRIES; i++) {
+      await new Promise((r) => setTimeout(r, 400));
+      const bar = findOrangeBar(i === MAX_TRIES - 1);
+      if (bar) {
+        btn.classList.remove("pdi-mais-btn--float");
+        btn.classList.add("pdi-mais-btn--bar");
+        bar.appendChild(btn);
+        return;
+      }
     }
+    // nunca achou — fica flutuante mesmo, já está visível desde o começo.
   }
+  tryMoveIntoBar();
 
   async function onClick(e) {
-    const btn = e.currentTarget;
-    if (btn.dataset.pdiSyncing === "true") return;
-    btn.dataset.pdiSyncing = "true";
-    const original = btn.textContent;
-    btn.innerHTML = '<span class="pdi-mais-spinner"></span>';
+    const el = e.currentTarget;
+    if (el.dataset.pdiSyncing === "true") return;
+    el.dataset.pdiSyncing = "true";
+    const original = el.textContent;
+    el.innerHTML = '<span class="pdi-mais-spinner"></span>';
 
     try {
       const { pdiPlusUrl } = await chrome.storage.local.get(["pdiPlusUrl"]);
@@ -116,13 +109,8 @@
         );
       }
     } finally {
-      btn.dataset.pdiSyncing = "false";
-      btn.textContent = original;
+      el.dataset.pdiSyncing = "false";
+      el.textContent = original;
     }
   }
-
-  // a SPA pode remontar a topbar conforme navega — observa e reinjeta.
-  const observer = new MutationObserver(() => inject());
-  observer.observe(document.body, { childList: true, subtree: true });
-  inject();
 })();
