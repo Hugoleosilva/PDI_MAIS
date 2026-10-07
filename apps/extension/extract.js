@@ -75,9 +75,13 @@
   const warnings = [];
   let actionCount = 0;
 
+  // SPA: a aba pode "terminar de carregar" (HTML/JS) bem antes dos dados
+  // chegarem da API e os cards renderizarem — espera de verdade em vez de
+  // checar uma vez só, principalmente numa aba nova em segundo plano.
+  await waitFor(() => document.querySelectorAll('[data-testid="idp-goal-item"]').length > 0, 12000, 300);
   const goalCount = document.querySelectorAll('[data-testid="idp-goal-item"]').length;
   if (goalCount === 0) {
-    return { error: 'Não achei nenhuma área nesta página. Confere se está em ".../my-idp".' };
+    return { error: 'Não achei nenhuma área nesta página (esperei 12s). Confere se está em ".../my-idp".' };
   }
 
   for (let i = 0; i < goalCount; i++) {
