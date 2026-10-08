@@ -62,35 +62,57 @@ export async function POST(req: Request) {
   }
 
   const prompt = buildInsightPrompt(pdi, kind, perspective);
+  const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-  try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
-      },
-    );
-    const data = await res.json();
-    if (!res.ok) {
+  // O nível gratuito do Gemini vive com picos de "modelo sobrecarregado"
+  // (503) — transitório, geralmente some em poucos segundos. Tenta de novo
+  // antes de jogar o erro pro usuário.
+  const MAX_ATTEMPTS = 3;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+        },
+      );
+      const data = await res.json();
+
+      if (!res.ok) {
+        const retryable = res.status === 503 || res.status === 429;
+        if (retryable && attempt < MAX_ATTEMPTS) {
+          await sleep(attempt * 1500);
+          continue;
+        }
+        return NextResponse.json(
+          { ok: false, error: data?.error?.message ?? `Gemini respondeu ${res.status}` },
+          { status: 502 },
+        );
+      }
+
+      const text = (data?.candidates?.[0]?.content?.parts ?? [])
+        .map((p: { text?: string }) => p.text ?? "")
+        .join("")
+        .trim();
+      if (!text) {
+        return NextResponse.json({ ok: false, error: "Gemini não devolveu texto." }, { status: 502 });
+      }
+      return NextResponse.json({ ok: true, text });
+    } catch (e) {
+      if (attempt < MAX_ATTEMPTS) {
+        await sleep(attempt * 1500);
+        continue;
+      }
       return NextResponse.json(
-        { ok: false, error: data?.error?.message ?? `Gemini respondeu ${res.status}` },
+        { ok: false, error: e instanceof Error ? e.message : "Erro ao chamar o Gemini." },
         { status: 502 },
       );
     }
-    const text = (data?.candidates?.[0]?.content?.parts ?? [])
-      .map((p: { text?: string }) => p.text ?? "")
-      .join("")
-      .trim();
-    if (!text) {
-      return NextResponse.json({ ok: false, error: "Gemini não devolveu texto." }, { status: 502 });
-    }
-    return NextResponse.json({ ok: true, text });
-  } catch (e) {
-    return NextResponse.json(
-      { ok: false, error: e instanceof Error ? e.message : "Erro ao chamar o Gemini." },
-      { status: 502 },
-    );
   }
+
+  // Inalcançável (o loop sempre retorna ou tenta de novo) — só pra o
+  // TypeScript ver um caminho de saída em toda função.
+  return NextResponse.json({ ok: false, error: "Falhou depois de várias tentativas." }, { status: 502 });
 }
