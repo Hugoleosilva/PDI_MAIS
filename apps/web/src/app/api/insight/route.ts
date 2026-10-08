@@ -7,8 +7,10 @@ export const runtime = "nodejs";
 
 // Flash: rápido e barato — cabe de sobra no nível gratuito do Google AI
 // Studio pro volume de uso daqui (clique ocasional de cada pessoa perto do
-// 1:1, não um app de alto tráfego).
-const MODEL = "gemini-2.0-flash";
+// 1:1, não um app de alto tráfego). "-latest": alias que o próprio Google
+// Cloud recomenda na hora de criar a chave — não trava numa versão
+// específica que pode ser descontinuada.
+const MODEL = "gemini-flash-latest";
 
 /**
  * POST /api/insight
