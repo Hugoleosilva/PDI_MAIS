@@ -5,12 +5,12 @@ import { getPdiByUserId } from "@/lib/pdi-repo";
 
 export const runtime = "nodejs";
 
-// Flash: rápido e barato — cabe de sobra no nível gratuito do Google AI
-// Studio pro volume de uso daqui (clique ocasional de cada pessoa perto do
-// 1:1, não um app de alto tráfego). "-latest": alias que o próprio Google
-// Cloud recomenda na hora de criar a chave — não trava numa versão
-// específica que pode ser descontinuada.
-const MODEL = "gemini-flash-latest";
+// "lite": testado direto contra a API com um prompt do tamanho real de um
+// PDI — gemini-flash-latest (sem "lite") respondeu entre 14s e mais de 1
+// minuto (modelo sobrecarregado no nível gratuito agora); gemini-flash-
+// lite-latest respondeu em ~1,2s com o mesmo prompt. "-latest": alias que
+// o Google recomenda — não trava numa versão que pode ser descontinuada.
+const MODEL = "gemini-flash-lite-latest";
 
 /**
  * POST /api/insight
