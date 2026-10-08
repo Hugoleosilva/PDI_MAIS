@@ -6,16 +6,24 @@ import {
   INSIGHT_KIND_HINT,
   INSIGHT_KIND_LABEL,
   type InsightKind,
+  type InsightPerspective,
   type PdiDoc,
 } from "@pdi-mais/core";
 
 const KINDS: InsightKind[] = ["1on1", "insights", "overall", "focus", "tech"];
 
-export function GeminiButton({ pdi }: { pdi: PdiDoc }) {
+export function GeminiButton({
+  pdi,
+  perspective = "self",
+}: {
+  pdi: PdiDoc;
+  /** "manager": gestor gerando insight sobre o PDI de um liderado (visão Equipe). */
+  perspective?: InsightPerspective;
+}) {
   const [open, setOpen] = useState(false);
   const [kind, setKind] = useState<InsightKind>("1on1");
   const [copied, setCopied] = useState(false);
-  const prompt = open ? buildInsightPrompt(pdi, kind) : "";
+  const prompt = open ? buildInsightPrompt(pdi, kind, perspective) : "";
 
   const pick = (k: InsightKind) => {
     setKind(k);

@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { getPdiByUserId } from "@/lib/pdi-repo";
 import { ReadOnlyCanvas } from "@/components/canvas/ReadOnlyCanvas";
+import { GeminiButton } from "@/components/GeminiButton";
 import { brand } from "@/lib/theme";
 
 export const dynamic = "force-dynamic";
@@ -34,12 +35,15 @@ export default async function TeamMemberPage({
           ← Equipe
         </Link>
         <span className="truncate text-sm" style={{ color: brand.ink }}>{pdi.root.title}</span>
-        <span
-          className="ml-auto shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold"
-          style={{ background: brand.blueSoft, color: brand.blue }}
-        >
-          Visão de gestor — só leitura
-        </span>
+        <div className="ml-auto flex shrink-0 items-center gap-2">
+          <GeminiButton pdi={pdi} perspective="manager" />
+          <span
+            className="rounded-full px-2.5 py-1 text-[11px] font-semibold"
+            style={{ background: brand.blueSoft, color: brand.blue }}
+          >
+            Visão de gestor — só leitura
+          </span>
+        </div>
       </header>
       <main className="min-h-0 flex-1">
         <ReadOnlyCanvas pdi={pdi} />

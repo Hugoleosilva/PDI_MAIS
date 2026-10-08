@@ -26,7 +26,10 @@ export const INSIGHT_KIND_HINT: Record<InsightKind, string> = {
   tech: "tecnologias, certificações ou cursos pra complementar o plano",
 };
 
-const ASKS: Record<InsightKind, string[]> = {
+/** De quem é o ponto de vista do prompt — muda só o pronome/tratamento. */
+export type InsightPerspective = "self" | "manager";
+
+const ASKS_SELF: Record<InsightKind, string[]> = {
   "1on1": [
     "Prepare um resumo executivo curto (em português, com bullets) para minha " +
       "reunião de 1-on-1 com meu gestor, cobrindo:",
@@ -67,6 +70,42 @@ const ASKS: Record<InsightKind, string[]> = {
   ],
 };
 
+/**
+ * Mesmos 5 pedidos, só que na perspectiva do GESTOR olhando o PDI de um
+ * liderado (ex.: preparando o próprio 1-on-1 com ele) — "overall" e "tech"
+ * já eram neutros (falam do PDI, não de "eu"), então são reaproveitados.
+ */
+const ASKS_MANAGER: Record<InsightKind, string[]> = {
+  "1on1": [
+    "Prepare um resumo executivo curto (em português, com bullets) para a " +
+      "reunião de 1-on-1 que eu, gestor(a), vou ter com esse liderado, cobrindo:",
+    "1. Entregas concluídas neste ciclo — os destaques.",
+    "2. O que está em andamento e onde há risco de prazo.",
+    "3. Lacunas de aprendizado e próximos passos sugeridos, em ordem de prioridade.",
+    "4. 2 a 3 formas concretas de eu apoiar esse liderado (tempo protegido, " +
+      "mentoria, verba de curso), ligando cada uma a um resultado para a equipe.",
+    "Seja direto; nada de introdução longa.",
+  ],
+  insights: [
+    "Olhando esse PDI de fora, aponte de 3 a 5 insights — padrões, riscos ou " +
+      "lacunas que esse liderado, por estar dentro do dia a dia, talvez não " +
+      "tenha percebido.",
+    "Para cada insight: o que você notou, por que importa, e uma ação prática " +
+      "que eu, como gestor(a), possa sugerir ou apoiar essa semana.",
+    "Seja direto; nada de introdução longa.",
+  ],
+  overall: ASKS_SELF.overall,
+  focus: [
+    "Considerando prazos, o que está represado e o impacto de cada coisa, diga " +
+      "em quais 1 a 3 ações esse liderado deveria focar primeiro nas próximas " +
+      "2-3 semanas.",
+    "Para cada uma: por que ela primeiro, o que ele(a) deve entregar/mostrar de " +
+      "progresso, e como eu, como gestor(a), posso ajudar a destravar isso.",
+    "Ignore o resto — não liste tudo, só o que realmente merece foco agora.",
+  ],
+  tech: ASKS_SELF.tech,
+};
+
 function buildContextBlock(pdi: PdiDoc): string {
   const out: string[] = [];
   const overall = formatPercent(overallProgress(pdi.areas));
@@ -104,13 +143,21 @@ function buildContextBlock(pdi: PdiDoc): string {
  * o contexto do PDI (áreas/ações/progresso) é sempre o mesmo, só o pedido
  * final muda.
  */
-export function buildInsightPrompt(pdi: PdiDoc, kind: InsightKind = "1on1"): string {
+export function buildInsightPrompt(
+  pdi: PdiDoc,
+  kind: InsightKind = "1on1",
+  perspective: InsightPerspective = "self",
+): string {
+  const manager = perspective === "manager";
   const out: string[] = [
-    "Você é meu parceiro de carreira.",
+    manager
+      ? "Você é um parceiro de carreira ajudando um(a) gestor(a) a se preparar — " +
+        "o PDI abaixo é de um(a) liderado(a) dele(a), não dele(a) mesmo(a)."
+      : "Você é meu parceiro de carreira.",
     buildContextBlock(pdi),
     "",
-    "## O que eu preciso",
-    ...ASKS[kind],
+    manager ? "## O que eu, gestor(a), preciso" : "## O que eu preciso",
+    ...(manager ? ASKS_MANAGER : ASKS_SELF)[kind],
   ];
   return out.join("\n");
 }
