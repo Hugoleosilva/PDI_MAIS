@@ -113,29 +113,36 @@ export function PlanningView({ pdi, today }: { pdi: PdiDoc; today: string }) {
     });
   };
 
-  const saveGroups = () =>
+  // Recebe o array já pronto (em vez de ler `doc.groups` daqui) — o debounce
+  // só dispara 650ms depois do clique, e a função que lê `doc` do escopo do
+  // componente ficava presa ao valor de QUANDO FOI CRIADA (o render em que o
+  // clique aconteceu), não ao mais recente. Resultado: pausar/retomar um
+  // bloco podia salvar a versão ANTERIOR do array, revertendo a mudança no
+  // próximo load. Passar o array já calculado (de dentro do updater do
+  // setDoc, que sempre recebe o estado mais atual) elimina essa corrida.
+  const saveGroups = (groups: PdiDoc["groups"]) =>
     debounce("groups", () => {
       void fetch("/api/pdi/groups", {
         method: "PUT",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ groups: doc.groups ?? [] }),
+        body: JSON.stringify({ groups: groups ?? [] }),
       }).catch(() => {});
     });
 
   const setGroupCapacity = (gid: string, cap: WeekCapacity) => {
-    setDoc((d) => ({
-      ...d,
-      groups: (d.groups ?? []).map((g) => (g.id === gid ? { ...g, capacity: cap } : g)),
-    }));
-    saveGroups();
+    setDoc((d) => {
+      const groups = (d.groups ?? []).map((g) => (g.id === gid ? { ...g, capacity: cap } : g));
+      saveGroups(groups);
+      return { ...d, groups };
+    });
   };
 
   const setGroupPaused = (gid: string, paused: boolean) => {
-    setDoc((d) => ({
-      ...d,
-      groups: (d.groups ?? []).map((g) => (g.id === gid ? { ...g, paused } : g)),
-    }));
-    saveGroups();
+    setDoc((d) => {
+      const groups = (d.groups ?? []).map((g) => (g.id === gid ? { ...g, paused } : g));
+      saveGroups(groups);
+      return { ...d, groups };
+    });
   };
 
   const setLoose = (cap: WeekCapacity) => {
