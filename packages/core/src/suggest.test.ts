@@ -75,6 +75,24 @@ describe("parseDiagnosisResponse", () => {
   it("joga erro claro se não for JSON válido", () => {
     expect(() => parseDiagnosisResponse("isso não é json")).toThrow();
   });
+
+  it("aceita `detail` como apelido de `description` na área sugerida (confirmado em teste real)", () => {
+    const raw = JSON.stringify({
+      strengths: [],
+      improvements: [],
+      suggestedAreas: [
+        {
+          title: "Observabilidade",
+          detail: "Monitorar saúde e performance das aplicações.",
+          actions: [{ title: "Estudar Grafana", kind: "Treinamento e estudo" }],
+        },
+      ],
+    });
+    const result = parseDiagnosisResponse(raw);
+    expect(result.suggestedAreas[0].description).toBe(
+      "Monitorar saúde e performance das aplicações.",
+    );
+  });
 });
 
 describe("areaToIncomingInput / suggestedAreaToIncomingInput", () => {

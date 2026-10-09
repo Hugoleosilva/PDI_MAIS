@@ -39,6 +39,9 @@ export function buildDiagnosisPrompt(pdi: PdiDoc): string {
     "- Cada área sugerida tem 2 a 4 `actions`. O campo `kind` de cada ação tem " +
       `que ser EXATAMENTE um destes rótulos: "${ACTION_KIND_LABEL.treinamento_estudo}", ` +
       `"${ACTION_KIND_LABEL.desafio_profissional}" ou "${ACTION_KIND_LABEL.mentoria_feedback}".`,
+    '- O campo da área sugerida que explica do que ela trata é SEMPRE ' +
+      '`description` — nunca use `detail` aí (esse nome é só pra ' +
+      "`strengths`/`improvements`).",
     "- `rationale` explica por que essa área/ação ajuda, ligando ao que foi " +
       "observado nos pontos a melhorar.",
   ].join("\n");
@@ -119,6 +122,7 @@ export function parseDiagnosisResponse(raw: string): DiagnosisSuggestion {
       const a = entry as {
         title?: unknown;
         description?: unknown;
+        detail?: unknown;
         rationale?: unknown;
         actions?: unknown;
       };
@@ -138,9 +142,14 @@ export function parseDiagnosisResponse(raw: string): DiagnosisSuggestion {
 
       if (actions.length === 0) return null;
 
+      // o Gemini às vezes usa `detail` em vez de `description` aqui (puxando
+      // o nome do formato de strengths/improvements, que usa `detail` de
+      // verdade) — aceita os dois pra não perder a descrição da área por
+      // causa de inconsistência de nome de campo do modelo.
+      const descriptionRaw = typeof a.description === "string" ? a.description : a.detail;
       return {
         title: a.title.trim(),
-        description: typeof a.description === "string" ? a.description.trim() : undefined,
+        description: typeof descriptionRaw === "string" ? descriptionRaw.trim() : undefined,
         rationale: typeof a.rationale === "string" ? a.rationale.trim() : undefined,
         actions,
       };
