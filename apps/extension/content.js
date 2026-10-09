@@ -13,6 +13,16 @@
   const BUTTON_ID = "pdi-mais-btn";
   if (document.getElementById(BUTTON_ID)) return;
 
+  // Qulture.rocks é um SPA com rota em hash (".../#/v3/company/.../idp/...")
+  // — trocar de "página" ali dentro NUNCA recarrega a aba, só muda a URL.
+  // Esse content script roda UMA vez só, no carregamento inicial, então sem
+  // isso o botão não tinha como saber que o usuário navegou pra outro lugar
+  // (confirmado em teste real: o botão seguia pra Feedbacks, 1:1, Diretório
+  // etc. — só devia aparecer na tela do PDI). Cobre o padrão real da URL:
+  // .../idp/cycle/<id qualquer>/my-idp.
+  const PDI_ROUTE_RE = /\/idp\/cycle\/\d+\/my-idp/i;
+  const isPdiRoute = () => PDI_ROUTE_RE.test(location.href);
+
   function parseRgb(str) {
     const m = str.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
     return m ? { r: +m[1], g: +m[2], b: +m[3] } : null;
@@ -95,7 +105,8 @@
   btn.title = "Sincronizar com o PDI+";
   btn.classList.add("pdi-mais-btn--float");
   btn.addEventListener("click", onClick);
-  document.documentElement.appendChild(btn);
+  // NÃO insere no DOM aqui — só quando `syncVisibility()` confirmar que
+  // estamos na rota certa (ver final do arquivo).
 
   /** Uma tentativa só de subir o botão pra barra. true = conseguiu. */
   function placeInBar() {
@@ -117,27 +128,44 @@
   async function tryMoveIntoBar() {
     const MAX_TRIES = 25; // ~10s
     for (let i = 0; i < MAX_TRIES; i++) {
+      if (!isPdiRoute()) return; // navegou pra fora enquanto tentava — desiste
       await new Promise((r) => setTimeout(r, 400));
       if (placeInBar()) return;
       if (i === MAX_TRIES - 1) findOrangeBar(true); // só loga amostras no fim
     }
     // nunca achou — fica flutuante mesmo, já está visível desde o começo.
   }
-  tryMoveIntoBar();
+
+  function showButton() {
+    if (btn.isConnected) return;
+    document.documentElement.appendChild(btn);
+    btn.classList.add("pdi-mais-btn--float");
+    btn.classList.remove("pdi-mais-btn--bar");
+    tryMoveIntoBar();
+  }
+
+  function hideButton() {
+    if (btn.isConnected) btn.remove();
+  }
+
+  function syncVisibility() {
+    if (isPdiRoute()) showButton();
+    else hideButton();
+  }
 
   // A SPA re-renderiza a barra do topo em vários momentos (abrir o menu
   // lateral, trocar de aba, redimensionar a janela) — e como o React não
   // sabe da existência do nosso <button>, qualquer re-render do container
   // onde ele mora apaga ele do DOM (visto em teste real: some ao fechar o
   // DevTools, que muda a largura da janela). Esse observer detecta quando o
-  // botão saiu do DOM e reinsere, com um pequeno debounce pra não brigar com
-  // a própria re-renderização em andamento.
+  // botão saiu do DOM e reinsere — só se ainda estivermos na rota do PDI,
+  // senão ficaria reaparecendo em toda página por causa desse "curativo".
   let healTimer = null;
   function scheduleHeal() {
-    if (healTimer || btn.isConnected) return;
+    if (healTimer || btn.isConnected || !isPdiRoute()) return;
     healTimer = setTimeout(() => {
       healTimer = null;
-      if (btn.isConnected) return;
+      if (btn.isConnected || !isPdiRoute()) return;
       document.documentElement.appendChild(btn);
       btn.classList.add("pdi-mais-btn--float");
       btn.classList.remove("pdi-mais-btn--bar");
@@ -145,6 +173,20 @@
     }, 300);
   }
   new MutationObserver(scheduleHeal).observe(document.body, { childList: true, subtree: true });
+
+  // Reage à navegação dentro do SPA: "hashchange" cobre a maioria dos
+  // roteadores baseados em # (como este), mas alguns usam history.pushState
+  // sem disparar esse evento — o poll é só uma rede de segurança leve.
+  window.addEventListener("hashchange", syncVisibility);
+  let lastHref = location.href;
+  setInterval(() => {
+    if (location.href !== lastHref) {
+      lastHref = location.href;
+      syncVisibility();
+    }
+  }, 800);
+
+  syncVisibility(); // estado inicial, de acordo com a URL de agora
 
   async function onClick(e) {
     const el = e.currentTarget;
