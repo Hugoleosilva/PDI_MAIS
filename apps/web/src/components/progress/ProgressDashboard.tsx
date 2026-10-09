@@ -129,13 +129,40 @@ function StatTile({ label, value, sub }: { label: string; value: string; sub?: s
 // Barra horizontal por área — "Área 1: 80%" estilo "Entregas por pessoa"
 // ---------------------------------------------------------------------------
 
+const STATUS_ORDER: Status[] = ["todo", "doing", "done"];
+const STATUS_COLOR: Record<Status, string> = { todo: brand.gray, doing: brand.orange, done: brand.teal };
+const STATUS_FULL_LABEL: Record<Status, string> = {
+  todo: "Não iniciada",
+  doing: "Em progresso",
+  done: "Finalizada",
+};
+
+/** Legenda — uma vez só pro painel, não repetida em cada barra. */
+function StatusLegend() {
+  return (
+    <div className="mb-3 flex flex-wrap items-center gap-3 text-[11px]" style={{ color: brand.muted }}>
+      {STATUS_ORDER.map((s) => (
+        <span key={s} className="flex items-center gap-1.5">
+          <span className="inline-block h-2 w-2 rounded-sm" style={{ background: STATUS_COLOR[s] }} />
+          {STATUS_FULL_LABEL[s]}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 function AreaBars({ areas }: { areas: Area[] }) {
+  const [panelOpen, setPanelOpen] = useState(true);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   const rows = useMemo(
     () =>
       [...areas]
-        .map((a) => ({ title: a.title, pct: areaProgress(a), actionCount: a.actions.length }))
+        .map((a) => {
+          const counts: Record<Status, number> = { todo: 0, doing: 0, done: 0 };
+          for (const ac of a.actions) counts[ac.status]++;
+          return { title: a.title, pct: areaProgress(a), actionCount: a.actions.length, counts };
+        })
         .sort((a, b) => b.pct - a.pct),
     [areas],
   );
@@ -152,42 +179,72 @@ function AreaBars({ areas }: { areas: Area[] }) {
 
   return (
     <div className="rounded-lg border bg-white p-4" style={{ borderColor: brand.border }}>
-      <p className="mb-3 text-sm font-semibold" style={{ color: brand.ink }}>
-        Progresso por área
-      </p>
-      <div className="space-y-2.5">
-        {rows.map((r) => {
-          const isOpen = expanded.has(r.title);
-          return (
-            <div key={r.title} className={isOpen ? "space-y-1.5" : "flex items-center gap-3"}>
-              <button
-                type="button"
-                onClick={() => toggle(r.title)}
-                className={
-                  isOpen
-                    ? "block w-full text-left text-xs font-medium"
-                    : "w-40 shrink-0 truncate text-left text-xs hover:underline"
-                }
-                style={{ color: brand.ink }}
-                title={isOpen ? "Clique pra recolher" : r.title}
-              >
-                {r.title}
-              </button>
-              <div className="flex flex-1 items-center gap-3">
-                <div className="h-2.5 flex-1 overflow-hidden rounded-full" style={{ background: brand.graySoft }}>
-                  <div
-                    className="h-full rounded-full"
-                    style={{ width: `${Math.round(r.pct * 100)}%`, background: brand.orange }}
-                  />
-                </div>
-                <span className="w-28 shrink-0 text-right text-xs" style={{ color: brand.muted }}>
-                  {formatPercent(r.pct)} · {r.actionCount} {r.actionCount === 1 ? "ação" : "ações"}
-                </span>
-              </div>
-            </div>
-          );
-        })}
+      <div className="mb-3 flex items-center justify-between">
+        <p className="text-sm font-semibold" style={{ color: brand.ink }}>
+          Progresso por área
+        </p>
+        <button
+          type="button"
+          onClick={() => setPanelOpen((v) => !v)}
+          className="text-xs font-medium hover:underline"
+          style={{ color: brand.muted }}
+        >
+          {panelOpen ? "Ocultar" : "Mostrar"}
+        </button>
       </div>
+
+      {panelOpen && (
+        <>
+          <StatusLegend />
+          <div className="space-y-2.5">
+            {rows.map((r) => {
+              const isOpen = expanded.has(r.title);
+              return (
+                <div key={r.title} className={isOpen ? "space-y-1.5" : "flex items-center gap-3"}>
+                  <button
+                    type="button"
+                    onClick={() => toggle(r.title)}
+                    className={
+                      isOpen
+                        ? "block w-full text-left text-xs font-medium"
+                        : "w-40 shrink-0 truncate text-left text-xs hover:underline"
+                    }
+                    style={{ color: brand.ink }}
+                    title={isOpen ? "Clique pra recolher" : r.title}
+                  >
+                    {r.title}
+                  </button>
+                  <div className="flex flex-1 items-center gap-3">
+                    <div
+                      className="flex h-2.5 flex-1 gap-0.5 overflow-hidden rounded-full"
+                      style={{ background: brand.graySoft }}
+                    >
+                      {STATUS_ORDER.map((s) => {
+                        const count = r.counts[s];
+                        if (count === 0) return null;
+                        return (
+                          <div
+                            key={s}
+                            className="h-full first:rounded-l-full last:rounded-r-full"
+                            style={{
+                              width: `${(count / r.actionCount) * 100}%`,
+                              background: STATUS_COLOR[s],
+                            }}
+                            title={`${STATUS_FULL_LABEL[s]}: ${count}`}
+                          />
+                        );
+                      })}
+                    </div>
+                    <span className="w-28 shrink-0 text-right text-xs" style={{ color: brand.muted }}>
+                      {formatPercent(r.pct)} · {r.actionCount} {r.actionCount === 1 ? "ação" : "ações"}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -212,6 +269,7 @@ const YEAR_START_MS = Date.UTC(YEAR, 0, 1);
 
 function BurndownChart({ areas }: { areas: Area[] }) {
   const svgRef = useRef<SVGSVGElement>(null);
+  const [panelOpen, setPanelOpen] = useState(true);
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
   const [viewMonth, setViewMonth] = useState<number | null>(null); // null = ano inteiro
 
@@ -308,6 +366,22 @@ function BurndownChart({ areas }: { areas: Area[] }) {
 
   return (
     <div className="rounded-lg border bg-white p-4" style={{ borderColor: brand.border }}>
+      <div className="mb-3 flex items-center justify-between">
+        <p className="text-sm font-semibold" style={{ color: brand.ink }}>
+          Real vs. Planejado
+        </p>
+        <button
+          type="button"
+          onClick={() => setPanelOpen((v) => !v)}
+          className="text-xs font-medium hover:underline"
+          style={{ color: brand.muted }}
+        >
+          {panelOpen ? "Ocultar" : "Mostrar"}
+        </button>
+      </div>
+
+      {panelOpen && (
+      <>
       <div className="mb-4 flex flex-wrap items-start gap-6">
         {/* "Realizado" some daqui de propósito — é o mesmo número do card
             "Progresso geral" no topo da página; duas vezes é ruído. */}
@@ -415,6 +489,8 @@ function BurndownChart({ areas }: { areas: Area[] }) {
           Planejado (com base no cronograma das ações)
         </span>
       </div>
+      </>
+      )}
     </div>
   );
 }
@@ -464,7 +540,11 @@ export function ProgressDashboard({ areas }: { areas: Area[] }) {
         <StatTile
           label="Progresso geral"
           value={formatPercent(overall)}
-          sub={monthDelta != null ? `${monthDelta >= 0 ? "+" : ""}${monthDelta.toFixed(1).replace(".", ",")} p.p. neste mês` : undefined}
+          sub={
+            monthDelta != null
+              ? `${monthDelta >= 0 ? "subiu" : "caiu"} ${Math.abs(monthDelta).toFixed(1).replace(".", ",")} pontos percentuais neste mês`
+              : undefined
+          }
         />
       </div>
 
