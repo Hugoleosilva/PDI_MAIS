@@ -89,15 +89,22 @@ function asPointList(value: unknown): DiagnosisPoint[] {
  * `syncPayloadSchema`, na hora de criar de verdade — não duplica aqui.
  */
 export function parseDiagnosisResponse(raw: string): DiagnosisSuggestion {
-  const jsonMatch = raw.match(/\{[\s\S]*\}/);
-  const text = jsonMatch ? jsonMatch[0] : raw;
+  // remove cerca de código markdown (```json ... ```) antes de extrair —
+  // o Gemini às vezes embrulha a resposta mesmo com instrução de "JSON puro".
+  const unfenced = raw.replace(/```[a-z]*\n?/gi, "");
+  const jsonMatch = unfenced.match(/\{[\s\S]*\}/);
+  const text = jsonMatch ? jsonMatch[0] : unfenced;
 
   let parsed: unknown;
   try {
     parsed = JSON.parse(text);
   } catch {
+    // inclui um pedaço da resposta crua no erro — sem isso, uma falha de
+    // parsing vira uma caixa-preta (confirmado em teste real: não dava pra
+    // saber se veio truncado, com markdown, ou com texto antes/depois).
+    const snippet = raw.length > 300 ? `${raw.slice(0, 150)}…${raw.slice(-150)}` : raw;
     throw new Error(
-      "Não consegui ler isso como JSON — confere se a resposta veio completa.",
+      `Não consegui ler isso como JSON. Resposta recebida: "${snippet}"`,
     );
   }
   if (typeof parsed !== "object" || parsed === null) {

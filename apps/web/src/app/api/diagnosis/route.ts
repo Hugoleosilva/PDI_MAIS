@@ -33,6 +33,10 @@ export async function POST() {
     const suggestion = parseDiagnosisResponse(result.text);
     return NextResponse.json({ ok: true, ...suggestion });
   } catch (e) {
+    // loga a resposta crua inteira no terminal do servidor — se isso
+    // acontecer de novo, dá pra ver exatamente o que o Gemini mandou, sem
+    // precisar reproduzir às cegas.
+    console.error("[diagnosis] falha ao interpretar resposta do Gemini:", result.text);
     return NextResponse.json(
       { ok: false, error: e instanceof Error ? e.message : "Não consegui interpretar a resposta." },
       { status: 502 },
