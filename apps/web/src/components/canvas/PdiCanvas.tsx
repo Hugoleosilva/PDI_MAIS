@@ -925,9 +925,19 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
 
       // o React Flow NUNCA seleciona um frame de bloco sozinho (só o nosso
       // código, via clique/2 cliques). assim a caixa de seleção pega só cards.
-      const filtered = changes.filter(
-        (ch) => !(ch.type === "select" && ch.selected && String(ch.id).startsWith("frame-")),
-      );
+      //
+      // "remove" (tecla Delete nativa do RF, `deleteKeyCode` abaixo) só pode
+      // valer pra ANOTAÇÃO (shape) — ela tem fluxo próprio com undo/save de
+      // verdade (ver `onKey`). Área/ação/raiz/bloco não têm NENHUM
+      // salvamento nesse caminho: sumiam da tela sem aviso e voltavam ao
+      // recarregar a página (bug real confirmado em teste, não intencional).
+      const filtered = changes.filter((ch) => {
+        if (ch.type === "select" && ch.selected && String(ch.id).startsWith("frame-")) return false;
+        if (ch.type === "remove") {
+          return nodesRef.current.find((n) => n.id === ch.id)?.type === "shape";
+        }
+        return true;
+      });
 
       const c = filtered[0];
       if (
