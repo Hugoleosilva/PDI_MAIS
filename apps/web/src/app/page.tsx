@@ -3,6 +3,7 @@ import { getPdiByUserId } from "@/lib/pdi-repo";
 import { PdiCanvas } from "@/components/canvas/PdiCanvas";
 import { EmptyState } from "@/components/EmptyState";
 import { GeminiButton } from "@/components/GeminiButton";
+import { DevelopmentAssistant } from "@/components/DevelopmentAssistant";
 import { ReportButton } from "@/components/ReportButton";
 import { ShareButton } from "@/components/ShareButton";
 import { AppHeader } from "@/components/AppHeader";
@@ -50,6 +51,7 @@ export default async function Home() {
         rightExtra={
           pdi && (
             <>
+              <DevelopmentAssistant pdi={pdi} />
               <GeminiButton pdi={pdi} />
               <ReportButton pdi={pdi} />
               <ShareButton pdi={pdi} />

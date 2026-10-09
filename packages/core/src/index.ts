@@ -9,5 +9,6 @@ export * from "./grouping";
 export * from "./planning";
 export * from "./import";
 export * from "./insight";
+export * from "./suggest";
 export * from "./reports";
 export { seedHugo } from "./fixtures/seed-hugo";

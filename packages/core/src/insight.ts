@@ -106,7 +106,8 @@ const ASKS_MANAGER: Record<InsightKind, string[]> = {
   tech: ASKS_SELF.tech,
 };
 
-function buildContextBlock(pdi: PdiDoc): string {
+/** Exportado — reaproveitado por `suggest.ts` (diagnóstico/sugestão de IA). */
+export function buildContextBlock(pdi: PdiDoc): string {
   const out: string[] = [];
   const overall = formatPercent(overallProgress(pdi.areas));
 
