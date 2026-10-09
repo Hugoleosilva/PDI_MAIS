@@ -88,7 +88,10 @@ export function DevelopmentAssistant({ pdi }: { pdi: PdiDoc }) {
       const res = await fetch("/api/import", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ root: { title: pdi.root.title, track: pdi.root.track }, areas }),
+        body: JSON.stringify({
+          root: { title: pdi.root.title, track: pdi.root.track ?? undefined },
+          areas,
+        }),
       });
       const data = await res.json();
       if (!data?.ok) {
