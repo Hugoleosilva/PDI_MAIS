@@ -8,6 +8,26 @@ import { brand } from "@/lib/theme";
 const TARGET_ISO = "2026-12-31T00:00:00.000Z";
 
 /**
+ * Encurta um título de área pra caber em espaço apertado (rótulo de
+ * gráfico, legenda), preservando o que DIFERENCIA — o que vem entre
+ * parênteses no final, se tiver (ex.: "(PDI+)" vs "(TideFlow / Protrack /
+ * Maré)") — em vez de só cortar do fim. Confirmado em teste real: duas
+ * áreas diferentes ("Projeto de Inovação Aplicada e Soluções Corporativas
+ * (PDI+)" e "...(TideFlow / Protrack / Maré)") colapsavam no mesmo texto
+ * truncado ("Projeto de In..."), impossível distinguir no gráfico.
+ */
+function shortAreaLabel(title: string, maxLen = 26): string {
+  const m = title.match(/^(.*?)\s*\(([^()]+)\)\s*$/);
+  if (m) {
+    const [, prefix, suffix] = m;
+    const shortPrefix = prefix.trim().split(/\s+/).slice(0, 3).join(" ");
+    const label = `${shortPrefix} (${suffix})`;
+    return label.length > maxLen ? `${label.slice(0, maxLen - 1)}…` : label;
+  }
+  return title.length > maxLen ? `${title.slice(0, maxLen - 1)}…` : title;
+}
+
+/**
  * Progresso "como se fosse" numa data passada: cada ação Finalizada conta a
  * partir do Prazo dela (ou completedAt, se não tiver prazo) — nunca depois de
  * hoje, mesmo que o prazo seja futuro (já que ela já está pronta agora).
@@ -49,7 +69,19 @@ function buildDoneTimeline(areas: Area[]): { ms: number; pct: number }[] {
   const sortedMs = [...dates].sort((a, b) => a - b);
   const points = sortedMs.map((ms) => ({ ms, pct: progressAsOf(areas, ms) }));
   const todayPct = overallProgress(areas);
-  if (points.length === 0 || points[points.length - 1].ms < todayMs) {
+  // O ponto de "hoje" TEM que bater exatamente com o Progresso Geral do
+  // topo (mesma conta, sem corte de data) — confirmado em teste real que
+  // isso divergia MUITO (29,58% no gráfico vs 71,67% no card). Causa: toda
+  // ação Finalizada com prazo FUTURO (comum — "31/12/2026" em quase tudo)
+  // é clampada pra `todayMs` aqui em cima, então o ÚLTIMO ponto do array já
+  // existia com `ms === todayMs` — a condição antiga (`< todayMs`) via isso
+  // como "não preciso adicionar hoje" e deixava o valor de `progressAsOf`
+  // (que só conta ação com prazo/completedAt preenchido — uma Finalizada
+  // sem nenhuma das duas datas ficava de fora, divergindo do indicador do
+  // topo). Substitui o último ponto em vez de só adicionar condicionalmente.
+  if (points.length > 0 && points[points.length - 1].ms === todayMs) {
+    points[points.length - 1] = { ms: todayMs, pct: todayPct };
+  } else {
     points.push({ ms: todayMs, pct: todayPct });
   }
   return points;
@@ -207,12 +239,12 @@ function AreaBars({ areas }: { areas: Area[] }) {
                     className={
                       isOpen
                         ? "block w-full text-left text-xs font-medium"
-                        : "w-40 shrink-0 truncate text-left text-xs hover:underline"
+                        : "w-52 shrink-0 truncate text-left text-xs hover:underline"
                     }
                     style={{ color: brand.ink }}
-                    title={isOpen ? "Clique pra recolher" : r.title}
+                    title={isOpen ? "Clique para recolher" : r.title}
                   >
-                    {r.title}
+                    {isOpen ? r.title : shortAreaLabel(r.title, 32)}
                   </button>
                   <div className="flex flex-1 items-center gap-3">
                     <div
@@ -330,7 +362,11 @@ function BurndownChart({ areas }: { areas: Area[] }) {
 
   const latest = doneTimeline[doneTimeline.length - 1];
   const expectedToday = valueAt(plannedTimeline, todayMs);
-  const onTrack = latest.pct >= expectedToday - 0.02; // 2 p.p. de folga
+  // positivo = à frente do planejado; negativo = atrás. 2 p.p. de folga pra
+  // não oscilar entre "dentro"/"fora" por uma diferença insignificante.
+  const scheduleDelta = latest.pct - expectedToday;
+  const onTrack = scheduleDelta >= -0.02;
+  const ahead = scheduleDelta > 0.02;
 
   const markerPoints = realMarkers.map((r) => ({ x: xScale(r.ms), y: yScale(r.pct), ms: r.ms, pct: r.pct }));
 
@@ -394,8 +430,21 @@ function BurndownChart({ areas }: { areas: Area[] }) {
             {formatPercent(expectedToday)}
           </p>
         </div>
-        <div className="ml-auto self-center rounded-full px-3 py-1 text-xs font-semibold" style={onTrack ? { background: brand.tealSoft, color: brand.tealText } : { background: brand.orangeSoft, color: brand.orangeText }}>
-          {onTrack ? "Dentro do cronograma" : `${formatPercent(expectedToday - latest.pct)} fora do cronograma`}
+        <div
+          className="ml-auto self-center rounded-full px-3 py-1 text-xs font-semibold"
+          style={
+            ahead
+              ? { background: brand.tealSoft, color: brand.tealText }
+              : onTrack
+                ? { background: brand.tealSoft, color: brand.tealText }
+                : { background: brand.orangeSoft, color: brand.orangeText }
+          }
+        >
+          {ahead
+            ? `🚀 ${formatPercent(scheduleDelta)} à frente do cronograma`
+            : onTrack
+              ? "Dentro do cronograma"
+              : `⚠️ ${formatPercent(-scheduleDelta)} atrás do planejado`}
         </div>
       </div>
 
@@ -496,6 +545,294 @@ function BurndownChart({ areas }: { areas: Area[] }) {
 }
 
 // ---------------------------------------------------------------------------
+// Análise de Gargalos (Pareto 80/20) — poucas áreas concentram a maior parte
+// das ações que ainda faltam (não iniciadas + em progresso). Identifica o
+// menor grupo de áreas cuja soma de pendências cruza 80% do total — essas
+// são o "gargalo" a priorizar.
+// ---------------------------------------------------------------------------
+
+interface AreaPending {
+  title: string;
+  pending: number;
+  total: number;
+}
+
+function computePending(areas: Area[]): AreaPending[] {
+  return areas
+    .map((a) => ({
+      title: a.title,
+      pending: a.actions.filter((ac) => ac.status !== "done").length,
+      total: a.actions.length,
+    }))
+    .filter((a) => a.pending > 0)
+    .sort((a, b) => b.pending - a.pending);
+}
+
+/** Lista em português: "A", "A e B", "A, B e C". */
+function joinPt(items: string[]): string {
+  if (items.length <= 1) return items.join("");
+  if (items.length === 2) return `${items[0]} e ${items[1]}`;
+  return `${items.slice(0, -1).join(", ")} e ${items[items.length - 1]}`;
+}
+
+const PW = 680;
+const PH = 240;
+const PPAD = { top: 16, right: 16, bottom: 46, left: 34 };
+const PPLOT_W = PW - PPAD.left - PPAD.right;
+const PPLOT_H = PH - PPAD.top - PPAD.bottom;
+
+function ParetoAnalysis({ areas }: { areas: Area[] }) {
+  const [panelOpen, setPanelOpen] = useState(true);
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
+
+  const rows = useMemo(() => computePending(areas), [areas]);
+  const totalPending = rows.reduce((s, r) => s + r.pending, 0);
+
+  // menor prefixo (maiores pendências primeiro) cuja soma cruza 80% do total.
+  let running = 0;
+  let vitalCount = 0;
+  for (const r of rows) {
+    running += r.pending;
+    vitalCount++;
+    if (running / totalPending >= 0.8) break;
+  }
+  const vitalRows = rows.slice(0, vitalCount);
+  const vitalPct = totalPending ? (vitalRows.reduce((s, r) => s + r.pending, 0) / totalPending) * 100 : 0;
+  const concentrated = vitalCount > 0 && vitalCount < rows.length;
+
+  return (
+    <div className="rounded-lg border bg-white p-4" style={{ borderColor: brand.border }}>
+      <div className="mb-3 flex items-center justify-between">
+        <p className="text-sm font-semibold" style={{ color: brand.ink }}>
+          Análise de gargalos (Pareto 80/20)
+        </p>
+        <button
+          type="button"
+          onClick={() => setPanelOpen((v) => !v)}
+          className="text-xs font-medium hover:underline"
+          style={{ color: brand.muted }}
+        >
+          {panelOpen ? "Ocultar" : "Mostrar"}
+        </button>
+      </div>
+
+      {panelOpen && (
+        <>
+          {totalPending === 0 ? (
+            <p className="text-sm" style={{ color: brand.muted }}>
+              🎉 Nenhuma ação pendente — todas as áreas estão finalizadas.
+            </p>
+          ) : (
+            <>
+              <div
+                className="mb-4 rounded-md border p-3 text-sm leading-relaxed"
+                style={{ borderColor: brand.orangeSoft, background: brand.orangeSoft, color: brand.orangeText }}
+              >
+                {concentrated ? (
+                  <>
+                    <b>⚠️ Atenção Focada:</b>{" "}
+                    {vitalCount === 1 ? "a área" : "as áreas"}{" "}
+                    <b>
+                      {joinPt(
+                        vitalRows.map(
+                          (r) =>
+                            `"${shortAreaLabel(r.title, 40)}" (${r.pending} ${r.pending === 1 ? "ação pendente" : "ações pendentes"})`,
+                        ),
+                      )}
+                    </b>{" "}
+                    {vitalCount === 1 ? "concentra" : "concentram"}{" "}
+                    <b>{vitalPct.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%</b> das{" "}
+                    {totalPending} ações pendentes do seu PDI.{" "}
+                    <b>
+                      Priorizar {vitalCount === 1 ? "esse bloco" : "esses blocos"} primeiro destrava a
+                      maior parte do que falta para fechar o PDI.
+                    </b>
+                  </>
+                ) : (
+                  <>
+                    As {totalPending} ações pendentes estão bem distribuídas entre as {rows.length}{" "}
+                    áreas com pendência — não há um gargalo concentrado para priorizar.
+                  </>
+                )}
+              </div>
+
+              <ParetoChart rows={rows} vitalCount={vitalCount} svgRef={svgRef} hoverIdx={hoverIdx} setHoverIdx={setHoverIdx} />
+            </>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+function ParetoChart({
+  rows,
+  vitalCount,
+  svgRef,
+  hoverIdx,
+  setHoverIdx,
+}: {
+  rows: AreaPending[];
+  vitalCount: number;
+  svgRef: React.RefObject<SVGSVGElement | null>;
+  hoverIdx: number | null;
+  setHoverIdx: (i: number | null) => void;
+}) {
+  const totalPending = rows.reduce((s, r) => s + r.pending, 0);
+  const n = rows.length;
+  const xStep = PPLOT_W / n;
+  const xCenter = (i: number) => PPAD.left + xStep * (i + 0.5);
+  const yScale = (pct: number) => PPAD.top + (1 - Math.min(1, Math.max(0, pct / 100))) * PPLOT_H;
+
+  let running = 0;
+  const points = rows.map((r, i) => {
+    running += r.pending;
+    const cumPct = (running / totalPending) * 100;
+    return { ...r, i, indivPct: (r.pending / totalPending) * 100, cumPct };
+  });
+
+  const linePath = points.map((p, i) => `${i === 0 ? "M" : "L"} ${xCenter(i)} ${yScale(p.cumPct)}`).join(" ");
+  const barW = Math.min(48, xStep * 0.55);
+  const hover = hoverIdx != null ? points[hoverIdx] : null;
+
+  const onMove = (e: React.MouseEvent) => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const rect = svg.getBoundingClientRect();
+    const localX = ((e.clientX - rect.left) / rect.width) * PW;
+    let nearest = 0;
+    let best = Infinity;
+    points.forEach((_, i) => {
+      const d = Math.abs(xCenter(i) - localX);
+      if (d < best) {
+        best = d;
+        nearest = i;
+      }
+    });
+    setHoverIdx(nearest);
+  };
+
+  return (
+    <>
+      <svg
+        ref={svgRef}
+        viewBox={`0 0 ${PW} ${PH}`}
+        className="w-full touch-none select-none"
+        onMouseMove={onMove}
+        onMouseLeave={() => setHoverIdx(null)}
+      >
+        {[0, 25, 50, 75, 100].map((t) => (
+          <g key={t}>
+            <line x1={PPAD.left} x2={PW - PPAD.right} y1={yScale(t)} y2={yScale(t)} stroke={brand.border} strokeWidth={1} />
+            <text x={PPAD.left - 8} y={yScale(t) + 3} fontSize={10} textAnchor="end" fill={brand.muted}>
+              {t}%
+            </text>
+          </g>
+        ))}
+        {/* linha de referência 80% — onde cruza é o corte do gargalo */}
+        <line
+          x1={PPAD.left}
+          x2={PW - PPAD.right}
+          y1={yScale(80)}
+          y2={yScale(80)}
+          stroke={brand.muted}
+          strokeWidth={1}
+          strokeDasharray="4,3"
+        />
+        <text x={PW - PPAD.right} y={yScale(80) - 4} fontSize={9} textAnchor="end" fill={brand.muted}>
+          80%
+        </text>
+
+        {points.map((p, i) => {
+          const isVital = i < vitalCount;
+          const h = (p.indivPct / 100) * PPLOT_H;
+          return (
+            <g key={p.title}>
+              <rect
+                x={xCenter(i) - barW / 2}
+                y={PPAD.top + PPLOT_H - h}
+                width={barW}
+                height={h}
+                rx={3}
+                fill={isVital ? brand.orange : brand.gray}
+                opacity={hover && hover.i !== i ? 0.55 : 1}
+              />
+              <text
+                x={xCenter(i)}
+                y={PPAD.top + PPLOT_H - h - 6}
+                fontSize={10}
+                fontWeight={600}
+                textAnchor="middle"
+                fill={brand.ink}
+              >
+                {p.pending}
+              </text>
+              <text
+                x={xCenter(i)}
+                y={PH - PPAD.bottom + 14}
+                fontSize={9}
+                textAnchor="middle"
+                fill={brand.muted}
+              >
+                <title>{p.title}</title>
+                {shortAreaLabel(p.title, 16)}
+              </text>
+            </g>
+          );
+        })}
+
+        <path d={linePath} fill="none" stroke={brand.ink} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+        {points.map((p, i) => (
+          <circle
+            key={p.title}
+            cx={xCenter(i)}
+            cy={yScale(p.cumPct)}
+            r={hover?.i === i ? 5 : 3.5}
+            fill={brand.ink}
+            stroke="white"
+            strokeWidth={1.5}
+          />
+        ))}
+
+        {hover && (
+          <line
+            x1={xCenter(hover.i)}
+            x2={xCenter(hover.i)}
+            y1={PPAD.top}
+            y2={PPAD.top + PPLOT_H}
+            stroke={brand.ink}
+            strokeWidth={1}
+            opacity={0.2}
+          />
+        )}
+      </svg>
+
+      <div className="mt-1 h-4 text-center text-xs" style={{ color: brand.ink }}>
+        {hover && (
+          <>
+            <b>{hover.title}</b> — {hover.pending} pendente(s) ·{" "}
+            {hover.cumPct.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}% acumulado
+          </>
+        )}
+      </div>
+
+      <div className="mt-3 flex items-center gap-4 text-xs" style={{ color: brand.muted }}>
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-2 w-2 rounded-sm" style={{ background: brand.orange }} /> Gargalo (top até 80%)
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-2 w-2 rounded-sm" style={{ background: brand.gray }} /> Demais pendências
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-0.5 w-3" style={{ background: brand.ink }} /> % acumulada
+        </span>
+      </div>
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
 
 const STATUS_LABEL: Record<Status, string> = { todo: "não iniciadas", doing: "em andamento", done: "finalizadas" };
 
@@ -550,6 +887,7 @@ export function ProgressDashboard({ areas }: { areas: Area[] }) {
 
       <BurndownChart areas={areas} />
       <AreaBars areas={areas} />
+      <ParetoAnalysis areas={areas} />
     </div>
   );
 }
