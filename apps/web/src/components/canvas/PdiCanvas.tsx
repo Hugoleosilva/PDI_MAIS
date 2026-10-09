@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Background,
   Controls,
@@ -27,6 +28,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import {
+  areaToIncomingInput,
   deriveAreaStatus,
   GROUP_COLORS,
   resolveSeedGroups,
@@ -228,6 +230,32 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
       }
     });
   }, []);
+
+  const router = useRouter();
+  // Exclui uma área de verdade (persistido) — reaproveita o mesmo pipeline
+  // do Assistente de desenvolvimento: manda todas as áreas MENOS essa pro
+  // /api/import, e o merge já poda sozinho o que não veio no payload.
+  const deleteArea = useCallback(
+    async (areaId: string) => {
+      const areas = effectivePdi.areas.filter((a) => a.id !== areaId).map(areaToIncomingInput);
+      const res = await fetch("/api/import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          root: { title: pdi.root.title, track: pdi.root.track ?? undefined },
+          areas,
+        }),
+      }).catch(() => null);
+      const data = await res?.json().catch(() => null);
+      if (!data?.ok) {
+        window.alert(`Não consegui excluir: ${data?.error ?? "erro desconhecido"}.`);
+        return;
+      }
+      setSelected(null);
+      router.refresh();
+    },
+    [effectivePdi, pdi.root, router],
+  );
 
   const linksRef = useRef(links);
   const positionsRef = useRef(positions);
@@ -1297,6 +1325,7 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
         <DetailPanel
           node={selected}
           onClose={() => setSelected(null)}
+          onDeleteArea={deleteArea}
           modules={
             selected.type === "area"
               ? effectivePdi.areas.find((a) => a.id === selected.id)?.actions

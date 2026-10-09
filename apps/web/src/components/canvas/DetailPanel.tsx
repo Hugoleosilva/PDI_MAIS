@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   ACTION_KIND_LABEL,
   ACTION_STATUS_LABEL,
@@ -129,6 +130,7 @@ export function DetailPanel({
   onClose,
   modules,
   onUpdateAction,
+  onDeleteArea,
   readOnly,
 }: {
   node: PdiNode;
@@ -136,12 +138,25 @@ export function DetailPanel({
   /** Ações da área (modo macro) — vira "lista de módulos" com status/prazo editáveis. */
   modules?: Action[];
   onUpdateAction?: (id: string, patch: ActionPatch) => void;
+  /** Exclui a área de verdade (persistido) — só passado fora do Modo Gestor. */
+  onDeleteArea?: (areaId: string) => void;
   /** Modo Gestor (`/r/[shareId]`) — mostra status/prazo como texto, nunca como controle. */
   readOnly?: boolean;
 }) {
   const isArea = node.type === "area";
   const d = node.data as PanelData;
   const s = statusStyle(d.status, isArea ? "area" : "action");
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!onDeleteArea) return;
+    const ok = window.confirm(
+      `Excluir a área "${d.title}" e suas ${d.actionCount ?? 0} ação(ões)? Essa ação não pode ser desfeita.`,
+    );
+    if (!ok) return;
+    setDeleting(true);
+    await onDeleteArea(node.id);
+  };
 
   return (
     <aside
@@ -224,6 +239,17 @@ export function DetailPanel({
           </p>
         )}
       </div>
+
+      {isArea && onDeleteArea && !readOnly && (
+        <button
+          type="button"
+          onClick={handleDelete}
+          disabled={deleting}
+          className="mt-auto self-start rounded-md border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
+        >
+          {deleting ? "Excluindo…" : "🗑 Excluir área"}
+        </button>
+      )}
     </aside>
   );
 }
