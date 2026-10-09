@@ -32,7 +32,7 @@ export default async function TeamMemberPage({
         style={{ borderColor: brand.border }}
       >
         <Link href="/equipe" className="text-sm font-medium hover:underline" style={{ color: brand.muted }}>
-          ← Equipe
+          Voltar
         </Link>
         <span className="truncate text-sm font-semibold" style={{ color: brand.ink }}>
           {pdi.ownerName ?? "Sem nome"}
