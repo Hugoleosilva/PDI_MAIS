@@ -57,6 +57,7 @@ export function PlanningView({ pdi, today }: { pdi: PdiDoc; today: string }) {
   // aberto por padrão só nos blocos que começaram sem carga horária nenhuma —
   // decidido UMA vez a partir do estado inicial, pra não fechar sozinho
   // no meio da digitação (a projeção muda a cada tecla).
+  const [blockOpen, setBlockOpen] = useState<Record<string, boolean>>({});
   const [open, setOpen] = useState<Record<string, boolean>>(() => {
     const initial = planForDoc(pdi, new Date(today));
     return Object.fromEntries(
@@ -238,6 +239,7 @@ export function PlanningView({ pdi, today }: { pdi: PdiDoc; today: string }) {
             : null;
         const key = b.groupId ?? "loose";
         const isOpen = open[key] ?? false;
+        const isBlockOpen = blockOpen[key] ?? true;
 
         return (
           <section
@@ -266,22 +268,33 @@ export function PlanningView({ pdi, today }: { pdi: PdiDoc; today: string }) {
                   : "sem projeção"}
                 {b.projection.targetDate && ` · meta ${formatDate(b.projection.targetDate)}`}
               </span>
-              {b.groupId !== null && (
+              <div className="ml-auto flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => setGroupPaused(b.groupId!, !b.paused)}
-                  className="ml-auto rounded-full border border-neutral-200 px-2.5 py-1 text-[11px] font-medium text-neutral-600 hover:bg-neutral-50"
-                  title={
-                    b.paused
-                      ? "Retomar este bloco — volta a contar no resumo geral"
-                      : "Pausar este bloco — sai do resumo geral enquanto você foca em outro"
-                  }
+                  onClick={() => setBlockOpen((o) => ({ ...o, [key]: !isBlockOpen }))}
+                  className="rounded-full border border-neutral-200 px-2.5 py-1 text-[11px] font-medium text-neutral-600 hover:bg-neutral-50"
                 >
-                  {b.paused ? "▶ Retomar" : "⏸ Pausar"}
+                  {isBlockOpen ? "Ocultar" : "Mostrar"}
                 </button>
-              )}
+                {b.groupId !== null && (
+                  <button
+                    type="button"
+                    onClick={() => setGroupPaused(b.groupId!, !b.paused)}
+                    className="rounded-full border border-neutral-200 px-2.5 py-1 text-[11px] font-medium text-neutral-600 hover:bg-neutral-50"
+                    title={
+                      b.paused
+                        ? "Retomar este bloco — volta a contar no resumo geral"
+                        : "Pausar este bloco — sai do resumo geral enquanto você foca em outro"
+                    }
+                  >
+                    {b.paused ? "▶ Retomar" : "⏸ Pausar"}
+                  </button>
+                )}
+              </div>
             </header>
 
+            {isBlockOpen && (
+            <>
             <div className="space-y-4 p-5">
               <div>
                 <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-neutral-400">
@@ -493,6 +506,8 @@ export function PlanningView({ pdi, today }: { pdi: PdiDoc; today: string }) {
                   })}
                 </div>
               </div>
+            )}
+            </>
             )}
           </section>
         );
