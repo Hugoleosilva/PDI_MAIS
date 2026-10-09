@@ -163,48 +163,64 @@ type IncomingAreaInput = z.input<typeof incomingAreaSchema>;
  * sugerida precisa viajar junto com as áreas já existentes, convertidas.
  */
 /**
- * `incomingActionSchema`/`incomingAreaSchema` exigem `.min(1)` nos campos
- * opcionais de texto (description/unitsLabel) — "" (string vazia) não é a
- * mesma coisa que "ausente" pro zod, e dado antigo (de bugs já corrigidos da
- * extração, ver commits `d636767`/`4cc1cba`) pode ter ficado gravado como
- * "" em vez de undefined. Sem isso, reimportar uma área existente com
- * descrição vazia derrubava o payload inteiro com "payload inválido".
+ * Todo campo opcional de `incomingActionSchema`/`incomingAreaSchema` aceita
+ * "ausente" (`undefined`) mas nenhum aceita `null` (zod `.optional()` não é
+ * `.nullable()`) — e string vazia também não conta como "ausente" nos campos
+ * de texto (`.min(1)`). Dado antigo (de bugs já corrigidos na extração, ver
+ * commits `d636767`/`4cc1cba`) pode ter ficado gravado no banco como `null`
+ * ou `""` em vez de simplesmente não existir — qualquer um desses campos
+ * (descrição, carga horária, unidades, prazo...) derrubava o payload
+ * INTEIRO com "payload inválido" ao tentar reconverter uma área existente.
+ * Em vez de corrigir campo por campo a cada erro novo (3 rodadas até aqui),
+ * limpa de uma vez só: percorre o objeto inteiro e troca `null`/`""` por
+ * `undefined` (que o `JSON.stringify` simplesmente omite).
  */
-function nonEmpty(s: string | undefined): string | undefined {
-  return s && s.trim() ? s : undefined;
+function cleanNulls<T>(value: T): T {
+  if (value === null) return undefined as T;
+  if (typeof value === "string") return (value.trim() === "" ? undefined : value) as T;
+  if (Array.isArray(value)) return value.map(cleanNulls) as T;
+  if (typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      const cleaned = cleanNulls(v);
+      if (cleaned !== undefined) out[k] = cleaned;
+    }
+    return out as T;
+  }
+  return value;
 }
 
 export function areaToIncomingInput(area: Area): IncomingAreaInput {
-  return {
+  return cleanNulls({
     title: area.title,
     kind: AREA_KIND_LABEL[area.kind],
-    description: nonEmpty(area.description),
+    description: area.description,
     actions: area.actions.map((a) => ({
       title: a.title,
       kind: ACTION_KIND_LABEL[a.kind],
       status: ACTION_STATUS_LABEL[a.status],
       dueDate: a.dueDate,
-      description: nonEmpty(a.description),
+      description: a.description,
       estimatedHours: a.estimatedHours,
       unitsTotal: a.unitsTotal,
       unitsDone: a.unitsDone,
-      unitsLabel: nonEmpty(a.unitsLabel),
+      unitsLabel: a.unitsLabel,
       hoursDone: a.hoursDone,
       completedAt: a.completedAt,
-      certificateUrl: nonEmpty(a.certificateUrl),
+      certificateUrl: a.certificateUrl,
     })),
-  };
+  });
 }
 
 /** Converte uma sugestão aceita pro mesmo formato de entrada, pronta pra juntar com `areaToIncomingInput`. */
 export function suggestedAreaToIncomingInput(area: SuggestedArea): IncomingAreaInput {
-  return {
+  return cleanNulls({
     title: area.title,
-    description: nonEmpty(area.description),
+    description: area.description,
     actions: area.actions.map((a) => ({
       title: a.title,
       kind: a.kind,
-      description: nonEmpty(a.description),
+      description: a.description,
     })),
-  };
+  });
 }

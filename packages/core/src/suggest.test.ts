@@ -96,4 +96,28 @@ describe("areaToIncomingInput / suggestedAreaToIncomingInput", () => {
     expect(parsed.actions[0].kind).toBe("treinamento_estudo");
     expect(parsed.actions[1].kind).toBe("mentoria_feedback");
   });
+
+  it("limpa campos null/string vazia de dado antigo, sem derrubar a validação", () => {
+    // simula o que vinha do banco em registros antigos: null em vez de
+    // ausente, "" em vez de ausente — os dois casos reais que já quebraram
+    // o payload de verdade (estimatedHours: null, description: "").
+    const area = {
+      ...pdi.areas[0],
+      description: "",
+      actions: [
+        {
+          ...pdi.areas[0].actions[0],
+          description: null as unknown as string,
+          estimatedHours: null as unknown as number,
+          dueDate: null as unknown as string,
+        },
+      ],
+    };
+    const input = areaToIncomingInput(area);
+    const parsed = incomingAreaSchema.parse(input);
+    expect(parsed.description).toBeUndefined();
+    expect(parsed.actions[0].description).toBeUndefined();
+    expect(parsed.actions[0].estimatedHours).toBeUndefined();
+    expect(parsed.actions[0].dueDate).toBeUndefined();
+  });
 });
