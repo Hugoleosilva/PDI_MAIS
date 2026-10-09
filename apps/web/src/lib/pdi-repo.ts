@@ -45,6 +45,20 @@ export async function setShareId(userId: string, shareId: string | null): Promis
 }
 
 /**
+ * Guarda o nome do dono (vindo do Google) no próprio doc — a aba "Equipe" do
+ * gestor só tem o PdiDoc pra mostrar, sem a sessão de quem compartilhou, e
+ * `root.title` é o nome do CICLO ("PDI 2026"), não da pessoa. Não escreve à
+ * toa: só quando o nome muda de verdade.
+ */
+export async function setOwnerNameIfChanged(userId: string, name: string): Promise<void> {
+  const col = await collection();
+  await col.updateOne(
+    { userId, ownerName: { $ne: name } },
+    { $set: { ownerName: name, updatedAt: new Date() } },
+  );
+}
+
+/**
  * Autoriza (ou revoga, com `email: null`) um gestor a ver este PDI sem link —
  * quem concede é sempre o liderado, digitando o e-mail do gestor.
  */

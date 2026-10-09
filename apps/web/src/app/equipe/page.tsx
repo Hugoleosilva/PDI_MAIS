@@ -36,6 +36,9 @@ export default async function EquipePage() {
                 style={{ borderColor: brand.border }}
               >
                 <div className="text-sm font-semibold" style={{ color: brand.ink }}>
+                  {p.ownerName ?? p.root.title}
+                </div>
+                <div className="mt-0.5 text-xs" style={{ color: brand.muted }}>
                   {p.root.title}
                 </div>
                 <div className="mt-1 text-xs" style={{ color: brand.muted }}>

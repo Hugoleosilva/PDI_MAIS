@@ -167,6 +167,8 @@ export interface PdiDoc {
   userId: string;
   /** Slug aleatório para o link read-only do gestor; null se não compartilhado. */
   shareId: string | null;
+  /** Nome do dono (session.user.name no Google) — pro gestor saber de quem é o PDI na aba Equipe. */
+  ownerName?: string;
   /**
    * E-mail do gestor autorizado a ver este PDI sem link (aba "Equipe" dele).
    * Quem concede é sempre o liderado, digitando o e-mail aqui.

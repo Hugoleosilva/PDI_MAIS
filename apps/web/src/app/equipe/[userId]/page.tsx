@@ -34,7 +34,12 @@ export default async function TeamMemberPage({
         <Link href="/equipe" className="text-sm font-medium hover:underline" style={{ color: brand.muted }}>
           ← Equipe
         </Link>
-        <span className="truncate text-sm" style={{ color: brand.ink }}>{pdi.root.title}</span>
+        <span className="truncate text-sm font-semibold" style={{ color: brand.ink }}>
+          {pdi.ownerName ?? "Sem nome"}
+        </span>
+        <span className="truncate text-xs" style={{ color: brand.muted }}>
+          {pdi.root.title}
+        </span>
         <div className="ml-auto flex shrink-0 items-center gap-2">
           <GeminiButton pdi={pdi} perspective="manager" />
           <span

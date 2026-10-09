@@ -23,7 +23,10 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
   const layout = useMemo(
     () =>
       layoutGraph(pdi, {
-        layout: "tree-lr",
+        // Roadmap: raia = bloco, card = área — mais fácil de ler de relance
+        // pro gestor do que a árvore (que é mais pra ORGANIZAR, do lado do
+        // dono do PDI).
+        layout: "roadmap",
         groups: pdi.groups ?? [],
         positions: pdi.canvas?.positions ?? {},
         frameBoxes: pdi.canvas?.frames ?? {},

@@ -24,7 +24,12 @@ export default async function SharedPdiPage({
         <span className="text-sm font-bold tracking-tight" style={{ color: brand.orange }}>
           PDI+
         </span>
-        <span className="truncate text-sm" style={{ color: brand.ink }}>{pdi.root.title}</span>
+        <span className="truncate text-sm font-semibold" style={{ color: brand.ink }}>
+          {pdi.ownerName ?? "Sem nome"}
+        </span>
+        <span className="truncate text-xs" style={{ color: brand.muted }}>
+          {pdi.root.title}
+        </span>
         <span
           className="ml-auto shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold"
           style={{ background: brand.blueSoft, color: brand.blue }}

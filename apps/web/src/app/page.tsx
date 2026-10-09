@@ -1,5 +1,5 @@
 import { auth, signIn } from "@/auth";
-import { getPdiByUserId } from "@/lib/pdi-repo";
+import { getPdiByUserId, setOwnerNameIfChanged } from "@/lib/pdi-repo";
 import { PdiCanvas } from "@/components/canvas/PdiCanvas";
 import { EmptyState } from "@/components/EmptyState";
 import { GeminiButton } from "@/components/GeminiButton";
@@ -42,6 +42,12 @@ export default async function Home() {
   }
 
   const pdi = await getPdiByUserId(session.user.id);
+  // "Toca" o nome do dono a cada visita (barato — só escreve se mudou) pra
+  // aba "Equipe" do gestor conseguir mostrar de QUEM é cada PDI; sem isso só
+  // temos o nome do CICLO ("PDI 2026"), não da pessoa.
+  if (pdi && session.user.name) {
+    await setOwnerNameIfChanged(session.user.id, session.user.name);
+  }
 
   return (
     <div className="flex h-screen flex-col bg-[#F4F4F5]">
