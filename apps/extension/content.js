@@ -10,6 +10,7 @@
 // de desenhar a barra (todas as amostras de cor vinham brancas), então uma
 // checagem única sempre falhava.
 (function () {
+  console.log("[PDI+] content.js v2 (com isPdiRoute) carregado em", location.href);
   const BUTTON_ID = "pdi-mais-btn";
   if (document.getElementById(BUTTON_ID)) return;
 
@@ -149,7 +150,9 @@
   }
 
   function syncVisibility() {
-    if (isPdiRoute()) showButton();
+    const show = isPdiRoute();
+    console.log("[PDI+] syncVisibility — href:", location.href, "| mostrar botão:", show);
+    if (show) showButton();
     else hideButton();
   }
 
