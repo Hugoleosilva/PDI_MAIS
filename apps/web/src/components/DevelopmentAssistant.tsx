@@ -91,7 +91,11 @@ export function DevelopmentAssistant({ pdi }: { pdi: PdiDoc }) {
         body: JSON.stringify({ root: { title: pdi.root.title, track: pdi.root.track }, areas }),
       });
       const data = await res.json();
-      if (!data?.ok) throw new Error(data?.error ?? "Falhou ao criar.");
+      if (!data?.ok) {
+        const issue = Array.isArray(data?.issues) ? data.issues[0] : null;
+        const detail = issue ? ` (${issue.path?.join(".")}: ${issue.message})` : "";
+        throw new Error(`${data?.error ?? "Falhou ao criar."}${detail}`);
+      }
       setOpen(false);
       router.refresh();
     } catch (e) {

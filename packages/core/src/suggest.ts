@@ -162,24 +162,36 @@ type IncomingAreaInput = z.input<typeof incomingAreaSchema>;
  * que sumirem do payload são podadas pelo merge), então uma área/ação nova
  * sugerida precisa viajar junto com as áreas já existentes, convertidas.
  */
+/**
+ * `incomingActionSchema`/`incomingAreaSchema` exigem `.min(1)` nos campos
+ * opcionais de texto (description/unitsLabel) — "" (string vazia) não é a
+ * mesma coisa que "ausente" pro zod, e dado antigo (de bugs já corrigidos da
+ * extração, ver commits `d636767`/`4cc1cba`) pode ter ficado gravado como
+ * "" em vez de undefined. Sem isso, reimportar uma área existente com
+ * descrição vazia derrubava o payload inteiro com "payload inválido".
+ */
+function nonEmpty(s: string | undefined): string | undefined {
+  return s && s.trim() ? s : undefined;
+}
+
 export function areaToIncomingInput(area: Area): IncomingAreaInput {
   return {
     title: area.title,
     kind: AREA_KIND_LABEL[area.kind],
-    description: area.description,
+    description: nonEmpty(area.description),
     actions: area.actions.map((a) => ({
       title: a.title,
       kind: ACTION_KIND_LABEL[a.kind],
       status: ACTION_STATUS_LABEL[a.status],
       dueDate: a.dueDate,
-      description: a.description,
+      description: nonEmpty(a.description),
       estimatedHours: a.estimatedHours,
       unitsTotal: a.unitsTotal,
       unitsDone: a.unitsDone,
-      unitsLabel: a.unitsLabel,
+      unitsLabel: nonEmpty(a.unitsLabel),
       hoursDone: a.hoursDone,
       completedAt: a.completedAt,
-      certificateUrl: a.certificateUrl,
+      certificateUrl: nonEmpty(a.certificateUrl),
     })),
   };
 }
@@ -188,11 +200,11 @@ export function areaToIncomingInput(area: Area): IncomingAreaInput {
 export function suggestedAreaToIncomingInput(area: SuggestedArea): IncomingAreaInput {
   return {
     title: area.title,
-    description: area.description,
+    description: nonEmpty(area.description),
     actions: area.actions.map((a) => ({
       title: a.title,
       kind: a.kind,
-      description: a.description,
+      description: nonEmpty(a.description),
     })),
   };
 }
