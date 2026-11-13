@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { PdiDoc } from "@pdi-mais/core";
+import { Modal } from "./Modal";
 
 /** Liga/desliga o Modo Gestor (link público) e a autorização direta ao gestor (aba "Equipe"). */
 export function ShareButton({ pdi }: { pdi: PdiDoc }) {
@@ -35,6 +36,7 @@ export function ShareButton({ pdi }: { pdi: PdiDoc }) {
   };
 
   const disable = async () => {
+    if (!window.confirm("Desligar o link de compartilhamento? Quem já tinha o link deixa de ver seu PDI.")) return;
     setBusy(true);
     setError(false);
     try {
@@ -60,6 +62,12 @@ export function ShareButton({ pdi }: { pdi: PdiDoc }) {
   };
 
   const saveManagerEmail = async (email: string | null) => {
+    if (
+      email === null &&
+      !window.confirm(`Revogar o acesso de ${savedManagerEmail}? Ele deixa de ver seu PDI na aba "Equipe" dele.`)
+    ) {
+      return;
+    }
     setManagerBusy(true);
     setManagerError(null);
     setManagerSaved(false);
@@ -93,25 +101,7 @@ export function ShareButton({ pdi }: { pdi: PdiDoc }) {
       </button>
 
       {open && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4"
-          onClick={() => setOpen(false)}
-        >
-          <div
-            className="flex w-full max-w-md flex-col gap-3 rounded-lg bg-white p-5 shadow-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-bold">Modo Gestor</h2>
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                className="rounded p-1 text-lg leading-none text-neutral-500 hover:bg-neutral-100"
-              >
-                ✕
-              </button>
-            </div>
-
+        <Modal title="Modo Gestor" onClose={() => setOpen(false)}>
             <div className="border-b border-neutral-100 pb-3">
               <p className="mb-2 text-xs font-semibold text-neutral-700">
                 Compartilhar com o gestor (sem link)
@@ -132,6 +122,7 @@ export function ShareButton({ pdi }: { pdi: PdiDoc }) {
                   type="button"
                   onClick={() => saveManagerEmail(managerEmail.trim() || null)}
                   disabled={managerBusy || managerEmail.trim() === savedManagerEmail}
+                  aria-busy={managerBusy}
                   className="shrink-0 rounded-md bg-neutral-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-neutral-700 disabled:opacity-40"
                 >
                   {managerBusy ? "Salvando…" : "Salvar"}
@@ -148,7 +139,11 @@ export function ShareButton({ pdi }: { pdi: PdiDoc }) {
                 </button>
               )}
               {managerSaved && <p className="mt-1 text-xs text-emerald-600">Salvo!</p>}
-              {managerError && <p className="mt-1 text-xs text-red-600">{managerError}</p>}
+              {managerError && (
+                <p role="alert" className="mt-1 text-xs text-red-600">
+                  {managerError}
+                </p>
+              )}
             </div>
 
             <p className="text-xs text-neutral-500">
@@ -177,6 +172,7 @@ export function ShareButton({ pdi }: { pdi: PdiDoc }) {
                   type="button"
                   onClick={disable}
                   disabled={busy}
+                  aria-busy={busy}
                   className="self-start rounded-md border border-red-200 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"
                 >
                   {busy ? "Desligando…" : "Desligar compartilhamento"}
@@ -187,16 +183,18 @@ export function ShareButton({ pdi }: { pdi: PdiDoc }) {
                 type="button"
                 onClick={enable}
                 disabled={busy}
+                aria-busy={busy}
                 className="self-start rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
               >
                 {busy ? "Gerando…" : "Gerar link de compartilhamento"}
               </button>
             )}
             {error && (
-              <p className="text-xs text-red-600">Não consegui fazer isso agora. Tenta de novo.</p>
+              <p role="alert" className="text-xs text-red-600">
+                Não consegui fazer isso agora. Tenta de novo.
+              </p>
             )}
-          </div>
-        </div>
+        </Modal>
       )}
     </>
   );

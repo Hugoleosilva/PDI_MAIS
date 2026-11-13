@@ -8,6 +8,7 @@ import {
   type PdiGroup,
 } from "@pdi-mais/core";
 import { brand } from "@/lib/theme";
+import { Modal } from "../Modal";
 
 /**
  * Sugestão de agrupamento por IA — mesmo padrão do "Insight com IA"
@@ -74,24 +75,7 @@ export function AIGroupingButton({
       </button>
 
       {open && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4"
-          onClick={() => setOpen(false)}
-        >
-          <div
-            className="flex max-h-[85vh] w-full max-w-xl flex-col gap-3 rounded-lg bg-white p-5 shadow-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-bold">Agrupar blocos com IA</h2>
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                className="rounded p-1 text-lg leading-none text-neutral-500 hover:bg-neutral-100"
-              >
-                ✕
-              </button>
-            </div>
+        <Modal title="Agrupar blocos com IA" onClose={() => setOpen(false)} maxWidth="max-w-xl" scrollable>
             <p className="text-xs text-neutral-500">
               1. Copie o prompt e cole no Gemini. 2. Cole a resposta (JSON) dele aqui embaixo.
               3. Aplique — nada muda até você clicar em aplicar.
@@ -128,7 +112,7 @@ export function AIGroupingButton({
               placeholder='[{"title": "...", "areaTitles": ["..."]}, ...]'
               className="h-28 w-full resize-none rounded border border-neutral-200 p-3 font-mono text-[11px] leading-relaxed"
             />
-            {error && <p className="text-xs text-red-600">{error}</p>}
+            {error && <p role="alert" className="text-xs text-red-600">{error}</p>}
             {unmatched.length > 0 && (
               <p className="text-xs text-amber-600">
                 Aplicado, mas não encontrei estas áreas: {unmatched.join(", ")}
@@ -142,8 +126,7 @@ export function AIGroupingButton({
             >
               Aplicar sugestão
             </button>
-          </div>
-        </div>
+        </Modal>
       )}
     </>
   );

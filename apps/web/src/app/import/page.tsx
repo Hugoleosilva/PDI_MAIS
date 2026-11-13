@@ -27,7 +27,7 @@ export default async function ImportPage() {
   return (
     <div className="flex min-h-screen flex-col bg-[#F4F4F5]">
       <AppHeader active="import" session={session} />
-      <main className="mx-auto w-full max-w-2xl flex-1 p-6">
+      <main id="main-content" className="mx-auto w-full max-w-2xl flex-1 p-6">
         <h1 className="mb-6 text-xl font-bold">
           {pdi ? "Editar / importar PDI" : "Montar PDI"}
         </h1>

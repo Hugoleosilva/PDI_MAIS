@@ -14,7 +14,7 @@ export default async function ProgressPage() {
   return (
     <div className="flex min-h-screen flex-col bg-[#F4F4F5]">
       <AppHeader active="progresso" session={session} />
-      <main className="mx-auto w-full max-w-5xl flex-1 p-6">
+      <main id="main-content" className="mx-auto w-full max-w-5xl flex-1 p-6">
         <h1 className="mb-2 text-xl font-bold">Progresso</h1>
         <p className="mb-6 max-w-2xl text-sm text-neutral-500">
           Acompanhamento do progresso real em relação às metas planejadas para o

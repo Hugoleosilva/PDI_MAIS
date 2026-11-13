@@ -370,7 +370,7 @@ export function AreaNode({ data, selected }: NodeProps & { data: AreaNodeData })
         <span className="rounded px-1.5 py-0.5 text-[10px] font-medium" style={{ background: s.badgeBg, color: s.badgeText }}>
           {s.label}
         </span>
-        {data.hasNotStarted && <span title="Tem ação não iniciada" aria-hidden>🕒</span>}
+        {data.hasNotStarted && <span title="Tem ação não iniciada">🕒</span>}
       </div>
       <div className="line-clamp-2 text-[13px] font-semibold leading-snug" style={{ color: brand.ink }}>
         {data.title}

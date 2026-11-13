@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { formatPercent, snapshotDelta, type PdiDoc, type ProgressSnapshot } from "@pdi-mais/core";
+import { Modal } from "./Modal";
 
 function formatDateTime(iso: string): string {
   return new Intl.DateTimeFormat("pt-BR", {
@@ -72,24 +73,7 @@ export function ReportButton({ pdi }: { pdi: PdiDoc }) {
       </button>
 
       {open && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4"
-          onClick={() => setOpen(false)}
-        >
-          <div
-            className="flex max-h-[85vh] w-full max-w-lg flex-col gap-3 rounded-lg bg-white p-5 shadow-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-bold">Relatório de andamento</h2>
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                className="rounded p-1 text-lg leading-none text-neutral-500 hover:bg-neutral-100"
-              >
-                ✕
-              </button>
-            </div>
+        <Modal title="Relatório de andamento" onClose={() => setOpen(false)} maxWidth="max-w-lg" scrollable>
             <p className="text-xs text-neutral-500">
               Cada relatório é uma fotografia do andamento na data em que foi gerado — compare
               um com o outro pra ver se evoluiu.
@@ -99,12 +83,15 @@ export function ReportButton({ pdi }: { pdi: PdiDoc }) {
               type="button"
               onClick={generate}
               disabled={generating}
+              aria-busy={generating}
               className="self-start rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
             >
               {generating ? "Gerando…" : "+ Gerar relatório de agora"}
             </button>
             {error && (
-              <p className="text-xs text-red-600">Não consegui gerar agora. Tenta de novo.</p>
+              <p role="alert" className="text-xs text-red-600">
+                Não consegui gerar agora. Tenta de novo.
+              </p>
             )}
 
             <div className="flex flex-col gap-2 overflow-y-auto">
@@ -154,8 +141,7 @@ export function ReportButton({ pdi }: { pdi: PdiDoc }) {
                 );
               })}
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
     </>
   );

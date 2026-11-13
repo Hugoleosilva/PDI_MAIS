@@ -188,6 +188,7 @@ export function ManualBuilder({
                       }
                       className="shrink-0 rounded px-2 py-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-600"
                       title="Remover ação"
+                      aria-label="Remover ação"
                     >
                       ✕
                     </button>
@@ -281,6 +282,7 @@ export function ManualBuilder({
         <button
           type="button"
           disabled={busy || !title.trim() || validAreas.length === 0}
+          aria-busy={busy}
           onClick={save}
           className="rounded-md bg-emerald-600 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-500 disabled:opacity-40"
         >
@@ -289,7 +291,11 @@ export function ManualBuilder({
         <span className="text-xs text-neutral-500">
           {validAreas.length} áreas · {actionCount} ações
         </span>
-        {error && <span className="text-xs text-red-600">{error}</span>}
+        {error && (
+          <span role="alert" className="text-xs text-red-600">
+            {error}
+          </span>
+        )}
       </div>
     </div>
   );

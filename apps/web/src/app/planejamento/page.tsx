@@ -15,7 +15,7 @@ export default async function PlanningPage() {
   return (
     <div className="flex min-h-screen flex-col bg-[#F4F4F5]">
       <AppHeader active="planejamento" session={session} />
-      <main className="mx-auto w-full max-w-4xl flex-1 p-6">
+      <main id="main-content" className="mx-auto w-full max-w-4xl flex-1 p-6">
         <h1 className="mb-2 text-xl font-bold">Planejamento</h1>
         <p className="mb-6 max-w-2xl text-sm text-neutral-500">
           Informe a carga horária de cada curso e o progresso real (módulos ou horas

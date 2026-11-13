@@ -23,6 +23,9 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className="bg-white text-neutral-900 antialiased">
+        <a href="#main-content" className="skip-link">
+          Pular para o conteúdo
+        </a>
         {children}
         <RegisterServiceWorker />
       </body>

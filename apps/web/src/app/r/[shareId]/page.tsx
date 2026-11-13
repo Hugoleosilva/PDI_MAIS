@@ -37,7 +37,7 @@ export default async function SharedPdiPage({
           Modo Gestor — só leitura
         </span>
       </header>
-      <main className="min-h-0 flex-1">
+      <main id="main-content" className="min-h-0 flex-1">
         <ReadOnlyCanvas pdi={pdi} />
       </main>
     </div>

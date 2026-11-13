@@ -14,7 +14,7 @@ export default async function Home() {
 
   if (!session?.user) {
     return (
-      <main className="mx-auto flex min-h-screen max-w-lg flex-col items-center justify-center gap-6 p-8 text-center">
+      <main id="main-content" className="mx-auto flex min-h-screen max-w-lg flex-col items-center justify-center gap-6 p-8 text-center">
         <div className="space-y-1">
           <h1 className="text-4xl font-bold tracking-tight" style={{ color: brand.orange }}>
             PDI+
@@ -66,7 +66,7 @@ export default async function Home() {
         }
       />
 
-      <main className="min-h-0 flex-1">
+      <main id="main-content" className="min-h-0 flex-1">
         {pdi ? <PdiCanvas pdi={pdi} /> : <EmptyState />}
       </main>
     </div>

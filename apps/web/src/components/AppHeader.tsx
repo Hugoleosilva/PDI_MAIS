@@ -36,7 +36,10 @@ export function AppHeader({
         </a>
 
         <details className="group relative">
-          <summary className="flex cursor-pointer list-none items-center gap-1.5 outline-none [&::-webkit-details-marker]:hidden">
+          <summary
+            aria-label="Menu da conta"
+            className="flex cursor-pointer list-none items-center gap-1.5 [&::-webkit-details-marker]:hidden"
+          >
             {session.user?.image ? (
               <img
                 src={session.user.image}
@@ -51,6 +54,7 @@ export function AppHeader({
             <svg
               viewBox="0 0 20 20"
               fill="currentColor"
+              aria-hidden="true"
               className="h-4 w-4 text-black transition-transform group-open:rotate-180"
             >
               <path
@@ -90,6 +94,7 @@ export function AppHeader({
             <a
               key={t.key}
               href={t.href}
+              aria-current={active === t.key ? "page" : undefined}
               className="border-b-2 py-2.5 text-sm font-medium transition-colors"
               style={
                 active === t.key

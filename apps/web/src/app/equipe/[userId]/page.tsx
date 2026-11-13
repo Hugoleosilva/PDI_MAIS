@@ -50,7 +50,7 @@ export default async function TeamMemberPage({
           </span>
         </div>
       </header>
-      <main className="min-h-0 flex-1">
+      <main id="main-content" className="min-h-0 flex-1">
         <ReadOnlyCanvas pdi={pdi} />
       </main>
     </div>

@@ -15,7 +15,7 @@ export default async function EquipePage() {
   return (
     <div className="flex min-h-screen flex-col bg-[#F4F4F5]">
       <AppHeader active="equipe" session={session} />
-      <main className="mx-auto w-full max-w-3xl flex-1 p-6">
+      <main id="main-content" className="mx-auto w-full max-w-3xl flex-1 p-6">
         <h1 className="mb-2 text-xl font-bold">Equipe</h1>
         <p className="mb-6 max-w-2xl text-sm text-neutral-500">
           PDIs que seus liderados compartilharam com você ({session.user.email}), só leitura.

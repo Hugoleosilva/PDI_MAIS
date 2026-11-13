@@ -226,6 +226,7 @@ export function ImportForm({
               type="button"
               data-testid="import-confirm-button"
               disabled={busy}
+              aria-busy={busy}
               onClick={confirm}
               className="mt-4 rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-40"
             >
@@ -239,7 +240,7 @@ export function ImportForm({
       )}
 
       {error && (
-        <p data-testid="import-error" className="text-sm text-red-600">
+        <p data-testid="import-error" role="alert" className="text-sm text-red-600">
           {error}
         </p>
       )}

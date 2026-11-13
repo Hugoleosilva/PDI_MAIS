@@ -38,7 +38,12 @@ async function revealWindow(windowId) {
   await chrome.windows.update(windowId, { state: "normal", focused: true }).catch(() => {});
 }
 
-function waitTabComplete(tabId, timeoutMs = 15000) {
+// 90s, não 15s: em dev o Next.js compila cada rota só na primeira vez que
+// alguém bate nela depois do servidor subir, e isso já levou mais de 2min
+// pra rotas pesadas (confirmado em teste real) — 15s estourava antes do
+// servidor sequer responder, abortando a sincronização sem nunca chegar na
+// aba final.
+function waitTabComplete(tabId, timeoutMs = 90000) {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
       chrome.tabs.onUpdated.removeListener(listener);
@@ -80,9 +85,13 @@ function fillAndSubmitImport(csv) {
   }
 
   return (async () => {
+    // mesmo motivo do waitTabComplete em background.js: a janela do PDI+
+    // tá minimizada (throttle do Chrome) e em dev a rota pode levar mais de
+    // 1min pra compilar na primeira chamada — 15s estourava antes de o
+    // formulário sequer montar.
     const textarea = await waitFor(
       () => document.querySelector('[data-testid="import-table-textarea"]'),
-      15000,
+      90000,
     );
     if (!textarea) {
       return {
@@ -94,10 +103,19 @@ function fillAndSubmitImport(csv) {
     const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value").set;
     setter.call(textarea, csv);
     textarea.dispatchEvent(new Event("input", { bubbles: true }));
-    await sleep(200);
 
-    const previewBtn = document.querySelector('[data-testid="import-preview-button"]');
-    if (!previewBtn || previewBtn.disabled) {
+    // era um sleep(200) fixo + 1 checagem só — único passo não-pollado desta
+    // função. Com a janela minimizada (throttle do Chrome), o re-render do
+    // React que habilita o botão podia não ter acontecido ainda nesses
+    // 200ms, dando falso negativo. Poll, igual ao resto da função.
+    const previewBtn = await waitFor(
+      () => {
+        const el = document.querySelector('[data-testid="import-preview-button"]');
+        return el && !el.disabled ? el : null;
+      },
+      5000,
+    );
+    if (!previewBtn) {
       return { ok: false, error: "Botão de pré-visualizar não habilitou." };
     }
     previewBtn.click();
@@ -114,13 +132,13 @@ function fillAndSubmitImport(csv) {
     confirmBtn.click();
 
     // generoso de propósito: em dev o Next.js compila a rota na primeira
-    // chamada (alguns segundos sozinho), e um PDI grande (dezenas de ações)
-    // demora mais pra processar — 10s estourava com frequência.
+    // chamada (já vimos passar de 1min pra rotas pesadas), e um PDI grande
+    // (dezenas de ações) demora mais pra processar — 30s ainda estourava.
     const outcome = await waitFor(() => {
       if (!location.pathname.includes("/import")) return "done";
       if (document.querySelector('[data-testid="import-error"]')) return "error";
       return null;
-    }, 30000);
+    }, 90000);
 
     if (outcome === "done") return { ok: true };
     if (outcome === "error") {
@@ -131,7 +149,18 @@ function fillAndSubmitImport(csv) {
   })();
 }
 
+// Com os timeouts acima girando em torno de 1-3min no total, ficou bem mais
+// tentador clicar de novo (reabrindo o popup, ou clicando no botão da página
+// enquanto um sync já tá rodando) — sem essa trava, isso disparava DOIS
+// `runSync` concorrentes: duas janelas escondidas, duas escritas competindo
+// no `chrome.storage.local`, e possivelmente duas abas finais abrindo.
+let syncInFlight = false;
+
 async function runSync({ qultureUrl, baseUrl }) {
+  if (syncInFlight) {
+    return { ok: false, error: "Já tem uma sincronização rodando — espera ela terminar." };
+  }
+  syncInFlight = true;
   let qultureWin;
   let pdiWin;
   try {
@@ -204,6 +233,8 @@ async function runSync({ qultureUrl, baseUrl }) {
     await revealWindow(pdiWin?.windowId);
     sendProgress(`✕ ${msg}`);
     return { ok: false, error: msg };
+  } finally {
+    syncInFlight = false;
   }
 }
 

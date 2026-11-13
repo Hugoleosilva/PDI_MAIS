@@ -5,7 +5,7 @@ export function EmptyState() {
 
   return (
     <div className="flex h-full flex-col items-center justify-center gap-4 p-8 text-center">
-      <div className="text-4xl">🗺️</div>
+      <div className="text-4xl" aria-hidden="true">🗺️</div>
       <h2 className="text-lg font-semibold">Seu PDI+ ainda está vazio</h2>
       <p className="max-w-sm text-sm text-neutral-500">
         Cole a tabela do seu PDI (ou suba um CSV) para montar o roadmap.

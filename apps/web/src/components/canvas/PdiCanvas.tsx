@@ -1047,6 +1047,32 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
     [],
   );
 
+  // Equivalente de teclado ao clique: card de área/ação recebe foco via Tab
+  // (React Flow já torna os nós focáveis), Enter/Espaço abre o mesmo painel
+  // que o clique do mouse abriria.
+  useEffect(() => {
+    const onKeyOpen = (e: KeyboardEvent) => {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      const target = e.target as HTMLElement;
+      // Mesma guarda do handler de Escape/Delete acima — sem isso, Espaço
+      // dentro de um título/nota editável do card (EditableText, StickyNote)
+      // era engolido (preventDefault cancelava a digitação do caractere), e
+      // Enter/Espaço num botão de verdade dentro do nó (cor do bloco, ✕ da
+      // anotação) reabria o painel em vez de ativar o próprio botão.
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") return;
+      if (target.closest("button, a, [role='button'], select")) return;
+      const nodeEl = target.closest<HTMLElement>(".react-flow__node");
+      if (!nodeEl) return;
+      const id = nodeEl.getAttribute("data-id");
+      const node = id ? nodesRef.current.find((n) => n.id === id) : undefined;
+      if (!node) return;
+      e.preventDefault();
+      onNodeClick(null, node);
+    };
+    window.addEventListener("keydown", onKeyOpen);
+    return () => window.removeEventListener("keydown", onKeyOpen);
+  }, [onNodeClick]);
+
   // Duplo clique em qualquer lugar de um bloco (área vazia) seleciona o bloco.
   const wrapperRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -1209,7 +1235,16 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
         className="absolute inset-y-0 left-0 z-20 flex flex-col overflow-y-auto overflow-x-hidden border-r bg-white py-2 shadow-lg transition-[width] duration-200 ease-out"
         style={{ borderColor: brand.border, width: toolsOpen ? 296 : 56 }}
         onMouseEnter={() => setToolsOpen(true)}
-        onMouseLeave={() => setToolsOpen(false)}
+        onMouseLeave={(e) => {
+          // não fecha se o foco ainda estiver dentro do rail — senão, tirar o
+          // mouse de cima enquanto navega por Tab fecha o rail com um botão
+          // ainda focado (mas agora clipado pelo overflow-x-hidden).
+          if (!e.currentTarget.contains(document.activeElement)) setToolsOpen(false);
+        }}
+        onFocus={() => setToolsOpen(true)}
+        onBlur={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as globalThis.Node | null)) setToolsOpen(false);
+        }}
       >
         <ToolTopic
           icon={LayoutTemplate}

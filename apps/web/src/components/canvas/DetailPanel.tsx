@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import {
   ACTION_KIND_LABEL,
   ACTION_STATUS_LABEL,
@@ -147,6 +147,15 @@ export function DetailPanel({
   const d = node.data as PanelData;
   const s = statusStyle(d.status, isArea ? "area" : "action");
   const [deleting, setDeleting] = useState(false);
+  const titleId = useId();
+  const closeBtnRef = useRef<HTMLButtonElement>(null);
+
+  // Drawer (não modal — o resto do canvas continua interativo atrás dele de
+  // propósito), mas ainda precisa focar algo ao abrir pra quem navega por
+  // teclado não ficar perdido no fundo da página.
+  useEffect(() => {
+    closeBtnRef.current?.focus();
+  }, []);
 
   const handleDelete = async () => {
     if (!onDeleteArea) return;
@@ -160,6 +169,8 @@ export function DetailPanel({
 
   return (
     <aside
+      role="dialog"
+      aria-labelledby={titleId}
       className="absolute right-0 top-0 z-10 flex h-full w-[340px] flex-col gap-4 overflow-y-auto border-l bg-white p-5 shadow-xl"
       style={{ borderColor: brand.border }}
     >
@@ -168,6 +179,7 @@ export function DetailPanel({
           {isArea ? "Área de desenvolvimento" : "Ação"}
         </span>
         <button
+          ref={closeBtnRef}
           type="button"
           onClick={onClose}
           aria-label="Fechar"
@@ -186,7 +198,7 @@ export function DetailPanel({
         </div>
       )}
 
-      <h2 className="text-base font-semibold leading-snug" style={{ color: brand.ink }}>
+      <h2 id={titleId} className="text-base font-semibold leading-snug" style={{ color: brand.ink }}>
         {d.title}
       </h2>
 
@@ -245,6 +257,7 @@ export function DetailPanel({
           type="button"
           onClick={handleDelete}
           disabled={deleting}
+          aria-busy={deleting}
           className="mt-auto self-start rounded-md border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
         >
           {deleting ? "Excluindo…" : "🗑 Excluir área"}
