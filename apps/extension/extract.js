@@ -69,6 +69,22 @@
     return Number(label?.textContent?.match(/\((\d+)\)/)?.[1]) || undefined;
   }
 
+  // Avisa o progresso ao vivo na página do PDI+ (ver content.js) — extração
+  // = até 70% da barra, o restante (preencher/confirmar) é o background.js.
+  // Best-effort: se o contexto não tiver chrome.runtime por algum motivo,
+  // só ignora (nunca deixa a extração quebrar por causa de um aviso).
+  function sendAreaProgress(done, total) {
+    try {
+      const text = total
+        ? `Lendo áreas do Qulture: ${done}/${total}...`
+        : `Lendo áreas do Qulture: ${done} lida(s)...`;
+      const percent = total ? Math.round((done / total) * 70) : undefined;
+      chrome.runtime?.sendMessage?.({ type: "progress", text, percent })?.catch?.(() => {});
+    } catch {
+      /* ignora — aviso de progresso nunca pode derrubar a extração */
+    }
+  }
+
   // Descrição rica (editor de texto da Qulture) usa formatos variados,
   // confirmados no DOM real: lista com marcadores (<ul><li>) OU parágrafos
   // (<p>) com formatação inline (<strong>/<em>) misturada no meio do texto.
@@ -188,9 +204,17 @@
 
       if (expectedCount && rows.length >= expectedCount) break;
 
+      // NÃO desiste mais só por não ter nenhum item ainda (`current` vazio)
+      // — bem no instante em que o painel da área abre, a lista de ações
+      // pode levar um instante a mais pra chegar da API do que o próprio
+      // painel (confirmado em teste real: 2 áreas com bastante ação, 11 e
+      // 18, voltavam "não encontrei nenhuma ação" — a 1ª rodada via a lista
+      // ainda vazia e desistia na hora, igual ao mesmo bug já corrigido na
+      // lista de ÁREAS). Só rola se tiver algo pra rolar; espera sempre.
       const last = current[current.length - 1];
-      if (!last) break;
-      last.scrollIntoView({ block: "end" });
+      if (last) {
+        last.scrollIntoView({ block: "end" });
+      }
       // MUITO generoso de propósito: a janela roda minimizada (Chrome não
       // deixa posicionar de verdade fora da tela) e isso throttla scroll/
       // IntersectionObserver/timers da página — o carregamento de mais
@@ -231,6 +255,13 @@
   // por referência de nó, porque "Voltar" pode remontar a lista do zero.
   const processedTitles = new Set();
   let areaStableRounds = 0;
+  let pagerPage = 1;
+  // "Área de Desenvolvimento (N)" mostra o total da PÁGINA atual, não o
+  // total geral (confirmado em teste real: 16 áreas reais, rótulo mostrando
+  // "(10)" na página 1) — por isso é uma estimativa que cresce ao avançar de
+  // página, não uma constante.
+  let areaTotalGuess = expectedAreaCount;
+  sendAreaProgress(0, areaTotalGuess);
 
   for (let round = 0; round < 120; round++) {
     const goalItems = [...document.querySelectorAll('[data-testid="idp-goal-item"]')];
@@ -309,11 +340,21 @@
       const infoTab = findByText("button, div[role='tab'], a", /^Mais informações$/i);
       if (infoTab) {
         infoTab.click();
-        await sleep(600);
+        // Era um sleep(600) fixo + 1 checagem só — mesma classe de bug já
+        // corrigida nas listas de área/ação: se "Mais informações" demorar
+        // um pouco mais que isso pra trocar de aba/renderizar (confirmado
+        // em teste real: área "OpenCode" veio sem descrição nenhuma, mesmo
+        // tendo uma de verdade), a checagem única batia vazio e `areaDesc`
+        // ficava "" pro resto da área. Agora espera de verdade o cabeçalho
+        // aparecer antes de desistir.
+        const descHeader = await waitFor(
+          () => findByText("div,h2,h3,span,label", /^Descri[cç][aã]o\b/i),
+          6000,
+          200,
+        );
         // "Descrição" sozinho (igualdade exata) falhava sempre que o
         // cabeçalho vinha com algo a mais (dois pontos, ícone de
         // expandir...) — agora basta COMEÇAR com a palavra.
-        const descHeader = findByText("div,h2,h3,span,label", /^Descri[cç][aã]o\b/i);
         // mesmo padrão truncado das ações pode existir aqui — expande se
         // tiver um "Mostrar mais"/"Mostrar descrição" por perto.
         const moreToggle = findByText(
@@ -338,38 +379,115 @@
         actionCount += 1;
       }
 
-      const backBtn = findBackButton();
+      sendAreaProgress(processedTitles.size, areaTotalGuess);
+
+      // Antes, não achar o "Voltar" na hora abortava a extração INTEIRA e
+      // devolvia só o que tinha lido até ali — sem exceção, sem erro, só um
+      // retorno silencioso. Isso explica os "só vieram N áreas" vistos em
+      // teste real variando a cada tentativa (2, 8, 9, 10...): não tinha
+      // relação com paginação, era essa saída batendo em pontos diferentes
+      // dependendo de qual área demorava mais a renderizar o botão. Dá mais
+      // uma chance esperando antes de desistir de vez.
+      let backBtn = findBackButton();
+      if (!backBtn) {
+        backBtn = await waitFor(() => findBackButton(), 5000, 200);
+      }
       if (backBtn) {
         backBtn.click();
         await sleep(500);
       } else {
-        warnings.push(`Área "${areaTitle}": não achei o botão "Voltar" — a extração pode ter parado aqui.`);
-        const csv = rows.map((r) => r.map(csvEscape).join(",")).join("\n");
-        return { csv, areaCount: processedTitles.size, actionCount, warnings };
+        warnings.push(
+          `Área "${areaTitle}": não achei o botão "Voltar" mesmo esperando — a extração pode ter parado aqui.`,
+        );
+        // não retorna mais: deixa o loop seguir. Se de fato ficou preso
+        // nessa tela (sem conseguir voltar pra lista), a próxima rodada não
+        // vai achar nenhum "idp-goal-item" novo e o loop termina sozinho
+        // pela via normal (areaStableRounds), já com o aviso acima incluído.
       }
     }
 
-    if (expectedAreaCount && processedTitles.size >= expectedAreaCount) break;
+    // (sem parada antecipada aqui por "bateu o total esperado" — esse total
+    // é só da página atual, ver comentário acima; parar com base nele fazia
+    // o loop achar que tinha terminado exatamente ao fim da página 1, nunca
+    // chegando a tentar a paginação abaixo. Confirmado em teste real: parou
+    // em 9/10 da página 1, nunca viu as 6 áreas da página 2.)
 
     if (processedThisRound > 0) {
       areaStableRounds = 0;
-    } else {
-      areaStableRounds += 1;
-      if (areaStableRounds >= 10) break;
-      // nada novo nesta rodada — tenta rolar a LISTA de áreas pra carregar
-      // mais (mesma técnica das ações: rola o último card atual pra vista).
-      const currentCards = [...document.querySelectorAll('[data-testid="idp-goal-item"]')];
-      const lastCard = currentCards[currentCards.length - 1];
-      if (lastCard) {
-        lastCard.scrollIntoView({ block: "end" });
-        await sleep(700);
-      }
+      continue;
     }
+
+    areaStableRounds += 1;
+
+    // A lista de áreas aqui é PAGINADA de verdade (confirmado em teste real:
+    // 16 áreas = 10 na página 1 + 6 na página 2, com paginador "< 1 2 >" no
+    // rodapé) — diferente da lista de AÇÕES dentro de cada área, que é
+    // virtualizada por rolagem. Rolar não carrega mais nada aqui; precisa
+    // clicar no número/seta da página seguinte.
+    const lastGoalRect = goalItems[goalItems.length - 1]?.getBoundingClientRect();
+    const clickable = [...document.querySelectorAll("button, a, [role='button']")];
+    const isNearPagerPosition = (el) => {
+      if (!lastGoalRect) return true;
+      const r = el.getBoundingClientRect();
+      return r.top >= lastGoalRect.bottom - 20 && r.top < lastGoalRect.bottom + 400;
+    };
+    const nextPageBtn =
+      clickable.find(
+        (el) =>
+          el.textContent?.trim() === String(pagerPage + 1) &&
+          !el.disabled &&
+          isNearPagerPosition(el),
+      ) ||
+      clickable.find((el) => {
+        const t = el.textContent?.trim() ?? "";
+        return (
+          (t === ">" || t === "›" || t === "»") &&
+          !el.disabled &&
+          el.getAttribute("aria-disabled") !== "true" &&
+          isNearPagerPosition(el)
+        );
+      });
+    if (nextPageBtn) {
+      nextPageBtn.click();
+      pagerPage += 1;
+      areaStableRounds = 0;
+      await waitFor(() => document.querySelectorAll('[data-testid="idp-goal-item"]').length > 0, 8000, 200);
+      await sleep(500);
+      // recalcula a estimativa do total: o que já foi processado + o
+      // rótulo "(N)" da página nova (pode ser menor que a página 1, como
+      // no caso real de 10 + 6).
+      const newHeading = findByText("h1,h2,h3,div,span", /Área\s+de\s+Desenvolvimento\s*\(\d+\)/i);
+      const newPageCount = parseCount(newHeading);
+      if (newPageCount) areaTotalGuess = processedTitles.size + newPageCount;
+      sendAreaProgress(processedTitles.size, areaTotalGuess);
+      continue;
+    }
+
+    // 20, não 10: cada rodada agora espera 700ms de verdade (ver correção
+    // acima), então 20 rodadas = ~14s de paciência real antes de desistir —
+    // barato perto do custo de perder área de verdade por impaciência.
+    if (areaStableRounds >= 20) break;
+    // sem paginador achado e nada novo — tenta rolar mesmo assim (resta
+    // como era antes, de defesa, caso alguma parte da página ainda seja
+    // virtualizada por rolagem).
+    const currentCards = [...document.querySelectorAll('[data-testid="idp-goal-item"]')];
+    const lastCard = currentCards[currentCards.length - 1];
+    if (lastCard) {
+      lastCard.scrollIntoView({ block: "end" });
+    }
+    // sempre espera, mesmo sem card nenhum pra rolar — logo depois de
+    // clicar "Voltar", a lista fica vazia por um instante até a SPA
+    // recarregar; sem essa espera, as 10 "rodadas de estabilidade" se
+    // esgotavam quase instantâneo nesse vazio, antes da lista ter a menor
+    // chance de voltar a aparecer (confirmado em teste real: contagem final
+    // variando sem padrão — 2, 7, 8, 9, 10 — a cada tentativa, dependendo
+    // só de quão rápido a Qulture respondia naquele instante).
+    await sleep(700);
   }
 
-  if (expectedAreaCount && processedTitles.size < expectedAreaCount) {
+  if (areaTotalGuess && processedTitles.size < areaTotalGuess) {
     warnings.push(
-      `Esperava ${expectedAreaCount} área(s), só consegui processar ${processedTitles.size}.`,
+      `Esperava ${areaTotalGuess} área(s), só consegui processar ${processedTitles.size}.`,
     );
   }
 

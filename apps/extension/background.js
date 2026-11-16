@@ -60,11 +60,11 @@ function waitTabComplete(tabId, timeoutMs = 90000) {
   });
 }
 
-function sendProgress(text) {
+function sendProgress(text, percent) {
   // guarda o último status (o popup pode ter fechado nesse meio tempo —
   // ele lê isso ao abrir de novo) e tenta avisar ao vivo se ainda estiver aberto.
   chrome.storage.local.set({ lastStatus: text });
-  chrome.runtime.sendMessage({ type: "progress", text }).catch(() => {});
+  chrome.runtime.sendMessage({ type: "progress", text, percent }).catch(() => {});
 }
 
 /**
@@ -161,6 +161,16 @@ async function runSync({ qultureUrl, baseUrl }) {
     return { ok: false, error: "Já tem uma sincronização rodando — espera ela terminar." };
   }
   syncInFlight = true;
+  // MV3 mata o service worker depois de ~30s sem nenhuma chamada de API da
+  // extensão em andamento — e runSync pode ficar minutos inteiros só
+  // esperando (sleep/scroll/DOM poll dentro da aba escondida), sem nenhuma
+  // chamada direta nesse meio tempo. Sem isso, o worker morria NO MEIO da
+  // sincronização, o canal de mensagem fechava e quem chamou só recebia
+  // "message channel closed" sem resultado nenhum (confirmado em teste real
+  // com um PDI de 16 áreas — demora o bastante pra acontecer).
+  const keepAlive = setInterval(() => {
+    chrome.storage.local.get(["__keepalive"]).catch(() => {});
+  }, 20000);
   let qultureWin;
   let pdiWin;
   try {
@@ -177,7 +187,7 @@ async function runSync({ qultureUrl, baseUrl }) {
       };
     }
 
-    sendProgress("Lendo o PDI em segundo plano (janela escondida)...");
+    sendProgress("Lendo o PDI em segundo plano (janela escondida)...", 0);
     qultureWin = await openHiddenWindow(qultureUrl);
     await waitTabComplete(qultureWin.tabId);
     await sleep(500); // app ainda hidratando
@@ -199,6 +209,7 @@ async function runSync({ qultureUrl, baseUrl }) {
 
     sendProgress(
       `Lido: ${extracted.areaCount} área(s), ${extracted.actionCount} ação(ões). Preenchendo o PDI+...`,
+      70,
     );
 
     pdiWin = await openHiddenWindow(`${baseUrl}/import?tab=paste`);
@@ -223,7 +234,7 @@ async function runSync({ qultureUrl, baseUrl }) {
 
     const warnLine = extracted.warnings?.length ? ` (${extracted.warnings.join(" ")})` : "";
     const okMsg = `PDI+ atualizado — ${extracted.areaCount} área(s), ${extracted.actionCount} ação(ões).${warnLine}`;
-    sendProgress(`✓ ${okMsg}`);
+    sendProgress(`✓ ${okMsg}`, 100);
     return { ok: true, message: okMsg };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
@@ -234,6 +245,7 @@ async function runSync({ qultureUrl, baseUrl }) {
     sendProgress(`✕ ${msg}`);
     return { ok: false, error: msg };
   } finally {
+    clearInterval(keepAlive);
     syncInFlight = false;
   }
 }

@@ -188,12 +188,53 @@
 
   syncVisibility(); // estado inicial, de acordo com a URL de agora
 
+  // Aviso de progresso visível na página — background.js já manda essas
+  // mensagens (usadas pelo popup); agora o content script também escuta e
+  // mostra na tela mesmo sem o popup aberto, que é o caminho mais comum
+  // (clicar direto no botão da página).
+  const PROGRESS_ID = "pdi-mais-progress";
+  function ensureProgressEl() {
+    let el = document.getElementById(PROGRESS_ID);
+    if (!el) {
+      el = document.createElement("div");
+      el.id = PROGRESS_ID;
+      el.className = "pdi-mais-progress";
+      el.innerHTML =
+        '<div class="pdi-mais-progress__text"></div>' +
+        '<div class="pdi-mais-progress__bar"><div class="pdi-mais-progress__fill"></div></div>';
+      document.documentElement.appendChild(el);
+    }
+    return el;
+  }
+  // percent é opcional — algumas mensagens (erro, "preenchendo o
+  // formulário") não têm um número exato, só o texto mesmo.
+  function showProgress(text, percent) {
+    const el = ensureProgressEl();
+    el.querySelector(".pdi-mais-progress__text").textContent = text;
+    const fill = el.querySelector(".pdi-mais-progress__fill");
+    if (typeof percent === "number" && Number.isFinite(percent)) {
+      fill.style.width = `${Math.max(0, Math.min(100, percent))}%`;
+      fill.parentElement.style.display = "block";
+    } else {
+      fill.parentElement.style.display = "none";
+    }
+    el.style.display = "block";
+  }
+  function hideProgress() {
+    const el = document.getElementById(PROGRESS_ID);
+    if (el) el.style.display = "none";
+  }
+  chrome.runtime.onMessage.addListener((msg) => {
+    if (msg?.type === "progress") showProgress(msg.text, msg.percent);
+  });
+
   async function onClick(e) {
     const el = e.currentTarget;
     if (el.dataset.pdiSyncing === "true") return;
     el.dataset.pdiSyncing = "true";
     const original = el.textContent;
     el.innerHTML = '<span class="pdi-mais-spinner"></span>';
+    showProgress("Iniciando sincronização...");
 
     try {
       const { pdiPlusUrl } = await chrome.storage.local.get(["pdiPlusUrl"]);
@@ -213,9 +254,21 @@
               : ""),
         );
       }
+    } catch (err) {
+      // "message channel closed before a response was received" — o service
+      // worker (background.js) morreu no meio da sincronização (MV3 mata o
+      // worker depois de um tempo ocioso; um PDI grande pode levar minutos).
+      // Sem este catch, isso ficava só "Uncaught" no console e o botão
+      // resetava em silêncio, sem avisar que nada foi importado de verdade
+      // (confirmado em teste real, com 16 áreas).
+      alert(
+        `PDI+: perdi contato com a extensão no meio da sincronização (${err?.message ?? err}). ` +
+          'Tenta de novo — se repetir, abre o popup da extensão (ícone da barra) pra ver o progresso salvo.',
+      );
     } finally {
       el.dataset.pdiSyncing = "false";
       el.textContent = original;
+      hideProgress();
     }
   }
 })();
