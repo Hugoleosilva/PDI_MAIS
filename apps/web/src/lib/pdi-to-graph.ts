@@ -33,7 +33,11 @@ export const LAYOUT_LABEL: Record<Layout, string> = {
 
 export const NODE_SIZE = {
   root: { width: 250, height: 168 },
-  area: { width: 264, height: 96 },
+  // Mesmo tamanho do card raiz — títulos reais de área (vindos do Qulture)
+  // são bem mais longos que os de teste e estouravam o line-clamp-2 antigo
+  // (96px de altura). Mantém tudo que já era específico da área (badge,
+  // barra de progresso, contagem de ações) — só ganhou espaço.
+  area: { width: 250, height: 168 },
   action: { width: 320, height: 112 },
   band: { width: 320, height: 40 },
 } as const;

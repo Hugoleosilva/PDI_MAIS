@@ -372,7 +372,11 @@ export function AreaNode({ data, selected }: NodeProps & { data: AreaNodeData })
         </span>
         {data.hasNotStarted && <span title="Tem ação não iniciada">🕒</span>}
       </div>
-      <div className="line-clamp-2 text-[13px] font-semibold leading-snug" style={{ color: brand.ink }}>
+      <div
+        className="line-clamp-5 text-[13px] font-semibold leading-snug"
+        style={{ color: brand.ink }}
+        title={data.title}
+      >
         {data.title}
       </div>
       <div className="mt-auto flex items-center gap-2">
