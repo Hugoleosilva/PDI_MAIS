@@ -14,12 +14,17 @@
 // — e a extração depende de rolar listas virtualizadas/paginadas pra
 // carregar mais itens, sensível a esse throttling) — mas o Chrome REJEITA
 // bounds majoritariamente fora da tela ("Bounds must be at least 50% within
-// visible screen space"), então essa saída não existe. Em vez de brigar com
-// isso, compensamos o throttling dando bem mais paciência (esperas maiores,
-// mais tentativas) na extração — ver extract.js. Se der erro, a janela é
-// trazida de volta pra área visível pra dar pra inspecionar; se der certo,
-// ela é fechada e o resultado final abre como uma aba normal, na janela que
-// o usuário está de fato usando.
+// visible screen space"), então essa saída não existe.
+//
+// Testamos (2026-11-23, docs/testes/2026-11-23-performance-sincronizacao.md,
+// "Experimento 3") trocar minimizada por uma janela pequena visível, sem
+// foco — a teoria era que `visibilityState: "hidden"` fosse a causa da
+// lentidão. NÃO resolveu (tempo total ficou igual ou pior) — a lentidão
+// continuou concentrada sempre nas 1-2 primeiras áreas PROCESSADAS,
+// independente de qual área é essa ou se a janela está minimizada. Ou seja,
+// não é throttling de janela oculta; é outra coisa ligada à ORDEM de
+// processamento. Voltou a minimizar (sem motivo pra pagar o custo de UX de
+// uma janela visível sem ganho nenhum) enquanto isso é investigado.
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -235,6 +240,7 @@ async function runSync({ qultureUrl, baseUrl }) {
     const warnLine = extracted.warnings?.length ? ` (${extracted.warnings.join(" ")})` : "";
     const okMsg = `PDI+ atualizado — ${extracted.areaCount} área(s), ${extracted.actionCount} ação(ões).${warnLine}`;
     sendProgress(`✓ ${okMsg}`, 100);
+
     return { ok: true, message: okMsg };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);

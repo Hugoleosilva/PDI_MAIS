@@ -39,12 +39,54 @@
 
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+  /**
+   * Espera o DOM de `container` mudar (MutationObserver — childList,
+   * characterData E attributes, porque o toggle de "Mostrar descrição" pode
+   * ser só uma CLASSE/estilo mudando, não texto novo), com um `setTimeout`
+   * só como rede de segurança. Motivo (ver medição real em
+   * docs/testes/2026-11-23-performance-sincronizacao.md, "Experimento 4" e
+   * "5"): QUALQUER espera baseada só em `setTimeout` leva o throttling de
+   * aba em 2º plano do Chrome (minimizada = ainda mais forte) — um
+   * `sleep()`/poll que custaria ms vira até ~60s de verdade enquanto o
+   * throttling está "ligado" (os primeiros minutos da janela escondida). Já
+   * vimos esse custo migrar pra 3 pontos diferentes do código conforme cada
+   * um foi corrigido — por isso `waitFor` (usado em quase toda espera do
+   * arquivo) também passou a ser orientado a mutação, não só esse ponto.
+   * MutationObserver não é timer — dispara no instante em que o React
+   * atualiza o DOM de verdade, mesmo com a aba throttlada.
+   */
+  function waitForMutation(container, timeoutMs = 1500) {
+    if (!container || typeof MutationObserver === "undefined") return sleep(timeoutMs);
+    return new Promise((resolve) => {
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        obs.disconnect();
+        clearTimeout(timer);
+        resolve();
+      };
+      const obs = new MutationObserver(finish);
+      obs.observe(container, { childList: true, subtree: true, characterData: true, attributes: true });
+      const timer = setTimeout(finish, timeoutMs);
+    });
+  }
+
+  // Generalizado (ver comentário de `waitForMutation` acima): em vez de só
+  // reconferir `check()` a cada `intervalMs` via `setTimeout` (exposto ao
+  // mesmo throttling), espera por uma mutação real no documento inteiro
+  // antes de reconferir — resolve quase na hora quando o DOM muda de
+  // verdade, e só cai no teto de `intervalMs` (ainda sujeito a throttling,
+  // igual já era) quando nada muda mesmo.
   async function waitFor(check, timeoutMs = 6000, intervalMs = 150) {
     const start = Date.now();
+    const immediate = check();
+    if (immediate) return immediate;
     while (Date.now() - start < timeoutMs) {
+      const remaining = timeoutMs - (Date.now() - start);
+      await waitForMutation(document.body, Math.max(50, Math.min(intervalMs, remaining)));
       const v = check();
       if (v) return v;
-      await sleep(intervalMs);
     }
     return null;
   }
@@ -146,7 +188,7 @@
       // caractere — a diferença de tamanho entre os dois rótulos).
       const before = new Set(leafTexts(item).map((el) => el.textContent.trim()));
       descToggle.click();
-      await sleep(400);
+      await waitForMutation(item, 1500);
       const newTexts = leafTexts(item)
         .map((el) => el.textContent.trim())
         .filter((t) => t && !before.has(t) && !/^Fechar descri[cç][aã]o/i.test(t));
@@ -220,7 +262,10 @@
       // IntersectionObserver/timers da página — o carregamento de mais
       // itens fica mais lento e inconsistente, não trava de vez. Mais vale
       // esperar bastante do que desistir cedo e perder ação.
-      await sleep(700);
+      // `waitForMutation` (orientado a mutação, não timer) em vez de um
+      // `sleep(700)` puro: o Chrome throttla timers de abas em segundo plano
+      // (ver docs/testes/2026-11-23-performance-sincronizacao.md).
+      await waitForMutation(document.body, 700);
 
       if (gotNew) {
         stableRounds = 0;
@@ -295,7 +340,7 @@
           15000,
         );
         if (!opened) continue;
-        await sleep(400);
+        await waitForMutation(document.body, 400);
 
         // Lê as ações PRIMEIRO, com a aba "Ações" já ativa por padrão (é onde
         // o painel abre) — a descrição da área (aba "Mais informações") entra
@@ -318,7 +363,7 @@
           const back = findBackButton();
           if (back) {
             back.click();
-            await sleep(500);
+            await waitForMutation(document.body, 500);
           }
         }
       }
@@ -363,7 +408,7 @@
         );
         if (moreToggle) {
           moreToggle.click();
-          await sleep(400);
+          await waitForMutation(document.body, 400);
         }
         for (const container of [descHeader?.parentElement, descHeader?.parentElement?.parentElement]) {
           if (areaDesc || !container) continue;
@@ -394,7 +439,7 @@
       }
       if (backBtn) {
         backBtn.click();
-        await sleep(500);
+        await waitForMutation(document.body, 500);
       } else {
         warnings.push(
           `Área "${areaTitle}": não achei o botão "Voltar" mesmo esperando — a extração pode ter parado aqui.`,
@@ -404,6 +449,7 @@
         // vai achar nenhum "idp-goal-item" novo e o loop termina sozinho
         // pela via normal (areaStableRounds), já com o aviso acima incluído.
       }
+
     }
 
     // (sem parada antecipada aqui por "bateu o total esperado" — esse total
@@ -452,7 +498,7 @@
       pagerPage += 1;
       areaStableRounds = 0;
       await waitFor(() => document.querySelectorAll('[data-testid="idp-goal-item"]').length > 0, 8000, 200);
-      await sleep(500);
+      await waitForMutation(document.body, 500);
       // recalcula a estimativa do total: o que já foi processado + o
       // rótulo "(N)" da página nova (pode ser menor que a página 1, como
       // no caso real de 10 + 6).
@@ -482,7 +528,7 @@
     // chance de voltar a aparecer (confirmado em teste real: contagem final
     // variando sem padrão — 2, 7, 8, 9, 10 — a cada tentativa, dependendo
     // só de quão rápido a Qulture respondia naquele instante).
-    await sleep(700);
+    await waitForMutation(document.body, 700);
   }
 
   if (areaTotalGuess && processedTitles.size < areaTotalGuess) {
