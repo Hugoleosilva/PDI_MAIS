@@ -75,6 +75,16 @@ const LAYOUTS: Layout[] = ["tree-lr", "tree-tb", "kanban", "swimlane", "radial",
 const uuid = () =>
   globalThis.crypto?.randomUUID?.() ?? `x${Date.now()}${Math.random().toString(36).slice(2, 8)}`;
 
+/** Distância de um ponto até o segmento a-b — usado pra achar conexão perto do clique. */
+function distToSegment(p: Pos, a: Pos, b: Pos): number {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const lenSq = dx * dx + dy * dy;
+  if (lenSq === 0) return Math.hypot(p.x - a.x, p.y - a.y);
+  const t = Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / lenSq));
+  return Math.hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy));
+}
+
 function TBtn({
   active,
   onClick,
@@ -528,6 +538,21 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
       setSelectedGroupId((cur) => (cur === id ? null : cur));
     },
     [groups, commitGroups],
+  );
+
+  const confirmDeleteGroup = useCallback(
+    (id: string) => {
+      const g = groups.find((x) => x.id === id);
+      if (
+        !window.confirm(
+          `Excluir o bloco "${g?.title || "sem nome"}"? Os cards de dentro continuam no canvas, só saem do bloco.`,
+        )
+      ) {
+        return;
+      }
+      deleteGroup(id);
+    },
+    [groups, deleteGroup],
   );
 
   // ---- versões salvas do canvas (Rodada 7.7) ----
@@ -1005,7 +1030,7 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
       }
       if ((e.key === "Delete" || e.key === "Backspace") && selectedGroupId) {
         e.preventDefault();
-        deleteGroup(selectedGroupId);
+        confirmDeleteGroup(selectedGroupId);
       }
       if (e.key === "Delete" || e.key === "Backspace") {
         // Anotação selecionada nativamente pelo RF — via tecla, além do
@@ -1025,11 +1050,49 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [undo, clearSelection, selectedGroupId, deleteGroup, deleteShape, pushUndo]);
+  }, [undo, clearSelection, selectedGroupId, confirmDeleteGroup, deleteShape, pushUndo]);
+
+  /** Acha a conexão manual mais próxima de um ponto (coordenadas do canvas), dentro de um raio. */
+  const edgeNearPoint = useCallback((p: Pos, thresholdFlow: number) => {
+    const centerOf = (id: string): Pos | null => {
+      const n = nodesRef.current.find((nd) => nd.id === id);
+      if (!n) return null;
+      if (n.type === "area" || n.type === "action") {
+        const size = NODE_SIZE[n.type as "area" | "action"];
+        return { x: n.position.x + size.width / 2, y: n.position.y + size.height / 2 };
+      }
+      const w = (n.width as number) ?? 0;
+      const h = (n.height as number) ?? 0;
+      return { x: n.position.x + w / 2, y: n.position.y + h / 2 };
+    };
+    for (const l of linksRef.current) {
+      const a = centerOf(l.source);
+      const b = centerOf(l.target);
+      if (a && b && distToSegment(p, a, b) <= thresholdFlow) return l.id;
+    }
+    return null;
+  }, []);
 
   const onNodeClick = useCallback(
-    (_: unknown, node: Node) => {
+    (event: { clientX: number; clientY: number } | null, node: Node) => {
       if (node.type === "group") {
+        // o corpo do bloco cobre a área toda e captura o clique antes de
+        // qualquer conexão por baixo — testa geometricamente se o clique
+        // caiu perto de uma linha ANTES de tratar como "selecionar o bloco".
+        // (sem evento de mouse — ativação por teclado — pula essa checagem.)
+        const hitEdgeId = event
+          ? (() => {
+              const p = screenToFlowPosition({ x: event.clientX, y: event.clientY });
+              const p2 = screenToFlowPosition({ x: event.clientX + 14, y: event.clientY });
+              const thresholdFlow = Math.hypot(p2.x - p.x, p2.y - p.y) || 14;
+              return edgeNearPoint(p, thresholdFlow);
+            })()
+          : null;
+        if (hitEdgeId) {
+          setEdges((es) => es.map((e) => ({ ...e, selected: e.id === hitEdgeId })));
+          setSelectedGroupId(null);
+          return;
+        }
         setSelectedGroupId((node.data as { groupId: string }).groupId);
         setSelected(null);
         return;
@@ -1044,7 +1107,7 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
       }
       setSelected(node as PdiNode);
     },
-    [],
+    [screenToFlowPosition, edgeNearPoint, setEdges],
   );
 
   // Equivalente de teclado ao clique: card de área/ação recebe foco via Tab
@@ -1080,6 +1143,16 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
     if (!el) return;
     const onDbl = (e: MouseEvent) => {
       const p = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+      const p2 = screenToFlowPosition({ x: e.clientX + 14, y: e.clientY });
+      const thresholdFlow = Math.hypot(p2.x - p.x, p2.y - p.y) || 14;
+      // clicou perto de uma conexão (linha/seta) dentro do bloco — seleciona
+      // ela, não rouba pro bloco como "espaço vazio".
+      const hitEdgeId = edgeNearPoint(p, thresholdFlow);
+      if (hitEdgeId) {
+        setEdges((es) => es.map((e2) => ({ ...e2, selected: e2.id === hitEdgeId })));
+        setSelectedGroupId(null);
+        return;
+      }
       const hit = nodesRef.current
         .filter((n) => n.type === "group")
         .map((n) => ({ n, area: ((n.width as number) ?? 1) * ((n.height as number) ?? 1) }))
@@ -1118,7 +1191,7 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
     };
     el.addEventListener("dblclick", onDbl);
     return () => el.removeEventListener("dblclick", onDbl);
-  }, [screenToFlowPosition]);
+  }, [screenToFlowPosition, edgeNearPoint, setEdges]);
 
   const selectedGroup = groups.find((g) => g.id === selectedGroupId);
 
@@ -1184,11 +1257,11 @@ function Canvas({ pdi }: { pdi: PdiDoc }) {
                 </span>
                 <button
                   type="button"
-                  onClick={() => deleteGroup(selectedGroup.id)}
+                  onClick={() => confirmDeleteGroup(selectedGroup.id)}
                   className="ml-auto rounded px-1.5 py-0.5 font-medium hover:bg-neutral-100"
                   style={{ color: "#DC2626" }}
                 >
-                  ✕ Excluir
+                  ✕ Excluir bloco
                 </button>
               </div>
               <div style={{ color: brand.muted }}>

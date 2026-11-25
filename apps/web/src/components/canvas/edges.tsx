@@ -40,6 +40,7 @@ export function LinkEdge({
         path={path}
         markerEnd={markerEnd}
         style={{ stroke: brand.teal, strokeWidth: selected ? 3 : 2 }}
+        interactionWidth={32}
       />
       {(selected || label) && (
         <EdgeLabelRenderer>
